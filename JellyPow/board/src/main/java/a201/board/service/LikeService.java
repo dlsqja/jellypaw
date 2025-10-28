@@ -1,6 +1,6 @@
 package a201.board.service;
 
-import a201.board.entity.Like;
+import a201.board.data.entity.Like;
 import a201.board.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

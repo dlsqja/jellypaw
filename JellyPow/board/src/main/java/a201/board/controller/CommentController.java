@@ -1,6 +1,6 @@
 package a201.board.controller;
 
-import a201.board.entity.Comment;
+import a201.board.data.entity.Comment;
 import a201.board.service.CommentService;
 import a201.response.ApiResponse;
 import lombok.RequiredArgsConstructor;

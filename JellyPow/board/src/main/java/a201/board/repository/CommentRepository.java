@@ -1,6 +1,6 @@
 package a201.board.repository;
 
-import a201.board.entity.Comment;
+import a201.board.data.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

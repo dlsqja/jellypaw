@@ -1,8 +1,7 @@
 package a201.board.service;
 
-import a201.board.entity.Post;
+import a201.board.data.entity.Post;
 import a201.board.repository.PostRepository;
-import a201.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

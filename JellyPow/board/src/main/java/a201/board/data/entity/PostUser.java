@@ -1,4 +1,4 @@
-package a201.board.entity;
+package a201.board.data.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

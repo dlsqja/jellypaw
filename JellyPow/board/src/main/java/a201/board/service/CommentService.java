@@ -1,6 +1,6 @@
 package a201.board.service;
 
-import a201.board.entity.Comment;
+import a201.board.data.entity.Comment;
 import a201.board.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

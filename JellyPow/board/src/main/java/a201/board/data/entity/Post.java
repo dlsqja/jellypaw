@@ -1,4 +1,4 @@
-package a201.board.entity;
+package a201.board.data.entity;
 
 import a201.board.enums.Category;
 import a201.board.enums.Visibility;
@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "post")
@@ -51,4 +52,15 @@ public class Post {
     @Enumerated(EnumType.STRING)
     @Column
     private Visibility visibility = Visibility.PUBLIC;
+
+
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private List<Comment> comments;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    private List<Like> likes;
+
+    //따로 이미지 삭제 로직 필요
+    @OneToMany(mappedBy = "post")
+    private List<Image> images;
 }

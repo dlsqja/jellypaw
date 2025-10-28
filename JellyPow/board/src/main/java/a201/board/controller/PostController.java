@@ -1,6 +1,6 @@
 package a201.board.controller;
 
-import a201.board.entity.Post;
+import a201.board.data.entity.Post;
 import a201.board.service.PostService;
 import a201.response.ApiResponse;
 import lombok.RequiredArgsConstructor;

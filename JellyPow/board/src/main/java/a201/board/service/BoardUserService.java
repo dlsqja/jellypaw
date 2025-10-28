@@ -1,6 +1,6 @@
 package a201.board.service;
 
-import a201.board.entity.PostUser;
+import a201.board.data.entity.PostUser;
 import a201.board.repository.PostUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

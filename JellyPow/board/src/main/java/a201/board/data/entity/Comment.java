@@ -1,4 +1,4 @@
-package a201.board.entity;
+package a201.board.data.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,9 +35,6 @@ public class Comment {
 
     @Column(nullable = false)
     private String content;
-
-    @Column
-    private Boolean deleted = false;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
