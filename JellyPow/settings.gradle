@@ -2,4 +2,5 @@ rootProject.name = 'JellyPow'
 
 include 'user'
 include 'board'
-include 'common:snowflake'
+include 'reservation'
+include 'common'
