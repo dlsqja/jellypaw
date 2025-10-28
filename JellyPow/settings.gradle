@@ -1,3 +1,4 @@
 rootProject.name = 'JellyPow'
 
 include 'user'
+include 'board'
