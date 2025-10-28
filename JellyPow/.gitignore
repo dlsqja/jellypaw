@@ -35,3 +35,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local Configuration Files ###
+**/application-local.properties
+**/common-local-config.properties
