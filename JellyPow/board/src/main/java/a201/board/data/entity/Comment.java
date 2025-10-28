@@ -26,16 +26,19 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private PostUser userId;
 
+    @Builder.Default
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Comment parent=null;
 
+    @Builder.Default
     @Column(name = "child_count")
     private Integer childCount=0;
 
     @Column(nullable = false)
     private String content;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }
