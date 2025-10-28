@@ -1,5 +1,6 @@
 package a201.board.entity;
 
+import a201.board.enums.Category;
 import a201.board.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,11 +21,13 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private PostUser userId;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
-    private String category;
+    private Category category;
 
     @Column(length = 200, nullable = false)
     private String title;
@@ -35,6 +38,9 @@ public class Post {
 
     @Column(name = "place_id")
     private Long placeId;
+
+    @Column
+    private Long views = 0L;
 
     @Column(name = "star_rating", precision = 2, scale = 1)
     private BigDecimal starRating;

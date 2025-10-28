@@ -1,7 +1,7 @@
 package a201.board.service;
 
-import a201.board.entity.BoardUser;
-import a201.board.repository.BoardUserRepository;
+import a201.board.entity.PostUser;
+import a201.board.repository.PostUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,18 +11,18 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BoardUserService {
 
-    private final BoardUserRepository userRepository;
+    private final PostUserRepository userRepository;
 
-    public BoardUser createUser(BoardUser user) {
+    public PostUser createUser(PostUser user) {
         return userRepository.save(user);
     }
 
-    public BoardUser getUser(Long id) {
+    public PostUser getUser(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    public BoardUser updateUser(BoardUser user) {
+    public PostUser updateUser(PostUser user) {
         return userRepository.save(user);
     }
 

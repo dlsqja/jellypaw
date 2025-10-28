@@ -22,8 +22,9 @@ public class Comment {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private PostUser userId;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
