@@ -34,4 +34,9 @@ out/
 /.nb-gradle/
 
 ### VS Code ###
-.vscode/
+../.vscode/
+../.idea/
+
+### Local Configuration Files ###
+**/application-local.properties
+**/common-local-config.properties
