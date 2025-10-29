@@ -1,6 +1,6 @@
-package a201.response;
+package a201.common.response;
 
-import a201.enums.ErrorCode;
+import a201.common.enums.ErrorCode;
 
 public class ApiResponse<T> {
     private int code;

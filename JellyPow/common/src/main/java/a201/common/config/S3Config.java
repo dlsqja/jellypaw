@@ -1,4 +1,4 @@
-package a201.common.s3;
+package a201.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
