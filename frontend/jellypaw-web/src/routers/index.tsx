@@ -7,7 +7,7 @@ import Pet from '@/pages/Pet/Pet';
 import Search from '@/pages/Search/Search';
 import MobileLayout from '@/layouts/MobileLayout';
 import Menubar from '@/components/menubar/Menubar';
-import Write from '@/pages/Write/write';
+import Write from '@/pages/Write/Write';
 const router = createBrowserRouter([
   {
     path: '/',
