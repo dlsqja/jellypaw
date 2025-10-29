@@ -5,10 +5,13 @@ import Feed from '@/pages/Feed/Feed';
 import Mypage from '@/pages/Mypage/Mypage';
 import Pet from '@/pages/Pet/Pet';
 import Search from '@/pages/Search/Search';
-
+import MobileLayout from '@/layouts/MobileLayout';
+import Menubar from '@/components/menubar/Menubar';
+import Write from '@/pages/Write/write';
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <MobileLayout menuBar={<Menubar />} />,
     children: [
       {
         path: '/feed',
@@ -29,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: '/search',
         element: <Search />,
+      },
+      {
+        path: '/write',
+        element: <Write />,
       },
     ],
   },
