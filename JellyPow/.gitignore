@@ -4,6 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+common/src/main/resources
 
 ### STS ###
 .apt_generated
@@ -34,4 +35,9 @@ out/
 /.nb-gradle/
 
 ### VS Code ###
-.vscode/
+../.vscode/
+../.idea/
+
+### Local Configuration Files ###
+**/application-local.properties
+**/common-local-config.properties

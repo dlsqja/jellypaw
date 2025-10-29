@@ -1,0 +1,12 @@
+package a201.post.repository;
+
+import a201.post.data.entity.Post;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+    List<Post> findByUserId(Long userId);
+
+    Post getPostById(Long id);
+}
