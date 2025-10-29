@@ -28,18 +28,12 @@ public class PostService {
         //이미지 저장 필요
         Post post = postRepository.save(newPost);
 
-        //실패시 throw
     }
 
     public Post getPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
     }
-
-    public List<Post> getPostsByUser(Long userId) {
-        return postRepository.findByUserId(userId);
-    }
-
     public Post updatePost(Post post) {
         return postRepository.save(post);
     }
