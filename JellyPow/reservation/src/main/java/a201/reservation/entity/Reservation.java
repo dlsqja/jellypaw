@@ -1,6 +1,7 @@
 package a201.reservation.entity;
 
 
+import a201.reservation.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,5 +34,9 @@ public class Reservation {
 
     @Column(name = "content", nullable = false)
     private String content;
+
+    @Builder.Default
+    @Column(name = "status")
+    private Status status = Status.WAITING;
 
 }
