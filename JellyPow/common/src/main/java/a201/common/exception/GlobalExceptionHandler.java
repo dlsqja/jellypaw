@@ -1,7 +1,7 @@
-package a201.exception;
+package a201.common.exception;
 
-import a201.enums.ErrorCode;
-import a201.response.ApiResponse;
+import a201.common.enums.ErrorCode;
+import a201.common.response.ApiResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
