@@ -5,6 +5,7 @@ import a201.post.data.entity.Post;
 import a201.post.data.entity.PostUser;
 import a201.post.data.request.PostRequest;
 import a201.post.data.request.PostUpdateRequest;
+import a201.post.data.response.PostResponse;
 import a201.post.enums.Category;
 import a201.post.repository.PostRepository;
 import a201.post.repository.PostUserRepository;
@@ -27,6 +28,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostUserRepository postUserRepository;
     private final S3Service s3Service;
+
+    public PostResponse getPost(Long userId, Long postId) {
+
+        //TODO:: 조회수 추가 로직
+
+
+
+        Post findPost = postRepository.getPostById(postId);
+
+
+        return null;
+    }
 
     public void createPost(Long userId, PostRequest postRequest) {
 

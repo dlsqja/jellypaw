@@ -2,6 +2,7 @@ package a201.post.controller;
 
 import a201.post.data.request.PostRequest;
 import a201.post.data.request.PostUpdateRequest;
+import a201.post.data.response.PostResponse;
 import a201.post.service.PostService;
 import a201.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,15 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
 
     private final PostService postService;
+
+    // TODO:: GET post Visibility 확인/팔로워 유무 확인 필요
+    @GetMapping("/{postId}")
+    public ApiResponse<PostResponse> getPost(@RequestBody Long userId, @PathVariable Long postId) {
+
+        PostResponse postResponse = postService.getPost(userId,postId);
+
+        return ApiResponse.success(postResponse);
+    }
 
     @PostMapping
     public ApiResponse<Void> create(@RequestBody Long userId, @RequestBody PostRequest postRequest) {
@@ -38,5 +48,9 @@ public class PostController {
 
         return ApiResponse.success(null);
     }
+
+
+
+
 }
 
