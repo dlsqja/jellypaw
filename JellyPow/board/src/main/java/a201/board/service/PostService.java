@@ -3,7 +3,6 @@ package a201.board.service;
 import a201.board.data.entity.Post;
 import a201.board.data.entity.PostUser;
 import a201.board.data.request.PostRequest;
-import a201.board.data.response.PostResponse;
 import a201.board.repository.PostRepository;
 import a201.board.repository.PostUserRepository;
 import lombok.RequiredArgsConstructor;
