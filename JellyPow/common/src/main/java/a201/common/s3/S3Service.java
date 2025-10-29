@@ -23,6 +23,8 @@ public class S3Service {
     @Value("${cloud.aws.region.static}")
     private String region;
 
+
+
     // S3에 파일 업로드
     public String uploadFile(MultipartFile file, String directory) {
         if (file == null || file.isEmpty()) {
@@ -45,7 +47,7 @@ public class S3Service {
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
 
             // 업로드된 파일의 URL 반환
-            return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
+            return fileName;
 
         } catch (IOException e) {
             throw new RuntimeException("파일 업로드 실패: " + e.getMessage());
@@ -62,6 +64,11 @@ public class S3Service {
         return uploadFile(file, "background");
     }
 
+    // 게시글 이미지 업로드
+    public String uploadPostImage(MultipartFile file,String category) {
+        return uploadFile(file, "post"+"/"+category);
+    }
+
     // S3에서 파일 삭제
     public void deleteFile(String fileUrl) {
         if (fileUrl == null || fileUrl.isEmpty()) {
@@ -69,14 +76,10 @@ public class S3Service {
         }
 
         try {
-            // URL에서 파일 키 추출
-            // 예: https://bucket.s3.region.amazonaws.com/profile/uuid.jpg -> profile/uuid.jpg
-            String key = extractKeyFromUrl(fileUrl);
-            
-            if (key != null) {
+            if (fileUrl != null) {
                 s3Client.deleteObject(builder -> builder
                         .bucket(bucketName)
-                        .key(key)
+                        .key(fileUrl)
                         .build());
             }
         } catch (Exception e) {
