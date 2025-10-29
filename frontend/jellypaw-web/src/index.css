@@ -4,110 +4,128 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 타이포그래피 클래스 */
-.h1 {
-  font-weight: 800; /* extrabold */
-  font-size: 3rem; /* text-5xl */
-  line-height: 1;
+@layer utilities {
+  /* 타이포그래피 클래스 */
+  .h1 {
+    font-weight: 800; /* extrabold */
+    font-size: 3rem; /* text-5xl */
+    line-height: 1;
+  }
+
+  .h2-b {
+    font-weight: 700; /* bold */
+    font-size: 1.875rem; /* text-3xl */
+    line-height: 1;
+  }
+
+  .h3-b {
+    font-weight: 700; /* bold */
+    font-size: 1.5rem; /* text-2xl */
+    line-height: 1;
+  }
+
+  .h4-b {
+    font-weight: 700; /* bold */
+    font-size: 1.25rem; /* text-xl */
+    line-height: 1;
+  }
+
+  .h5-b {
+    font-weight: 700; /* bold */
+    font-size: 1rem; /* text-base */
+    line-height: 1;
+  }
+
+  .p1-b {
+    font-weight: 600; /* semibold */
+    font-size: 1rem; /* text-base */
+    line-height: 1;
+  }
+
+  .p2-b {
+    font-weight: 600; /* semibold */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1;
+  }
+
+  .p3-b {
+    font-weight: 600; /* semibold */
+    font-size: 0.75rem; /* text-xs */
+    line-height: 1;
+  }
+
+  .caption1 {
+    font-weight: 400;
+    font-size: 0.75rem; /* 12px */
+    line-height: 1;
+  }
+
+  .caption2 {
+    font-weight: 400;
+    font-size: 0.625rem; /* 10px */
+    line-height: 1;
+  }
+
+  .h2-m {
+    font-weight: 500; /* medium */
+    font-size: 1.875rem; /* text-3xl */
+    line-height: 1;
+  }
+
+  .h3-m {
+    font-weight: 500; /* medium */
+    font-size: 1.5rem; /* text-2xl */
+    line-height: 1;
+  }
+
+  .h4-m {
+    font-weight: 500; /* medium */
+    font-size: 1.25rem; /* text-xl */
+    line-height: 1;
+  }
+
+  .h5-m {
+    font-weight: 500; /* medium */
+    font-size: 1rem; /* text-base */
+    line-height: 1;
+  }
+
+  .p1-m {
+    font-weight: 400; /* normal */
+    font-size: 1rem; /* text-base */
+    line-height: 1;
+  }
+
+  .p2-m {
+    font-weight: 400; /* normal */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1;
+  }
+
+  .p3-m {
+    font-weight: 400; /* normal */
+    font-size: 0.75rem; /* text-xs */
+    line-height: 1;
+  }
+
+  .p1 {
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .p2 {
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .p3 {
+    font-weight: 400;
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
 }
-
-.h2-b {
-  font-weight: 700; /* bold */
-  font-size: 1.875rem; /* text-3xl */
-  line-height: 1;
-}
-
-.h3-b {
-  font-weight: 700; /* bold */
-  font-size: 1.5rem; /* text-2xl */
-  line-height: 1;
-}
-
-.h4-b {
-  font-weight: 700; /* bold */
-  font-size: 1.25rem; /* text-xl */
-  line-height: 1;
-}
-
-.h5-b {
-  font-weight: 700; /* bold */
-  font-size: 1rem; /* text-base */
-  line-height: 1;
-}
-
-.p1-b {
-  font-weight: 600; /* semibold */
-  font-size: 1rem; /* text-base */
-  line-height: 1;
-}
-
-.p2-b {
-  font-weight: 600; /* semibold */
-  font-size: 0.875rem; /* text-sm */
-  line-height: 1;
-}
-
-.p3-b {
-  font-weight: 600; /* semibold */
-  font-size: 0.75rem; /* text-xs */
-  line-height: 1;
-}
-
-.caption1 {
-  font-weight: 400;
-  font-size: 0.75rem; /* 12px */
-  line-height: 1;
-}
-
-.caption2 {
-  font-weight: 400;
-  font-size: 0.625rem; /* 10px */
-  line-height: 1;
-}
-
-.h2-m {
-  font-weight: 500; /* medium */
-  font-size: 1.875rem; /* text-3xl */
-  line-height: 1;
-}
-
-.h3-m {
-  font-weight: 500; /* medium */
-  font-size: 1.5rem; /* text-2xl */
-  line-height: 1;
-}
-
-.h4-m {
-  font-weight: 500; /* medium */
-  font-size: 1.25rem; /* text-xl */
-  line-height: 1;
-}
-
-.h5-m {
-  font-weight: 500; /* medium */
-  font-size: 1rem; /* text-base */
-  line-height: 1;
-}
-
-.p1-m {
-  font-weight: 400; /* normal */
-  font-size: 1rem; /* text-base */
-  line-height: 1;
-}
-
-.p2-m {
-  font-weight: 400; /* normal */
-  font-size: 0.875rem; /* text-sm */
-  line-height: 1;
-}
-
-.p3-m {
-  font-weight: 400; /* normal */
-  font-size: 0.75rem; /* text-xs */
-  line-height: 1;
-}
-
-
 
 @layer base {
   :root {
@@ -164,8 +182,6 @@
     --chart-5: 340 75% 55%;
   }
 }
-
-
 
 @layer base {
   * {
