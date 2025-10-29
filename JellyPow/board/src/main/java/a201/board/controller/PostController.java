@@ -1,7 +1,10 @@
 package a201.board.controller;
 
 import a201.board.data.entity.Post;
+import a201.board.data.request.PostRequest;
+import a201.board.data.response.PostResponse;
 import a201.board.service.PostService;
+import a201.enums.ErrorCode;
 import a201.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +19,12 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ApiResponse<Post> create(@RequestBody Post post) {
-        return ApiResponse.success(postService.createPost(post));
+    public ApiResponse<Void> create(@RequestBody Long userId, @RequestBody PostRequest postRequest) {
+
+        postService.createPost(userId, postRequest);
+
+        return ApiResponse.success(null);
+
     }
 
     @GetMapping("/{id}")

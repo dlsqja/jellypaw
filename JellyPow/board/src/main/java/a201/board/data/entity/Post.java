@@ -1,5 +1,6 @@
 package a201.board.data.entity;
 
+import a201.board.data.response.PostResponse;
 import a201.board.enums.Category;
 import a201.board.enums.Visibility;
 import jakarta.persistence.*;
@@ -65,4 +66,5 @@ public class Post {
     //따로 이미지 삭제 로직 필요
     @OneToMany(mappedBy = "post")
     private List<Image> images;
+
 }

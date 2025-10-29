@@ -1,5 +1,6 @@
 package a201.board.data.request;
 
+import a201.board.data.entity.Post;
 import a201.board.enums.Category;
 import a201.board.enums.Visibility;
 import lombok.*;
@@ -24,8 +25,17 @@ public class PostRequest {
 
     private BigDecimal starRating;
 
-    @Builder.Default
-    private Visibility visibility = Visibility.PUBLIC;
+    private Visibility visibility;
 
-    private List<String> imageUrls;
+    public Post toEntity(){
+
+        return Post.builder()
+                .title(title)
+                .content(content)
+                .placeId(placeId)
+                .starRating(starRating)
+                .visibility(visibility)
+                .category(category)
+                .build();
+    }
 }

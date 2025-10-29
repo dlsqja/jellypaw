@@ -1,7 +1,11 @@
 package a201.board.service;
 
 import a201.board.data.entity.Post;
+import a201.board.data.entity.PostUser;
+import a201.board.data.request.PostRequest;
+import a201.board.data.response.PostResponse;
 import a201.board.repository.PostRepository;
+import a201.board.repository.PostUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +18,18 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostUserRepository postUserRepository;
 
-    public Post createPost(Post post) {
-        return postRepository.save(post);
+    public void createPost(Long userId, PostRequest postRequest) {
+
+        Post newPost = postRequest.toEntity();
+        PostUser postUser = postUserRepository.findByUserId(userId);
+        newPost.setUserId(postUser);
+
+        //이미지 저장 필요
+        Post post = postRepository.save(newPost);
+
+        //실패시 throw
     }
 
     public Post getPost(Long postId) {
