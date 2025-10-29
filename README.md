@@ -12,12 +12,14 @@ npm install react-native-webvie
 
 ```
 frontend/
-├── jellypaw-web/        (지금 만들 React Vite 프로젝트)
+├── jellypaw-web/        (React - 웹)
 │   ├── src/
 │   └── public/
 │
-└── jellypaw/        (나중에 만들 React Native 프로젝트)
+└── jellypaw/        ( React Native - 앱)
     ├── App.tsx          (WebView로 jellypaw-web 로드)
     ├── CameraScreen.tsx (네이티브 카메라 기능)
     └── PushNotification.tsx (푸시 알림 기능)
 ```
+
+- 이후에 웹 부분을 앱에서 web-view로 만들 예정
