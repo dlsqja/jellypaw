@@ -1,9 +1,6 @@
 package a201.post.data.response;
 
-import a201.post.data.entity.Comment;
-import a201.post.data.entity.Image;
-import a201.post.data.entity.Like;
-import a201.post.data.entity.PostUser;
+import a201.post.data.entity.*;
 import a201.post.enums.Category;
 import a201.post.enums.Visibility;
 import jakarta.persistence.*;
@@ -36,7 +33,17 @@ public class PostResponse {
     private List<String> images;
 
 
-
+    public static PostResponse fromEntity(Post post) {
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .placeId(post.getPlaceId())
+                .postUser(post.getUserId())
+                .starRating(post.getStarRating())
+                .createdAt(post.getCreatedAt())
+                .build();
+    }
 
 
 }

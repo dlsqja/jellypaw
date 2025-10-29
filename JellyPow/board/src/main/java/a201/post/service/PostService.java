@@ -7,6 +7,7 @@ import a201.post.data.request.PostRequest;
 import a201.post.data.request.PostUpdateRequest;
 import a201.post.data.response.PostResponse;
 import a201.post.enums.Category;
+import a201.post.enums.Visibility;
 import a201.post.repository.PostRepository;
 import a201.post.repository.PostUserRepository;
 import a201.common.s3.S3Service;
@@ -31,14 +32,23 @@ public class PostService {
 
     public PostResponse getPost(Long userId, Long postId) {
 
-        //TODO:: 조회수 추가 로직
-
-
-
         Post findPost = postRepository.getPostById(postId);
+        Visibility visibility =  findPost.getVisibility();
 
+        if(visibility == Visibility.PRIVATE){
+            if(!findPost.getUserId().equals(userId)){
+                throw new RuntimeException();
+            }
+        }
 
-        return null;
+        PostResponse postResponse = PostResponse.fromEntity(findPost);
+        List<String> imageLinks = findPost.getImages().stream()
+                .map(Image::getImageLink)
+                .toList();
+        postResponse.setImages(imageLinks);
+        //TODO:: 조회수 추가 이벤트 발생
+
+        return postResponse;
     }
 
     public void createPost(Long userId, PostRequest postRequest) {
