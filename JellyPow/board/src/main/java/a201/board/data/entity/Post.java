@@ -63,7 +63,9 @@ public class Post {
     private List<Like> likes;
 
     //따로 이미지 삭제 로직 필요
-    @OneToMany(mappedBy = "post")
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE,orphanRemoval = true)
     private List<Image> images;
+
+
 
 }
