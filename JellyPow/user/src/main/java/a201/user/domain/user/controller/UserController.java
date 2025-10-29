@@ -28,26 +28,26 @@ public class UserController {
         }
     }
 
-    //프로필 수정
-    @PutMapping(value = "/profile/{user_id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserSignupResponse> updateProfile(
-            @PathVariable Long user_id,
-            @RequestPart("data") UserRequest request,
-            @RequestPart(value = "profileImg", required = false) MultipartFile profileImg,
-            @RequestPart(value = "backgroundImg", required = false) MultipartFile backgroundImg) {
-        try {
-            UserSignupResponse response = userService.updateProfile(user_id, request, profileImg, backgroundImg);
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        }
-    }
-
     //닉네임 중복 체크
     @GetMapping("/check-nickname")
     public ResponseEntity<Boolean> checkNicknameDuplicate(@RequestParam String nickname) {
-        boolean isDuplicate = userService.isNicknameDuplicate(nickname);
+		boolean isDuplicate = userService.isNicknameDuplicate(nickname);
         return ResponseEntity.ok(isDuplicate);
     }
+
+	//프로필 수정
+	@PutMapping(value = "/profile/{user_id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<UserSignupResponse> updateProfile(
+			@PathVariable Long user_id,
+			@RequestPart("data") UserRequest request,
+			@RequestPart(value = "profileImg", required = false) MultipartFile profileImg,
+			@RequestPart(value = "backgroundImg", required = false) MultipartFile backgroundImg) {
+		try {
+			UserSignupResponse response = userService.updateProfile(user_id, request, profileImg, backgroundImg);
+			return ResponseEntity.ok(response);
+		} catch (IllegalArgumentException e) {
+			throw e;
+		}
+	}
 }
 

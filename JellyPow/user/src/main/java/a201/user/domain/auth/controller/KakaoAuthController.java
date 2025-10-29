@@ -12,9 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
@@ -26,18 +27,35 @@ public class KakaoAuthController {
     private final AuthRepository authRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+	private final String SignupUrl = "http://localhost:8000/api/auth/kakao/callback";
 
     // 카카오 로그인 처리 (POST)
     @PostMapping("/kakao")
-    public ResponseEntity<KakaoLoginResponse> kakaoLoginPost(@RequestParam String code) {
-        return processKakaoLogin(code);
+    public ResponseEntity<KakaoLoginResponse> kakaoLoginPost(
+		@RequestParam String code,
+		HttpServletResponse response
+		) throws IOException {
+			ResponseEntity<KakaoLoginResponse> res = processKakaoLogin(code);
+		if (res.getBody().isNeedSignup()) {
+			response.sendRedirect(SignupUrl);
+		}
+			
+        return res;
     }
 
     // 카카오 콜백 처리 (GET) - 카카오가 직접 호출
     @GetMapping("/kakao/callback")
-    public ResponseEntity<KakaoLoginResponse> kakaoLoginCallback(@RequestParam String code) {
-        return processKakaoLogin(code);
-    }
+    public ResponseEntity<KakaoLoginResponse> kakaoLoginCallback(
+		@RequestParam String code,
+		HttpServletResponse response
+		) throws IOException {
+			ResponseEntity<KakaoLoginResponse> res = processKakaoLogin(code);
+		if (res.getBody().isNeedSignup()) {
+			response.sendRedirect(SignupUrl);
+		}
+		
+		return res;
+	}
 
     // 실제 로그인 처리 로직
     private ResponseEntity<KakaoLoginResponse> processKakaoLogin(String code) {
