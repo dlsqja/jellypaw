@@ -16,7 +16,7 @@ frontend/
 │   ├── src/
 │   └── public/
 │
-└── jellypaw-app/        (나중에 만들 React Native 프로젝트)
+└── jellypaw/        (나중에 만들 React Native 프로젝트)
     ├── App.tsx          (WebView로 jellypaw-web 로드)
     ├── CameraScreen.tsx (네이티브 카메라 기능)
     └── PushNotification.tsx (푸시 알림 기능)
