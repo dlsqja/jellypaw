@@ -4,6 +4,7 @@ import a201.board.data.entity.Post;
 import a201.board.enums.Category;
 import a201.board.enums.Visibility;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -26,6 +27,8 @@ public class PostRequest {
     private BigDecimal starRating;
 
     private Visibility visibility;
+
+    private List<MultipartFile> newImages;
 
     public Post toEntity(){
 

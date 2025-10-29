@@ -25,14 +25,19 @@ public class PostController {
 
     }
 
-    @PutMapping
-    public ApiResponse<Post> update(@RequestBody Post post) {
-        return ApiResponse.success(postService.updatePost(post));
+    @PutMapping("/{postId}")
+    public ApiResponse<Void> update(@RequestBody Long userId, @PathVariable Long postId,@RequestBody PostRequest postRequest,@RequestBody List<String> removeImages) {
+
+        postService.updatePost(userId,postId,postRequest,removeImages);
+
+        return ApiResponse.success(null);
     }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> delete(@PathVariable Long id) {
-        postService.deletePost(id);
+    @DeleteMapping("/{postId}")
+    public ApiResponse<Void> delete(@PathVariable Long userId,@PathVariable Long postId) {
+
+        postService.deletePost(userId,postId);
+
         return ApiResponse.success(null);
     }
 }
