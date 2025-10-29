@@ -54,11 +54,6 @@ public class PostService {
 
         // 업데이트 이벤트 발생
     }
-<<<<<<< HEAD
-    public Post updatePost(Post post) {
-        return postRepository.save(post);
-    }
-=======
 
     public void deletePost(Long userId, Long postId) {
 
@@ -67,7 +62,6 @@ public class PostService {
         if(!post.getImages().isEmpty()){
             //s3 이미지 삭제 로직
         }
->>>>>>> backend/dev/board
 
         postRepository.deleteById(postId);
 
