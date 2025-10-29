@@ -11,7 +11,7 @@ npm install react-native-webvie
 ### 2. 예상 폴더구조
 
 ```
-Frontend/
+frontend/
 ├── jellypaw-web/        (지금 만들 React Vite 프로젝트)
 │   ├── src/
 │   └── public/
