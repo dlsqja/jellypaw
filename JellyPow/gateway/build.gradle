@@ -1,0 +1,21 @@
+ext {
+    set('springCloudVersion', "2023.0.3")
+}
+
+dependencies {
+    // Gateway (WebFlux 기반)
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    
+    // Security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    
+    // Test
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
