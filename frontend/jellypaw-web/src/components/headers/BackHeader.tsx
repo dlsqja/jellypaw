@@ -1,13 +1,15 @@
-export default function BackHeader() {
+import { IoArrowBack } from 'react-icons/io5';
+
+interface BackHeaderProps {
+  title: string;
+}
+
+export default function BackHeader({ title }: BackHeaderProps) {
   return (
-    <div className="w-80 h-16 relative bg-gray-100">
-      <div className="w-80 h-16 left-0 top-0 absolute inline-flex justify-between items-center">
-        <div className="w-9 h-7 relative">
-          <div className="w-9 h-7 left-0 top-0 absolute inline-flex justify-start items-center">
-            <div className="justify-center text-gray-700 text-xl font-bold font-['Pretendard'] leading-7">피드</div>
-          </div>
-        </div>
-        <div className="w-[0.01px] h-[0.01px]" />
+    <div className="w-full h-16 bg-gray-100 flex items-center ps-4">
+      <div className="flex items-center gap-4">
+        <IoArrowBack size={20} color="#284542" className="mr-2" />
+        <div className="text-aqua-500 h4-b">{title}</div>
       </div>
     </div>
   );
