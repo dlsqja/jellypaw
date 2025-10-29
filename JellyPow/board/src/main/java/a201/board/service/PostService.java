@@ -4,8 +4,10 @@ import a201.board.data.entity.Image;
 import a201.board.data.entity.Post;
 import a201.board.data.entity.PostUser;
 import a201.board.data.request.PostRequest;
+import a201.board.data.request.PostUpdateRequest;
 import a201.board.repository.PostRepository;
 import a201.board.repository.PostUserRepository;
+import a201.common.s3.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostUserRepository postUserRepository;
+    private final S3Service s3Service;
 
     public void createPost(Long userId, PostRequest postRequest) {
 
@@ -29,26 +32,25 @@ public class PostService {
         PostUser postUser = postUserRepository.findByUserId(userId);
         newPost.setUserId(postUser);
 
-        // S3 이미지 저장 필요
         List<MultipartFile> images = postRequest.getNewImages();
         if(images.isEmpty()){
 
         }
 
-        Post post = postRepository.save(newPost);
+        postRepository.save(newPost);
 
         //생성 이벤트 발생
     }
 
-    public void updatePost(Long userId, Long postId, PostRequest postRequest,List<String> removeImages) {
+    public void updatePost(Long userId, Long postId, PostUpdateRequest postRequest) {
 
         Post post = postRepository.getPostById(postId);
         List<Image> images = post.getImages();
-        Set<String> removeImageSet = new HashSet<>(removeImages);
+        Set<String> removeImageSet = new HashSet<>(postRequest.getRemoveImages());
 
         images.removeIf(image -> removeImageSet.contains(image.getImageLink()));
 
-        for(String removeImage : removeImages) {
+        for(String removeImage : postRequest.getRemoveImages()) {
             // 이미지 s3 삭제 로직
         }
 
@@ -59,7 +61,8 @@ public class PostService {
 
         Post post = postRepository.getPostById(postId);
 
-        if(!post.getImages().isEmpty()){
+        List<Image> images = post.getImages();
+        if(!images.isEmpty()){
             //s3 이미지 삭제 로직
         }
 

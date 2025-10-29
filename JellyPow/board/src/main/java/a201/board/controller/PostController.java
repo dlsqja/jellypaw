@@ -2,6 +2,7 @@ package a201.board.controller;
 
 import a201.board.data.entity.Post;
 import a201.board.data.request.PostRequest;
+import a201.board.data.request.PostUpdateRequest;
 import a201.board.service.PostService;
 import a201.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +27,9 @@ public class PostController {
     }
 
     @PutMapping("/{postId}")
-    public ApiResponse<Void> update(@RequestBody Long userId, @PathVariable Long postId,@RequestBody PostRequest postRequest,@RequestBody List<String> removeImages) {
+    public ApiResponse<Void> update(@RequestBody Long userId, @PathVariable Long postId, @RequestBody PostUpdateRequest postRequest) {
 
-        postService.updatePost(userId,postId,postRequest,removeImages);
+        postService.updatePost(userId,postId,postRequest);
 
         return ApiResponse.success(null);
     }
