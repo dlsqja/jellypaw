@@ -1,7 +1,7 @@
 package a201.user.domain.public_api.controller;
 
-import a201.exception.CustomException;
-import a201.response.ApiResponse;
+import a201.common.exception.CustomException;
+import a201.common.response.ApiResponse;
 import a201.user.domain.user.dto.UserRequest;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.service.UserService;

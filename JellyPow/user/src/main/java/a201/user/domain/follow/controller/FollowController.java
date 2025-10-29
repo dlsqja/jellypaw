@@ -1,7 +1,7 @@
 package a201.user.domain.follow.controller;
 
-import a201.response.ApiResponse;
-import a201.exception.CustomException;
+import a201.common.response.ApiResponse;
+import a201.common.exception.CustomException;
 import a201.user.domain.follow.dto.FollowUserResponse;
 import a201.user.domain.follow.service.FollowService;
 import lombok.RequiredArgsConstructor;

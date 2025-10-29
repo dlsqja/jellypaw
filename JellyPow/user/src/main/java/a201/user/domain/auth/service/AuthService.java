@@ -1,7 +1,7 @@
 package a201.user.domain.auth.service;
 
-import a201.enums.ErrorCode;
-import a201.exception.CustomException;
+import a201.common.enums.ErrorCode;
+import a201.common.exception.CustomException;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import lombok.RequiredArgsConstructor;

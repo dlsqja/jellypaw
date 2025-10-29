@@ -1,7 +1,7 @@
 package a201.user.domain.follow.service;
 
-import a201.enums.ErrorCode;
-import a201.exception.CustomException;
+import a201.common.enums.ErrorCode;
+import a201.common.exception.CustomException;
 import a201.user.domain.follow.dto.FollowUserResponse;
 import a201.user.domain.follow.entity.Follow;
 import a201.user.domain.follow.repository.FollowRepository;

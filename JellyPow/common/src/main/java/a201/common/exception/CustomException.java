@@ -1,7 +1,7 @@
-package a201.exception;
+package a201.common.exception;
 
+import a201.common.enums.ErrorCode;
 import lombok.Getter;
-import a201.enums.ErrorCode;
 
 @Getter
 public class CustomException extends RuntimeException {

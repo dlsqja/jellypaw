@@ -1,6 +1,6 @@
 package a201.user.domain.auth.controller;
 
-import a201.response.ApiResponse;
+import a201.common.response.ApiResponse;
 import a201.user.domain.auth.dto.KakaoLoginResponse;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
