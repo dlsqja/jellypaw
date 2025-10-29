@@ -7,6 +7,8 @@ import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import a201.common.s3.S3Service;
+import a201.enums.ErrorCode;
+import a201.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +29,12 @@ public class UserService {
        
         //1. 닉네임 중복 체크
         if (userRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다: " + request.getNickname());
+            throw new CustomException(ErrorCode.ALREADY_EXISTS_NICKNAME);
         }
 
         // 2. Auth가 맞는지 체크하고 없으면 예외 발생
         Auth auth = authRepository.findByEmail(request.getEmail())
-		.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다: " + request.getEmail()));
+		.orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_FOUND));
 
         // 3. User 생성
         User user = User.builder()
@@ -52,7 +54,7 @@ public class UserService {
     public UserSignupResponse updateProfile(Long userId, UserRequest request, MultipartFile profileImg, MultipartFile backgroundImg) {
         // 1. userId로 사용자 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 프로필 이미지 처리
         String profileImgUrl = user.getProfileImg();
@@ -108,13 +110,13 @@ public class UserService {
     // userId로 User 조회
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
     // nickname으로 User 조회
     public User getUserByNickname(String nickname) {
         return userRepository.findByNickname(nickname)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + nickname));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }
 

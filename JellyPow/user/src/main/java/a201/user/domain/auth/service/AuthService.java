@@ -1,5 +1,7 @@
 package a201.user.domain.auth.service;
 
+import a201.enums.ErrorCode;
+import a201.exception.CustomException;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,7 @@ public class AuthService {
     public Auth createAuth(String email) {
         // 이메일 중복 체크
         if (authRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다: " + email);
+            throw new CustomException(ErrorCode.ALREADY_EXISTS_EMAIL);
         }
 
         Auth auth = Auth.builder()

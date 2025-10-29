@@ -1,5 +1,6 @@
 package a201.user.domain.auth.controller;
 
+import a201.response.ApiResponse;
 import a201.user.domain.auth.dto.KakaoLoginResponse;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
@@ -31,34 +32,33 @@ public class KakaoAuthController {
 
     // 카카오 로그인 처리 (POST)
     @PostMapping("/kakao")
-    public ResponseEntity<KakaoLoginResponse> kakaoLoginPost(
+    public ApiResponse<KakaoLoginResponse> kakaoLoginPost(
 		@RequestParam String code,
 		HttpServletResponse response
-		) throws IOException {
-			ResponseEntity<KakaoLoginResponse> res = processKakaoLogin(code);
-		if (res.getBody().isNeedSignup()) {
+		) throws Exception {
+			KakaoLoginResponse res = processKakaoLogin(code);
+		if (res.isNeedSignup()) {
 			response.sendRedirect(SignupUrl);
 		}
-			
-        return res;
+        return ApiResponse.success(res);
     }
 
     // 카카오 콜백 처리 (GET) - 카카오가 직접 호출
     @GetMapping("/kakao/callback")
-    public ResponseEntity<KakaoLoginResponse> kakaoLoginCallback(
+    	public ApiResponse<KakaoLoginResponse> kakaoLoginCallback(
 		@RequestParam String code,
 		HttpServletResponse response
-		) throws IOException {
-			ResponseEntity<KakaoLoginResponse> res = processKakaoLogin(code);
-		if (res.getBody().isNeedSignup()) {
+		) throws Exception {
+			KakaoLoginResponse res = processKakaoLogin(code);
+		if (res.isNeedSignup()) {
 			response.sendRedirect(SignupUrl);
 		}
 		
-		return res;
+		return ApiResponse.success(res);
 	}
 
     // 실제 로그인 처리 로직
-    private ResponseEntity<KakaoLoginResponse> processKakaoLogin(String code) {
+    private KakaoLoginResponse processKakaoLogin(String code) throws IOException {
         try {
             // 1. 카카오 인증 코드로 액세스 토큰 받기
             String accessToken = kakaoAuthService.getAccessToken(code);
@@ -78,11 +78,11 @@ public class KakaoAuthController {
                 // Auth 없음 → 처음 사용 → Auth 생성 후 회원가입 필요
                 Auth newAuth = authService.createAuth(email);
                 
-                return ResponseEntity.ok(KakaoLoginResponse.builder()
+                return KakaoLoginResponse.builder()
                         .needSignup(true)
                         .authId(newAuth.getAuthId())
                         .email(email)
-                        .build());
+                        .build();
             }
 
             // 4. Auth 있음 → User 테이블 확인
@@ -91,23 +91,23 @@ public class KakaoAuthController {
 
             if (userOptional.isEmpty()) {
                 // User 없음 → 회원가입 필요
-                return ResponseEntity.ok(KakaoLoginResponse.builder()
+                return KakaoLoginResponse.builder()
                         .needSignup(true)
                         .authId(auth.getAuthId())
                         .email(email)
-                        .build());
+                        .build();
             }
 
             // 5. User 있음 → 로그인 성공
             User user = userOptional.get();
             UserSignupResponse userResponse = UserSignupResponse.from(user);
 
-            return ResponseEntity.ok(KakaoLoginResponse.builder()
+            return KakaoLoginResponse.builder()
                     .needSignup(false)
                     .authId(auth.getAuthId())
                     .email(email)
                     .user(userResponse)
-                    .build());
+                    .build();
 
         } catch (Exception e) {
             log.error("카카오 로그인 실패", e);
