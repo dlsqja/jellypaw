@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 public class ReservationRequest {
 
-    private Long user_id;
-    private Long place_id;
+    private Long userId;
     private LocalDate date;
     private Integer time;
     private String content;

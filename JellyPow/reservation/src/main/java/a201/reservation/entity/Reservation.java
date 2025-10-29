@@ -20,11 +20,10 @@ public class Reservation {
     private Long id;
 
     @Column(name = "place_id", nullable = false)
-    private Long place_id;
+    private Long placeId;
 
     @Column(name = "user_id", nullable = false)
-    private Long user_id;
-
+    private Long userId;
 
     @Column(name = "date", nullable = false)
     private LocalDate date;
@@ -32,7 +31,7 @@ public class Reservation {
     @Column(name = "time", nullable = false)
     private Integer time; //0~47
 
-    @Column(name = "content", nullable = true)
+    @Column(name = "content", nullable = false)
     private String content;
 
 }
