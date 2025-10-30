@@ -89,24 +89,24 @@ export default function Article({
               </div>
 
               {/* 이미지 슬라이더 - carousel 사용 */}
-              <Carousel setApi={setApi} className="w-full">
+              <Carousel setApi={setApi} className="w-full relative">
                 <CarouselContent>
                   {imageUrls.map((url, index) => (
                     <CarouselItem key={index}>
                       <div className="w-77 h-64 relative rounded-[12px]">
                         <img className="w-77 h-64 rounded-[12px] object-cover" src={url} alt={`${title} - 이미지 ${index + 1}`} />
+                        {/* 이미지 카운터 */}
+                        {imageUrls.length > 1 && (
+                          <div className="w-9 h-6 px-2 py-1 absolute bottom-2 right-2 bg-black/60 rounded-full flex items-center pointer-events-none z-10">
+                            <div className="text-aqua-100 p3">
+                              {current + 1}/{imageUrls.length}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                {/* 이미지 카운터 */}
-                {imageUrls.length > 1 && (
-                  <div className="w-9 h-6 px-2 py-1 absolute bottom-2 right-2 bg-black/60 rounded-full flex items-center pointer-events-none">
-                    <div className="text-aqua-100 p3">
-                      {current + 1}/{imageUrls.length}
-                    </div>
-                  </div>
-                )}
                 {/* 이미지 인디케이터 */}
                 {imageUrls.length > 1 && (
                   <div className="pt-3 flex justify-center">
