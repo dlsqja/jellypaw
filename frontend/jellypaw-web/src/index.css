@@ -5,6 +5,15 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* 스크롤바 숨기기 */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+
   /* 타이포그래피 클래스 */
   .h1 {
     font-weight: 800; /* extrabold */
