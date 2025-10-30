@@ -1,6 +1,4 @@
 import { createBrowserRouter } from 'react-router-dom';
-
-import Signup from '@/pages/Auth/Signup';
 import Feed from '@/pages/Feed/Feed';
 import Mypage from '@/pages/Mypage/Mypage';
 import Pet from '@/pages/Pet/Pet';
@@ -9,7 +7,9 @@ import MobileLayout from '@/layouts/MobileLayout';
 import Menubar from '@/components/menubar/Menubar';
 import Write from '@/pages/Write/Write';
 import FeedDetail from '@/pages/Feed/FeedDetail';
-const router = createBrowserRouter([
+import authRoutes from './authRoutes';
+
+const mainRoutes = 
   {
     path: '/',
     element: <MobileLayout menuBar={<Menubar />} />,
@@ -21,10 +21,6 @@ const router = createBrowserRouter([
       {
         path: '/feed/:feedId',
         element: <FeedDetail />,
-      },
-      {
-        path: '/signup',
-        element: <Signup />,
       },
       {
         path: '/mypage',
@@ -43,7 +39,11 @@ const router = createBrowserRouter([
         element: <Write />,
       },
     ],
-  },
-]);
+  }
+
+const router = createBrowserRouter([
+  mainRoutes,
+  authRoutes,
+])
 
 export default router;
