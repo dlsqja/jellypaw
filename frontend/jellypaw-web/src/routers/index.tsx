@@ -8,6 +8,7 @@ import Search from '@/pages/Search/Search';
 import MobileLayout from '@/layouts/MobileLayout';
 import Menubar from '@/components/menubar/Menubar';
 import Write from '@/pages/Write/Write';
+import FeedDetail from '@/pages/Feed/FeedDetail';
 const router = createBrowserRouter([
   {
     path: '/',
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
       {
         path: '/feed',
         element: <Feed />,
+      },
+      {
+        path: '/feed/:feedId',
+        element: <FeedDetail />,
       },
       {
         path: '/signup',
