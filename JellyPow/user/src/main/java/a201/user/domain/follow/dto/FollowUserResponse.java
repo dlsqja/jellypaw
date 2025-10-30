@@ -13,13 +13,11 @@ import lombok.NoArgsConstructor;
 public class FollowUserResponse {
     private String nickname;
     private String profileImg;
-    private String description;
 
     public static FollowUserResponse from(User user) {
         return FollowUserResponse.builder()
                 .nickname(user.getNickname())
                 .profileImg(user.getProfileImg())
-                .description(user.getDescription())
                 .build();
     }
 }
