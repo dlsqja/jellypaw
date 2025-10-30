@@ -5,7 +5,7 @@
 ```
 npm install @react-navigation/native @react-navigation/native-stack
 npm install react-native-screens react-native-safe-area-context
-npm install react-native-webvie
+npm install react-native-webview
 ```
 
 ### 2. 예상 폴더구조
