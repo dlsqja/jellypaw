@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import Badge from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import IconText from '@/components/texts/IconText';
 import { FaStar } from 'react-icons/fa6';
 
@@ -32,6 +32,7 @@ export default function Mypage() {
         <FaStar className="text-pink-300 me-0.5"></FaStar> 5.0
       </Badge>
       <IconText icon={FaStar} iconTone="gray300" label="기본 정보" textStyle="h6-b" textTone="aqua300" />
+      <IconText icon={FaStar} label="계정" size="md" textStyle="h6" />
       <IconText icon={FaStar} label="계정" size="md" textStyle="h6" />
     </div>
   );

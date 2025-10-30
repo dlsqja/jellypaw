@@ -3,6 +3,9 @@ import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MdRestaurant } from 'react-icons/md';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
+import IconText from '@/components/texts/IconText';
+import { Badge } from '@/components/ui/badge';
+import { FaStar } from 'react-icons/fa6';
 interface ArticleProps {
   name: string;
   imageUrl: string;
@@ -22,9 +25,9 @@ export default function Article({
   createdAt,
   content,
   imageUrls,
-  title = '오늘 점심 메뉴',
-  rating = 5.0,
-  date = '24.01.15',
+  title,
+  rating,
+  date,
   likeCount = 12,
   commentCount = 3,
 }: ArticleProps) {
@@ -47,7 +50,7 @@ export default function Article({
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
       <Card className="w-80 h-136 relative border-gray-100">
         {/* 프로필 헤더 */}
-        <CardHeader className="p-4">
+        <CardHeader className="p-4 gap-4">
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
@@ -67,18 +70,18 @@ export default function Article({
           </div>
           {/* 게시물 내용 */}
           <CardContent>
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               {/* 제목, 평점, 게시글 생성일*/}
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col">
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center">
-                    <MdRestaurant className="h-5 w-5 text-aqua-300" />
-                    <div className="ml-2 text-aqua-500 h6-b">{title}</div>
+                    <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
                   </div>
-
                   <div className="flex items-center gap-2">
-                    <div className="text-gray-700 p3-b">{rating}</div>
-                    <div className="text-gray-700 p3-b">{date}</div>
+                    <Badge>{date}</Badge>
+                    <Badge variant="pink">
+                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof rating === 'number' ? rating.toFixed(1) : rating}
+                    </Badge>
                   </div>
                 </div>
 
@@ -95,14 +98,6 @@ export default function Article({
                     <CarouselItem key={index}>
                       <div className="w-77 h-64 relative rounded-[12px]">
                         <img className="w-77 h-64 rounded-[12px] object-cover" src={url} alt={`${title} - 이미지 ${index + 1}`} />
-                        {/* 이미지 카운터 */}
-                        {imageUrls.length > 1 && (
-                          <div className="w-9 h-6 px-2 py-1 absolute bottom-2 right-2 bg-black/60 rounded-full flex items-center pointer-events-none z-10">
-                            <div className="text-aqua-100 p3">
-                              {current + 1}/{imageUrls.length}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </CarouselItem>
                   ))}
