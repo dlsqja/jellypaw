@@ -8,42 +8,43 @@ import Menubar from '@/components/menubar/Menubar';
 import Write from '@/pages/Write/Write';
 import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
+import SearchDetail from '@/pages/Search/SearchDetail';
 
-const mainRoutes = 
-  {
-    path: '/',
-    element: <MobileLayout menuBar={<Menubar />} />,
-    children: [
-      {
-        path: '/feed',
-        element: <Feed />,
-      },
-      {
-        path: '/feed/:feedId',
-        element: <FeedDetail />,
-      },
-      {
-        path: '/mypage',
-        element: <Mypage />,
-      },
-      {
-        path: '/pet',
-        element: <Pet />,
-      },
-      {
-        path: '/search',
-        element: <Search />,
-      },
-      {
-        path: '/write',
-        element: <Write />,
-      },
-    ],
-  }
+const mainRoutes = {
+  path: '/',
+  element: <MobileLayout menuBar={<Menubar />} />,
+  children: [
+    {
+      path: '/feed',
+      element: <Feed />,
+    },
+    {
+      path: '/feed/:feedId',
+      element: <FeedDetail />,
+    },
+    {
+      path: '/mypage',
+      element: <Mypage />,
+    },
+    {
+      path: '/pet',
+      element: <Pet />,
+    },
+    {
+      path: '/search',
+      element: <Search />,
+    },
+    {
+      path: '/search/:searchId',
+      element: <SearchDetail />,
+    },
+    {
+      path: '/write',
+      element: <Write />,
+    },
+  ],
+};
 
-const router = createBrowserRouter([
-  mainRoutes,
-  authRoutes,
-])
+const router = createBrowserRouter([mainRoutes, authRoutes]);
 
 export default router;

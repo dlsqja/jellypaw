@@ -63,7 +63,7 @@ export default function Article({
                 </div>
               </div>
               {/* ... */}
-              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">
+              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer">
                 <MoreHorizontal className="h-5 w-5 text-gray-300" />
               </button>
             </div>

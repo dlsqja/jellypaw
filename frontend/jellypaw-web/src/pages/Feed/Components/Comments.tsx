@@ -1,6 +1,6 @@
 import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
-import Replies from './replies';
+import Replies from './Replies';
 interface CommentProps {
   profileImageUrl: string;
   name: string;
