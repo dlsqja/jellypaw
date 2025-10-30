@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import Header from '@/components/headers/Header';
-import Followers from '@/pages/Feed/Followers';
 import { FiUsers } from 'react-icons/fi';
-import Article from '@/components/feed/Article';
+import Header from '@/components/headers/Header';
+import Followers from '@/pages/Feed/Components/Followers';
+import Article from '@/pages/Feed/Components/Article';
 
 export default function Feed() {
   // 팔로워 목록
