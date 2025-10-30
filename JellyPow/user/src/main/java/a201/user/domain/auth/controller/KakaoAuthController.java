@@ -9,6 +9,7 @@ import a201.user.domain.auth.service.KakaoAuthService;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
+import a201.user.global.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ public class KakaoAuthController {
     private final AuthRepository authRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 	private final String SignupUrl = "http://localhost:8000/api/auth/kakao/callback";
 
     // 카카오 로그인 처리 (POST)
@@ -101,11 +103,16 @@ public class KakaoAuthController {
             // 5. User 있음 → 로그인 성공
             User user = userOptional.get();
             UserSignupResponse userResponse = UserSignupResponse.from(user);
+            
+            // JWT 토큰 생성
+            String jwtToken = jwtUtil.generateToken(user.getUserId(), user.getRole());
+            log.info("JWT 토큰 생성 완료 - userId: {}, role: {}", user.getUserId(), user.getRole());
 
             return KakaoLoginResponse.builder()
                     .needSignup(false)
                     .authId(auth.getAuthId())
                     .email(email)
+                    .accessToken(jwtToken)
                     .user(userResponse)
                     .build();
 
