@@ -2,7 +2,7 @@ import BackHeader from '@/components/headers/BackHeader';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2 } from 'lucide-react';
-import Comment from './Components/Comment';
+import Comment from './Components/Comments';
 
 interface FeedDetailProps {
   name?: string;
@@ -16,6 +16,7 @@ interface FeedDetailProps {
 }
 
 interface CommentProps {
+  id: number;
   profileImageUrl: string;
   name: string;
   content: string;
@@ -28,9 +29,11 @@ interface CommentProps {
     name: string;
     content: string;
     createdAt: string;
+    likeCount: number;
   }[];
 }
 
+// 게시글 상세 더미데이터
 const detailData: FeedDetailProps = {
   name: '멍멍이집사',
   profileImageUrl: '/src/assets/pets/반려동물1.png',
@@ -42,30 +45,66 @@ const detailData: FeedDetailProps = {
   isFollowing: false,
 };
 
-const commentData: CommentProps = {
-  profileImageUrl: '/src/assets/pets/반려동물1.png',
-  name: '멍멍이집사',
-  content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-  createdAt: '2시간 전',
-  likeCount: 20,
-  replyCount: 3,
-  replies: [
-    {
-      id: 1,
-      profileImageUrl: '/src/assets/pets/반려동물1.png',
-      name: '멍멍이집사',
-      content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-      createdAt: '2시간 전',
-    },
-    {
-      id: 2,
-      profileImageUrl: '/src/assets/pets/반려동물1.png',
-      name: '멍멍이집사',
-      content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-      createdAt: '2시간 전',
-    },
-  ],
-};
+// 댓글 더미데이터
+const commentData: CommentProps[] = [
+  {
+    id: 1,
+    profileImageUrl: '/src/assets/pets/반려동물1.png',
+    name: '멍멍이집사',
+    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+    createdAt: '2시간 전',
+    likeCount: 20,
+    replyCount: 2,
+    replies: [
+      {
+        id: 1,
+        profileImageUrl: '/src/assets/pets/반려동물1.png',
+        name: '멍멍이집사',
+        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+        createdAt: '2시간 전',
+        likeCount: 0,
+      },
+      {
+        id: 2,
+        profileImageUrl: '/src/assets/pets/반려동물1.png',
+        name: '멍멍이집사',
+        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+        createdAt: '2시간 전',
+        likeCount: 0,
+      },
+    ],
+  },
+  {
+    id: 2,
+    profileImageUrl: '/src/assets/pets/반려동물2.png',
+    name: '멍멍이집사2',
+    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+    createdAt: '2시간 전',
+    likeCount: 20,
+    replyCount: 0,
+    replies: [],
+  },
+  {
+    id: 3,
+    profileImageUrl: '/src/assets/pets/반려동물3.png',
+    name: '멍멍이집사3',
+    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+    createdAt: '2시간 전',
+    likeCount: 0,
+    replyCount: 1,
+    replies: [
+      {
+        id: 1,
+        profileImageUrl: '/src/assets/pets/반려동물1.png',
+        name: '멍멍이집사',
+        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
+        createdAt: '2시간 전',
+        likeCount: 0,
+      },
+    ],
+  },
+];
+
 export default function FeedDetail() {
   return (
     <>
@@ -121,14 +160,18 @@ export default function FeedDetail() {
           </div>
 
           {/* 댓글 */}
-          <Comment
-            profileImageUrl={commentData.profileImageUrl}
-            name={commentData.name || ''}
-            content={commentData.content}
-            createdAt={commentData.createdAt}
-            likeCount={commentData.likeCount}
-            replyCount={commentData.replyCount}
-          />
+          {commentData.map((comment, index) => (
+            <Comment
+              key={index}
+              profileImageUrl={comment.profileImageUrl}
+              name={comment.name}
+              content={comment.content}
+              createdAt={comment.createdAt}
+              likeCount={comment.likeCount}
+              replyCount={comment.replyCount}
+              replies={comment.replies}
+            />
+          ))}
         </CardContent>
       </Card>
     </>
