@@ -31,10 +31,6 @@ public class Comment {
     @JoinColumn(name = "parent_id")
     private Comment parent=null;
 
-    @Builder.Default
-    @Column(name = "child_count")
-    private Integer childCount=0;
-
     @Column(nullable = false)
     private String content;
 

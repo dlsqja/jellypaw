@@ -29,7 +29,7 @@ public class LikeController {
 
     @GetMapping("/my")
     public ApiResponse<?> getByUser(@RequestBody Long userId) {
-        List<Like> likes = likeService.getLikesByPost(userId);
+        List<Like> likes = likeService.getLikesByMe(userId);
         return ApiResponse.success(likes);
     }
 }

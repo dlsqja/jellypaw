@@ -30,15 +30,17 @@ public class LikeService {
                 .userId(postUser)
                 .build();
 
+        //TODO::좋아요 이벤트 발생 
         return likeRepository.save(like);
     }
 
     public void removeLike(Long postId,Long userId) {
+        //TODO::삭제 이벤트 발생 
         likeRepository.deleteByUserId_IdAndPost_Id(userId,postId);
     }
 
-    public List<Like> getLikesByPost(Long userId) {
-
+    public List<Like> getLikesByMe(Long userId) {
+        
         return likeRepository.findAllByUserId_Id(userId);
     }
 }
