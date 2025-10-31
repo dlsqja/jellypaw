@@ -1,13 +1,16 @@
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ReservationBoxProps {
+  reservationId: number;
   storeName: string;
   date: string;
   price: string;
 }
 
-export default function ReservationBox({ storeName, date, price }: ReservationBoxProps) {
+export default function ReservationBox({ reservationId, storeName, date, price }: ReservationBoxProps) {
+  const navigate = useNavigate();
   return (
     <Card>
       <CardContent className="p-4">
@@ -18,7 +21,7 @@ export default function ReservationBox({ storeName, date, price }: ReservationBo
         </div>
       </CardContent>
       <CardFooter className="flex gap-2">
-        <Button shape="outline" tone="lightAqua" className="w-full">
+        <Button shape="outline" tone="lightAqua" className="w-full" onClick={() => navigate(`/mypage/reservation/${reservationId}`)}>
           상세보기
         </Button>
         <Button shape="outline" tone="red" borderTone="pink" className="w-full">

@@ -27,6 +27,7 @@ export default function MyReservation() {
       {reservationsData.map((reservation) => (
         <ReservationBox
           key={reservation.reservationId}
+          reservationId={reservation.reservationId}
           storeName={reservation.storeName}
           date={reservation.date}
           price={reservation.price}
