@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-
+import { useNavigate } from 'react-router-dom';
 // 프로필 더미데이터
 const profileData = {
   username: '멍멍이엄마',
@@ -10,7 +10,8 @@ const profileData = {
   followerCount: 892,
 };
 
-export default function Profile() {
+export default function MyProfile() {
+  const navigate = useNavigate();
   return (
     <Card className="p-4">
       <CardHeader className="pb-0">
@@ -37,7 +38,7 @@ export default function Profile() {
             <div className="justify-center text-aqua-500 h4-b">{profileData.followerCount}</div>
           </div>
         </div>
-        <Button size="lg" shape="pillSolid" tone="lightAqua" className="w-full h-11">
+        <Button size="lg" shape="pillSolid" tone="lightAqua" className="w-full h-11" onClick={() => navigate('/mypage/edit-profile')}>
           <span className="text-aqua-500 p2-b">프로필 편집</span>
         </Button>
       </CardContent>

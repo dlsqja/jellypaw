@@ -8,7 +8,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
     <input
       type={type}
       className={cn(
-        'flex h-12 rounded-[12px] border border-input bg-white-100 py-3 p2 placeholder:text-gray-300 placeholder:p2 focus:outline-none focus-visible:outline-none focus-visible:ring-0',
+        'flex h-12 rounded-[12px] border border-input bg-white-100 py-3 p2 placeholder:text-gray-300 placeholder:text-sm placeholder:leading-[1.5] placeholder:font-normal focus:outline-none focus-visible:outline-none focus-visible:ring-0',
         type === 'search'
           ? 'w-full pl-12 pr-3 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-cancel-button]:hidden [&::-ms-clear]:hidden'
           : 'w-full px-4',
