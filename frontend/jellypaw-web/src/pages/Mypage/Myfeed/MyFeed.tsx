@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import ArticleBox from './components/ArticleBox';
+import ArticleBox from '../components/ArticleBox';
 
 // 카테고리 더미 데이터
 const categoriesData = [

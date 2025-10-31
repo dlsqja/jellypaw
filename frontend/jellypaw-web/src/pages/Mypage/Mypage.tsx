@@ -2,7 +2,8 @@ import { useState } from 'react';
 import Header from '@/components/headers/Header';
 import Profile from './components/Profile';
 import TabNavbar from '../../components/TabNavbar';
-import MyFeed from './MyFeed';
+import MyFeed from './Myfeed/MyFeed';
+import MyReservation from './MyReservation/MyReservation';
 
 const tabs = [
   { id: 'feed', label: '피드' },
@@ -20,9 +21,9 @@ export default function Mypage() {
         <Profile />
         {/* 탭 네비게이션 */}
         <TabNavbar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        {/* 탭에 따라 다른 컴포넌트 렌더링 */}
+        {/* 탭에 따라 다른 페이지 랜더링 */}
         {activeTab === 'feed' && <MyFeed />}
-        {activeTab === 'reservation' && <div>예약 관리 페이지</div>}
+        {activeTab === 'reservation' && <MyReservation />}
       </div>
     </>
   );
