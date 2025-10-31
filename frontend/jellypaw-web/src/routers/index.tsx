@@ -10,7 +10,7 @@ import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
 import SearchDetail from '@/pages/Search/SearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
-import EditProfile from '@/pages/Mypage/EditProfile';
+import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
 
 const mainRoutes = {
   path: '/',

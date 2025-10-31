@@ -10,7 +10,7 @@ const profileData = {
   followerCount: 892,
 };
 
-export default function Profile() {
+export default function MyProfile() {
   const navigate = useNavigate();
   return (
     <Card className="p-4">
