@@ -1,6 +1,7 @@
 import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Replies from './Replies';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 interface CommentProps {
   profileImageUrl: string;
   name: string;
@@ -20,7 +21,6 @@ interface CommentProps {
 
 export default function Comment({ profileImageUrl, name, content, createdAt, likeCount, replyCount, replies }: CommentProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const toggleReplies = () => setIsOpen((prev) => !prev);
   return (
     <div className="w-full flex justify-start items-start gap-3 mb-2">
       {/* 프로필 이미지 */}
@@ -56,30 +56,29 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             </div>
           </div>
         </div>
-        {/* 대댓글 개수 */}
-        {replyCount > 0 && (
-          <div
-            className="w-40 inline-flex justify-start items-center gap-2 ml-3 cursor-pointer pt-1"
-            onClick={toggleReplies}
-            role="button"
-            aria-expanded={isOpen}
-          >
-            <div className="w-7 h-0 border-b border-gray-300"></div>
-            <div className="text-gray-300 p2-b">{isOpen ? '답글 접기' : `답글 ${replyCount}개 더 보기`}</div>
-          </div>
-        )}
         {/* 대댓글 */}
-        {isOpen &&
-          replies.map((reply, index) => (
-            <Replies
-              key={index}
-              profileImageUrl={reply.profileImageUrl}
-              name={reply.name}
-              content={reply.content}
-              createdAt={reply.createdAt}
-              likeCount={reply.likeCount}
-            />
-          ))}
+        {replyCount > 0 && (
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <div className="w-40 inline-flex justify-start items-center gap-2 ml-3 cursor-pointer pt-1">
+                <div className="w-7 h-0 border-b border-gray-300"></div>
+                <div className="text-gray-300 p2-b">{isOpen ? '답글 접기' : `답글 ${replyCount}개 더 보기`}</div>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {replies.map((reply, index) => (
+                <Replies
+                  key={index}
+                  profileImageUrl={reply.profileImageUrl}
+                  name={reply.name}
+                  content={reply.content}
+                  createdAt={reply.createdAt}
+                  likeCount={reply.likeCount}
+                />
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </div>
     </div>
   );

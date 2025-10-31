@@ -8,9 +8,10 @@ import Menubar from '@/components/menubar/Menubar';
 import Write from '@/pages/Write/Write';
 import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
-import SearchDetail from '@/pages/Search/SearchDetail';
+import PersonSearchDetail from '@/pages/Search/PersonSearch/PersonSearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
+import LocationSearchDetail from '@/pages/Search/LocationSearch/LocationSearchDetail';
 
 const mainRoutes = {
   path: '/',
@@ -32,9 +33,13 @@ const mainRoutes = {
       path: '/search',
       element: <Search />,
     },
+    // {
+    //   path: '/search/detail/:personId',
+    //   element: <PersonSearchDetail />,
+    // },
     {
-      path: '/search/:searchId',
-      element: <SearchDetail />,
+      path: '/search/detail/:locationId',
+      element: <LocationSearchDetail />,
     },
     {
       path: '/write',
