@@ -11,6 +11,7 @@ import authRoutes from './authRoutes';
 import PersonSearchDetail from '@/pages/Search/PersonSearch/PersonSearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
+import LocationSearchDetail from '@/pages/Search/LocationSearch/LocationSearchDetail';
 
 const mainRoutes = {
   path: '/',
@@ -32,9 +33,13 @@ const mainRoutes = {
       path: '/search',
       element: <Search />,
     },
+    // {
+    //   path: '/search/detail/:personId',
+    //   element: <PersonSearchDetail />,
+    // },
     {
-      path: '/search/:searchId',
-      element: <PersonSearchDetail />,
+      path: '/search/detail/:locationId',
+      element: <LocationSearchDetail />,
     },
     {
       path: '/write',
