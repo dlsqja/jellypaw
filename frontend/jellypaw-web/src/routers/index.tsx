@@ -9,6 +9,7 @@ import Write from '@/pages/Write/Write';
 import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
 import SearchDetail from '@/pages/Search/SearchDetail';
+import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
 
 const mainRoutes = {
   path: '/',
@@ -21,10 +22,6 @@ const mainRoutes = {
     {
       path: '/feed/:feedId',
       element: <FeedDetail />,
-    },
-    {
-      path: '/mypage',
-      element: <Mypage />,
     },
     {
       path: '/pet',
@@ -41,6 +38,14 @@ const mainRoutes = {
     {
       path: '/write',
       element: <Write />,
+    },
+    {
+      path: '/mypage',
+      element: <Mypage />,
+    },
+    {
+      path: '/mypage/reservation/:reservationId',
+      element: <MyReservationDetail />,
     },
   ],
 };
