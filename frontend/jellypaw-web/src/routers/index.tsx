@@ -8,7 +8,7 @@ import Menubar from '@/components/menubar/Menubar';
 import Write from '@/pages/Write/Write';
 import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
-import SearchDetail from '@/pages/Search/SearchDetail';
+import PersonSearchDetail from '@/pages/Search/PersonSearch/PersonSearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
 
@@ -34,7 +34,7 @@ const mainRoutes = {
     },
     {
       path: '/search/:searchId',
-      element: <SearchDetail />,
+      element: <PersonSearchDetail />,
     },
     {
       path: '/write',

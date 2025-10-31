@@ -59,7 +59,7 @@ export default function Search() {
         {!searchValue &&
           recentSearch.map((item) => (
             <div key={item.id} className="flex flex-col mb-2">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center cursor-pointer">
                 <IconText icon={LuClock3} label={item.name} iconTone="gray300" textStyle="p2" textTone="aqua500" />
                 <IoClose />
               </div>
