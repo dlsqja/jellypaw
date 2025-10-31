@@ -11,6 +11,8 @@ const categoriesData = [
   { label: '미용' },
   { label: '카페' },
   { label: '식당' },
+  { label: '미용' },
+  { label: '카페' },
   { label: '기타' },
 ];
 
@@ -115,7 +117,7 @@ export default function MyFeed() {
             shape={activeCategory === index ? 'solid' : 'outline'}
             tone={activeCategory === index ? 'aqua' : 'white'}
             borderTone="gray"
-            className={`rounded-[16px] ${activeCategory === index ? 'border-0' : 'border-2'}`}
+            className={`rounded-[16px] py-2 h-full ${activeCategory === index ? 'border-0' : 'border-2'}`}
             onClick={() => setActiveCategory(index)}
           >
             <div className="inline-flex flex-col items-center">

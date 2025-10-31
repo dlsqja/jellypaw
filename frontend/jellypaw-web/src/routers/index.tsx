@@ -10,6 +10,7 @@ import FeedDetail from '@/pages/Feed/FeedDetail';
 import authRoutes from './authRoutes';
 import SearchDetail from '@/pages/Search/SearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
+import EditProfile from '@/pages/Mypage/EditProfile';
 
 const mainRoutes = {
   path: '/',
@@ -46,6 +47,10 @@ const mainRoutes = {
     {
       path: '/mypage/reservation/:reservationId',
       element: <MyReservationDetail />,
+    },
+    {
+      path: '/mypage/edit-profile',
+      element: <EditProfile />,
     },
   ],
 };
