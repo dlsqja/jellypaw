@@ -1,6 +1,7 @@
 package a201.user.domain.pet.entity;
 
 
+import a201.user.domain.pet.dto.PetRequest;
 import a201.user.domain.pet.enums.Gender;
 import a201.user.domain.pet.enums.Species;
 import jakarta.persistence.*;
@@ -28,7 +29,7 @@ public class Pet {
     @Enumerated(EnumType.STRING)
     private Species species;
 
-    @Column(name = "photo_url", length = 255, nullable = false)
+    @Column(name = "photo_url", length = 255, nullable = true)
     private String photoUrl;
 
     @Column(name = "gender", nullable = false)
@@ -41,4 +42,17 @@ public class Pet {
 
     @Column(name = "weight", nullable = false)
     private Float weight;
+
+
+    public void updatePetInfo(PetRequest petRequest) {
+        this.name = petRequest.getName();
+        this.species = petRequest.getSpecies();
+        this.age = petRequest.getAge();
+        this.gender = petRequest.getGender();
+        this.weight = petRequest.getWeight();
+    }
+
+    public void updatePhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
+    }
 }
