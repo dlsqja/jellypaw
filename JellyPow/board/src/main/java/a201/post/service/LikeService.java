@@ -1,10 +1,10 @@
 package a201.post.service;
 
 import a201.post.data.entity.Like;
-import a201.post.data.entity.Post;
-import a201.post.data.entity.PostUser;
+import a201.post.data.entity.Board;
+import a201.post.data.entity.BoardUser;
 import a201.post.repository.LikeRepository;
-import a201.post.repository.PostRepository;
+import a201.post.repository.BoardRepository;
 import a201.post.repository.PostUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,17 +17,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LikeService {
 
-    private final PostRepository postRepository;
+    private final BoardRepository boardRepository;
     private final PostUserRepository postUserRepository;
     private final LikeRepository likeRepository;
 
     public Like addLike(Long postId,Long userId) {
-        Post post = postRepository.getPostById(postId);
-        PostUser postUser = postUserRepository.getPostUserByUserId(userId);
+        Board board = boardRepository.getPostById(postId);
+        BoardUser boardUser = postUserRepository.getPostUserByUserId(userId);
 
         Like like = Like.builder()
-                .post(post)
-                .userId(postUser)
+                .board(board)
+                .userId(boardUser)
                 .build();
 
         //TODO::좋아요 이벤트 발생 

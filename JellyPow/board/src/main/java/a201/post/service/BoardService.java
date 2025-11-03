@@ -1,14 +1,13 @@
 package a201.post.service;
 
 import a201.post.data.entity.Image;
-import a201.post.data.entity.Post;
-import a201.post.data.entity.PostUser;
-import a201.post.data.request.PostRequest;
-import a201.post.data.request.PostUpdateRequest;
-import a201.post.data.response.PostResponse;
-import a201.post.enums.Category;
+import a201.post.data.entity.Board;
+import a201.post.data.entity.BoardUser;
+import a201.post.data.request.BoardRequest;
+import a201.post.data.request.BoardUpdateRequest;
+import a201.post.data.response.BoardResponse;
 import a201.post.enums.Visibility;
-import a201.post.repository.PostRepository;
+import a201.post.repository.BoardRepository;
 import a201.post.repository.PostUserRepository;
 import a201.common.s3.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -24,69 +23,69 @@ import java.util.Set;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class PostService {
+public class BoardService {
 
-    private final PostRepository postRepository;
+    private final BoardRepository boardRepository;
     private final PostUserRepository postUserRepository;
     private final S3Service s3Service;
 
-    public PostResponse getPost(Long userId, Long postId) {
+    public BoardResponse getPost(Long userId, Long postId) {
 
-        Post findPost = postRepository.getPostById(postId);
-        Visibility visibility =  findPost.getVisibility();
+        Board findBoard = boardRepository.getPostById(postId);
+        Visibility visibility =  findBoard.getVisibility();
 
         if(visibility == Visibility.PRIVATE){
-            if(!findPost.getUserId().equals(userId)){
+            if(!findBoard.getUserId().equals(userId)){
                 throw new RuntimeException();
             }
         }
 
-        PostResponse postResponse = PostResponse.fromEntity(findPost);
-        List<String> imageLinks = findPost.getImages().stream()
+        BoardResponse boardResponse = BoardResponse.fromEntity(findBoard);
+        List<String> imageLinks = findBoard.getImages().stream()
                 .map(Image::getImageLink)
                 .toList();
-        postResponse.setImages(imageLinks);
+        boardResponse.setImages(imageLinks);
         //TODO:: 조회수 추가 이벤트 발생
 
-        return postResponse;
+        return boardResponse;
     }
 
-    public void createPost(Long userId, PostRequest postRequest) {
+    public void createPost(Long userId, BoardRequest boardRequest) {
 
-        Post newPost = postRequest.toEntity();
-        PostUser postUser = postUserRepository.findByUserId(userId);
-        newPost.setUserId(postUser);
+        Board newBoard = boardRequest.toEntity();
+        BoardUser boardUser = postUserRepository.findByUserId(userId);
+        newBoard.setUserId(boardUser);
 
-        postRepository.save(newPost);
+        boardRepository.save(newBoard);
 
-        List<MultipartFile> newImages = postRequest.getNewImages();
-        String categoryString = postRequest.getCategory().name();
+        List<MultipartFile> newImages = boardRequest.getNewImages();
+        String categoryString = boardRequest.getCategory().name();
         List<Image> images = new ArrayList<>();
 
         for(MultipartFile file : newImages) {
             String keyPath = s3Service.uploadPostImage(file,categoryString);
 
             Image image = Image.builder()
-                    .post(newPost)
+                    .board(newBoard)
                     .imageLink(keyPath)
                     .build();
 
             images.add(image);
         }
 
-        newPost.setImages(images);
+        newBoard.setImages(images);
 
-        postRepository.save(newPost);
+        boardRepository.save(newBoard);
 
         //TODO:: 생성 이벤트 발생
     }
 
-    public void updatePost(Long userId, Long postId, PostUpdateRequest postRequest) {
+    public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest) {
 
-        Post post = postRepository.getPostById(postId);
+        Board board = boardRepository.getPostById(postId);
 
 
-        List<Image> images = post.getImages();
+        List<Image> images = board.getImages();
 
         //이미지 삭제
         Set<String> removeImageSet = new HashSet<>(postRequest.getRemoveImages());
@@ -98,12 +97,12 @@ public class PostService {
         }
 
         //이미지 추가
-        String categoryString = post.getCategory().name();
+        String categoryString = board.getCategory().name();
         for(MultipartFile file : postRequest.getNewImages()) {
             String keyPath = s3Service.uploadPostImage(file,categoryString);
 
             Image image = Image.builder()
-                    .post(post)
+                    .board(board)
                     .imageLink(keyPath)
                     .build();
 
@@ -115,14 +114,14 @@ public class PostService {
 
     public void deletePost(Long userId, Long postId) {
 
-        Post post = postRepository.getPostById(postId);
+        Board board = boardRepository.getPostById(postId);
 
-        List<Image> images = post.getImages();
+        List<Image> images = board.getImages();
         for(Image image : images) {
             s3Service.deleteFile(image.getImageLink());
         }
 
-        postRepository.deleteById(postId);
+        boardRepository.deleteById(postId);
 
         //TODO:: 삭제 이벤트 발생
 

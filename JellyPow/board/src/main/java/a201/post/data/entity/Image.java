@@ -18,7 +18,7 @@ public class Image {
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    private Board board;
 
     @Column(name = "image_link", nullable = false)
     private String imageLink;

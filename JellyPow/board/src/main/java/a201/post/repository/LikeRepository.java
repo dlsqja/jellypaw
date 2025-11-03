@@ -1,7 +1,6 @@
 package a201.post.repository;
 
 import a201.post.data.entity.Like;
-import a201.post.data.entity.PostUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

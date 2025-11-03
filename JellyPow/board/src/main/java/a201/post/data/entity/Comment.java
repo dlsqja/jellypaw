@@ -20,11 +20,11 @@ public class Comment {
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    private Board board;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private PostUser userId;
+    private BoardUser userId;
 
     @Builder.Default
     @ManyToOne

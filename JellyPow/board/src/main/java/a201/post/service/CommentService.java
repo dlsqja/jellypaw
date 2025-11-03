@@ -1,17 +1,16 @@
 package a201.post.service;
 
 import a201.post.data.entity.Comment;
-import a201.post.data.entity.Post;
-import a201.post.data.entity.PostUser;
+import a201.post.data.entity.Board;
+import a201.post.data.entity.BoardUser;
 import a201.post.data.request.CommentRequest;
 import a201.post.repository.CommentRepository;
-import a201.post.repository.PostRepository;
+import a201.post.repository.BoardRepository;
 import a201.post.repository.PostUserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -21,18 +20,18 @@ import java.util.List;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
+    private final BoardRepository boardRepository;
     private final PostUserRepository postUserRepository;
 
     public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
-        Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
-        PostUser postUser = postUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
+        Board board = boardRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
+        BoardUser boardUser = postUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
 
         Comment comment = Comment.builder()
-                .post(post)
+                .board(board)
                 .content(commentRequest.getContent())
-                .userId(postUser)
+                .userId(boardUser)
                 .build();
 
         if(commentRequest.getParent() != null){
