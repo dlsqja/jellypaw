@@ -31,7 +31,7 @@ const functionList = [
     icon: <FaMapMarkerAlt />,
   },
   {
-    name: '예약',
+    name: '예약하기',
     icon: <FaComment />,
   },
 ];
@@ -56,7 +56,7 @@ export default function FunctionList({ phone }: FunctionListProps) {
             return (
               <Drawer key={functionItem.name} open={isPhoneDrawerOpen} onOpenChange={setIsPhoneDrawerOpen}>
                 <DrawerTrigger asChild>
-                  <Button size="lg" shape="solid" tone="aqua" className="w-full flex flex-col items-center">
+                  <Button size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col items-center hover:bg-aqua-100">
                     <div>{functionItem.icon}</div>
                     <div>{functionItem.name}</div>
                   </Button>
@@ -83,13 +83,13 @@ export default function FunctionList({ phone }: FunctionListProps) {
             );
           }
           // '예약' 누르면 예약 페이지로 이동
-          if (functionItem.name === '예약') {
+          if (functionItem.name === '예약하기') {
             return (
               <Button
                 key={functionItem.name}
                 size="lg"
-                shape="solid"
-                tone="aqua"
+                shape="outline"
+                tone="lightAqua"
                 className="w-full flex flex-col items-center"
                 // 예약 버튼 클릭하면 예약 페이지로 이동 함수
                 onClick={handleReservationClick}
@@ -100,7 +100,7 @@ export default function FunctionList({ phone }: FunctionListProps) {
             );
           }
           return (
-            <Button key={functionItem.name} size="lg" shape="solid" tone="aqua" className="w-full flex flex-col items-center">
+            <Button key={functionItem.name} size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col items-center">
               <div>{functionItem.icon}</div>
               <div>{functionItem.name}</div>
             </Button>

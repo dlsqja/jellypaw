@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@radix-ui/react-label';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
 
 interface Step1Props {
   onNext: () => void;
@@ -58,11 +57,9 @@ export default function Step1({ onNext }: Step1Props) {
                 <Button
                   key={time}
                   onClick={() => setSelectedTime(time)}
-                  tone={selectedTime === time ? 'aqua' : 'white'}
+                  tone={selectedTime === time ? 'default' : 'white'}
                   shape="outline"
-                  borderTone="gray"
-                  size="sm"
-                  className={cn('w-20 h-9 rounded-lg p2', selectedTime === time && 'border-aqua-300')}
+                  borderTone={selectedTime === time ? 'default' : 'gray'}
                 >
                   {time}
                 </Button>
@@ -82,7 +79,7 @@ export default function Step1({ onNext }: Step1Props) {
       </div>
 
       {/* Next Button */}
-      <div className="px-4 mb-4">
+      <div className="mb-4">
         <Button className="w-full" onClick={onNext}>
           다음
         </Button>

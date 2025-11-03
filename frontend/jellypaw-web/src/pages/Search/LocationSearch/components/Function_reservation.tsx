@@ -27,7 +27,7 @@ export default function Function_reservation() {
           <div className={`w-8 h-8 rounded-full flex justify-center items-center ${!isStep2 ? 'bg-aqua-300' : 'bg-gray-200'}`}>
             <div className={`p2-b ${!isStep2 ? 'text-white' : 'text-gray-400'}`}>1</div>
           </div>
-          <div className={`w-12 h-1 ${isStep2 ? 'bg-aqua-300' : 'bg-gray-200'}`} />
+          <div className="w-12 h-1 bg-gray-200" />
           <div className={`w-8 h-8 rounded-full flex justify-center items-center ${isStep2 ? 'bg-aqua-300' : 'bg-gray-200'}`}>
             <div className={`p2-b ${isStep2 ? 'text-white' : 'text-gray-400'}`}>2</div>
           </div>
