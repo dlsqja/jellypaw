@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostUser {
+public class BoardUser {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

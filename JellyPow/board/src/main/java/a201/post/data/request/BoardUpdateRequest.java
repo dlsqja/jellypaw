@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostUpdateRequest {
+public class BoardUpdateRequest {
     private String title;
     private String content;
     private List<MultipartFile> newImages;

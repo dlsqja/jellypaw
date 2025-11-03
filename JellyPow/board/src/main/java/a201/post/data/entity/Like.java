@@ -18,9 +18,9 @@ public class Like {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private PostUser userId;
+    private BoardUser userId;
 
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
-    private Post post;
+    private Board board;
 }
