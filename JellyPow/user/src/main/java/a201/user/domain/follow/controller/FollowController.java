@@ -17,9 +17,9 @@ public class FollowController {
     private final FollowService followService;
 
     // 팔로우 하기
-    @PostMapping("/{to_user_id}")
+    @PostMapping("/{nickname}")
     public ApiResponse<Void> follow(
-            @RequestParam Long fromUserId,
+            @RequestHeader("X-User-Id") Long fromUserId,
             @PathVariable String nickname) {
         try {
             followService.follow(fromUserId, nickname);
@@ -30,12 +30,12 @@ public class FollowController {
     }
 
     // 언팔로우 하기
-    @DeleteMapping("/{to_user_id}")
+    @DeleteMapping("/{nickname}")
     public ApiResponse<Void> unfollow(
-            @RequestParam Long fromUserId,
-            @PathVariable Long to_user_id) {
+            @RequestHeader("X-User-Id") Long fromUserId,
+            @PathVariable String nickname) {
         try {
-            followService.unfollow(fromUserId, to_user_id);
+            followService.unfollow(fromUserId, nickname);
             return ApiResponse.success(null);
         } catch (CustomException e) {
             return ApiResponse.error(e.getErrorCode());
@@ -43,10 +43,10 @@ public class FollowController {
     }
 
     // 팔로워 목록 조회 (나를 팔로우하는 사람들)
-    @GetMapping("/followers/{user_id}")
-    public ApiResponse<List<FollowUserResponse>> getFollowers(@PathVariable Long user_id) {
+    @GetMapping("/followers/{nickname}")
+    public ApiResponse<List<FollowUserResponse>> getFollowers(@PathVariable String nickname) {
         try {
-            List<FollowUserResponse> followers = followService.getFollowers(user_id);
+            List<FollowUserResponse> followers = followService.getFollowers(nickname);
             return ApiResponse.success(followers);
         } catch (CustomException e) {
             return ApiResponse.error(e.getErrorCode());
@@ -54,10 +54,10 @@ public class FollowController {
     }
 
     // 팔로잉 목록 조회 (내가 팔로우하는 사람들)
-    @GetMapping("/followings/{user_id}")
-    public ApiResponse<List<FollowUserResponse>> getFollowings(@PathVariable Long user_id) {
+    @GetMapping("/followings/{nickname}")
+    public ApiResponse<List<FollowUserResponse>> getFollowings(@PathVariable String nickname) {
         try {
-            List<FollowUserResponse> followings = followService.getFollowings(user_id);
+            List<FollowUserResponse> followings = followService.getFollowings(nickname);
             return ApiResponse.success(followings);
         } catch (CustomException e) {
             return ApiResponse.error(e.getErrorCode());

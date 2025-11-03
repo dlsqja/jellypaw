@@ -59,11 +59,11 @@ public class FollowService {
 
     // 언팔로우 하기
     @Transactional
-    public void unfollow(Long fromUserId, Long toUserId) {
+    public void unfollow(Long fromUserId, String nickname) {
         // 1. 사용자 조회
         User fromUser = userRepository.findById(fromUserId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        User toUser = userRepository.findById(toUserId)
+        User toUser = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 팔로우 관계 조회
@@ -79,8 +79,8 @@ public class FollowService {
     }
 
     // 팔로워 목록 조회 (나를 팔로우하는 사람들)
-    public List<FollowUserResponse> getFollowers(Long userId) {
-        User user = userRepository.findById(userId)
+    public List<FollowUserResponse> getFollowers(String nickname) {
+        User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Follow> follows = followRepository.findByToUser(user);
@@ -91,8 +91,8 @@ public class FollowService {
     }
 
     // 팔로잉 목록 조회 (내가 팔로우하는 사람들)
-    public List<FollowUserResponse> getFollowings(Long userId) {
-        User user = userRepository.findById(userId)
+    public List<FollowUserResponse> getFollowings(String nickname) {
+        User user = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Follow> follows = followRepository.findByFromUser(user);
