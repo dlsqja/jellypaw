@@ -30,7 +30,7 @@ public class KakaoAuthController {
     private final UserRepository userRepository;
     private final AuthService authService;
     private final JwtUtil jwtUtil;
-	private final String SignupUrl = "http://localhost:8000/api/auth/kakao/callback";
+	private final String SignupUrl = "http://localhost:8888/api/public/signup";
 
     // 카카오 로그인 처리 (POST)
     @PostMapping("/kakao")
