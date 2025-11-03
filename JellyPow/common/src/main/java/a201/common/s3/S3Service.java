@@ -71,7 +71,7 @@ public class S3Service {
 
     //PET PROFILE
     public String uploadPetProfileImage(MultipartFile file) {
-        return uploadFile(file, "profile");
+        return uploadFile(file, "pet");
     }
 
     // S3에서 파일 삭제

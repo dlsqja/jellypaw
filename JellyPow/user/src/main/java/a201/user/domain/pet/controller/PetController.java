@@ -48,7 +48,7 @@ public class PetController {
     }
 
     @PostMapping("/code")
-    public ApiResponse<PetResponse> registerPetByCode(@RequestHeader("X-User_id") Long userId,
+    public ApiResponse<PetResponse> registerPetByCode(@RequestHeader("X-User-id") Long userId,
                                                       @RequestBody PetCodeRequest petCodeRequest) {
 
         Pet pet = petService.registerPetByCode(userId, petCodeRequest);
