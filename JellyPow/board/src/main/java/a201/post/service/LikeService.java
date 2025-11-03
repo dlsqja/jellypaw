@@ -5,7 +5,7 @@ import a201.post.data.entity.Board;
 import a201.post.data.entity.BoardUser;
 import a201.post.repository.LikeRepository;
 import a201.post.repository.BoardRepository;
-import a201.post.repository.PostUserRepository;
+import a201.post.repository.BoardUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +18,12 @@ import java.util.List;
 public class LikeService {
 
     private final BoardRepository boardRepository;
-    private final PostUserRepository postUserRepository;
+    private final BoardUserRepository boardUserRepository;
     private final LikeRepository likeRepository;
 
     public Like addLike(Long postId,Long userId) {
-        Board board = boardRepository.getPostById(postId);
-        BoardUser boardUser = postUserRepository.getPostUserByUserId(userId);
+        Board board = boardRepository.getBoardById(postId);
+        BoardUser boardUser = boardUserRepository.getPostUserByUserId(userId);
 
         Like like = Like.builder()
                 .board(board)
@@ -36,7 +36,7 @@ public class LikeService {
 
     public void removeLike(Long postId,Long userId) {
 
-        likeRepository.deleteByUserId_IdAndPost_Id(userId,postId);
+        likeRepository.deleteByUserId_IdAndBoard_Id(userId,postId);
         //TODO::삭제 이벤트 발생
     }
 

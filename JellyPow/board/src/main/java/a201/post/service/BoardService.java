@@ -8,7 +8,7 @@ import a201.post.data.request.BoardUpdateRequest;
 import a201.post.data.response.BoardResponse;
 import a201.post.enums.Visibility;
 import a201.post.repository.BoardRepository;
-import a201.post.repository.PostUserRepository;
+import a201.post.repository.BoardUserRepository;
 import a201.common.s3.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,12 +26,12 @@ import java.util.Set;
 public class BoardService {
 
     private final BoardRepository boardRepository;
-    private final PostUserRepository postUserRepository;
+    private final BoardUserRepository boardUserRepository;
     private final S3Service s3Service;
 
     public BoardResponse getPost(Long userId, Long postId) {
 
-        Board findBoard = boardRepository.getPostById(postId);
+        Board findBoard = boardRepository.getBoardById(postId);
         Visibility visibility =  findBoard.getVisibility();
 
         if(visibility == Visibility.PRIVATE){
@@ -53,7 +53,7 @@ public class BoardService {
     public void createPost(Long userId, BoardRequest boardRequest) {
 
         Board newBoard = boardRequest.toEntity();
-        BoardUser boardUser = postUserRepository.findByUserId(userId);
+        BoardUser boardUser = boardUserRepository.findByUserId(userId);
         newBoard.setUserId(boardUser);
 
         boardRepository.save(newBoard);
@@ -82,7 +82,7 @@ public class BoardService {
 
     public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest) {
 
-        Board board = boardRepository.getPostById(postId);
+        Board board = boardRepository.getBoardById(postId);
 
 
         List<Image> images = board.getImages();
@@ -114,7 +114,7 @@ public class BoardService {
 
     public void deletePost(Long userId, Long postId) {
 
-        Board board = boardRepository.getPostById(postId);
+        Board board = boardRepository.getBoardById(postId);
 
         List<Image> images = board.getImages();
         for(Image image : images) {

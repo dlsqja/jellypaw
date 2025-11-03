@@ -6,7 +6,7 @@ import a201.post.data.entity.BoardUser;
 import a201.post.data.request.CommentRequest;
 import a201.post.repository.CommentRepository;
 import a201.post.repository.BoardRepository;
-import a201.post.repository.PostUserRepository;
+import a201.post.repository.BoardUserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +21,12 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
-    private final PostUserRepository postUserRepository;
+    private final BoardUserRepository boardUserRepository;
 
     public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
         Board board = boardRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
-        BoardUser boardUser = postUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
+        BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
 
         Comment comment = Comment.builder()
                 .board(board)
@@ -44,7 +44,7 @@ public class CommentService {
     }
 
     public List<Comment> getCommentsByPost(Long postId,Long userId) {
-        List<Comment> parents = commentRepository.findAllByPostId(postId);
+        List<Comment> parents = commentRepository.findAllByBoardId(postId);
 
         return parents;
     }
