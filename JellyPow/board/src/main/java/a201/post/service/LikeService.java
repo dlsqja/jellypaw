@@ -35,8 +35,9 @@ public class LikeService {
     }
 
     public void removeLike(Long postId,Long userId) {
-        //TODO::삭제 이벤트 발생 
+
         likeRepository.deleteByUserId_IdAndPost_Id(userId,postId);
+        //TODO::삭제 이벤트 발생
     }
 
     public List<Like> getLikesByMe(Long userId) {

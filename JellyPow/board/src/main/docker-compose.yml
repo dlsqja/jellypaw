@@ -1,0 +1,154 @@
+services:
+  ec-server:
+    image: ${DOCKER_IMAGE}:${TAG}
+    container_name: ec-server
+    ports:
+      - "8081:8080"
+    depends_on:
+      ec2-db:
+        condition: service_healthy
+      ec2-elasticsearch:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+    volumes:
+      - ./audio/:/tmp/audio
+
+  ec2-db:
+    image: mysql:8.0
+    container_name: ec2-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: todak
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+
+
+  ec2-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: ec2-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-master:
+    image: redis:7
+    container_name: redis-master
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_master_data:/data
+      - ./redis/master.conf:/usr/local/etc/redis/redis.conf
+    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-slave:
+      image: redis:7
+      container_name: redis-slave
+      ports:
+        - "6380:6379"
+      depends_on:
+        - redis-master
+      volumes:
+        - redis_slave_data:/data
+        - ./redis/slave.conf:/usr/local/etc/redis/redis.conf
+      command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+      restart: unless-stopped
+
+  sentinel1:
+      image: redis:7
+      container_name: sentinel1
+      ports:
+        - "26379:26379"
+      depends_on:
+        redis-master:
+          condition: service_healthy
+      volumes:
+        - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      command: [ "redis-sentinel", "/usr/local/etc/redis/sentinel.conf" ]
+      restart: unless-stopped
+
+  sentinel2:
+      image: redis:7
+      container_name: sentinel2
+      ports:
+        - "26380:26379"
+      depends_on:
+        redis-master:
+          condition: service_healthy
+      volumes:
+        - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      command: [ "redis-sentinel", "/usr/local/etc/redis/sentinel.conf" ]
+      restart: unless-stopped
+
+  sentinel3:
+      image: redis:7
+      container_name: sentinel3
+      ports:
+        - "26381:26379"
+      depends_on:
+        redis-master:
+          condition: service_healthy
+      volumes:
+        - ./redis/sentinel.conf:/usr/local/etc/redis/sentinel.conf
+      command: [ "redis-sentinel", "/usr/local/etc/redis/sentinel.conf" ]
+      restart: unless-stopped
+
+  ec2-rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: ec2-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${MQ_USERNAME}
+      RABBITMQ_DEFAULT_PASS: ${MQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  kurento:
+    image: kurento/kurento-media-server:latest
+    container_name: kurento-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./audio/:/tmp/audio
+    restart: unless-stopped
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: coturn-server
+    network_mode: host
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  es_data:
+  redis_master_data:
+  redis_slave_data:
+  rabbitmq_data:
