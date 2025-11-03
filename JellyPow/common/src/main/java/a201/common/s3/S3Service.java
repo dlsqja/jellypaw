@@ -69,6 +69,11 @@ public class S3Service {
         return uploadFile(file, "post"+"/"+category);
     }
 
+    //PET PROFILE
+    public String uploadPetProfileImage(MultipartFile file) {
+        return uploadFile(file, "profile");
+    }
+
     // S3에서 파일 삭제
     public void deleteFile(String fileUrl) {
         if (fileUrl == null || fileUrl.isEmpty()) {

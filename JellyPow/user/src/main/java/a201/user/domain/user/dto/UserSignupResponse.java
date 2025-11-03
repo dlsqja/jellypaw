@@ -22,7 +22,7 @@ public class UserSignupResponse {
 
     public static UserSignupResponse from(User user) {
         return UserSignupResponse.builder()
-                .userId(user.getUserId())
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .description(user.getDescription())
                 .profileImg(user.getProfileImg())
@@ -33,7 +33,7 @@ public class UserSignupResponse {
     
     public static UserSignupResponse from(User user, String accessToken) {
         return UserSignupResponse.builder()
-                .userId(user.getUserId())
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .description(user.getDescription())
                 .profileImg(user.getProfileImg())

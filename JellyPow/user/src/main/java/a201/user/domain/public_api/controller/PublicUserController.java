@@ -33,7 +33,7 @@ public class PublicUserController {
             // 토큰을 포함한 응답 반환
             UserSignupResponse responseWithToken = UserSignupResponse.from(
                 User.builder()
-                    .userId(response.getUserId())
+                    .id(response.getUserId())
                     .nickname(response.getNickname())
                     .description(response.getDescription())
                     .profileImg(response.getProfileImg())

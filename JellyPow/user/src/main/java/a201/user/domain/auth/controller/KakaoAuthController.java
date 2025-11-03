@@ -12,7 +12,6 @@ import a201.user.domain.user.repository.UserRepository;
 import a201.user.global.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.Map;
@@ -105,8 +104,8 @@ public class KakaoAuthController {
             UserSignupResponse userResponse = UserSignupResponse.from(user);
             
             // JWT 토큰 생성
-            String jwtToken = jwtUtil.generateToken(user.getUserId(), user.getRole());
-            log.info("JWT 토큰 생성 완료 - userId: {}, role: {}", user.getUserId(), user.getRole());
+            String jwtToken = jwtUtil.generateToken(user.getId(), user.getRole());
+            log.info("JWT 토큰 생성 완료 - userId: {}, role: {}", user.getId(), user.getRole());
 
             return KakaoLoginResponse.builder()
                     .needSignup(false)
