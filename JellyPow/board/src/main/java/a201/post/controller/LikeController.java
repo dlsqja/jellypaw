@@ -15,15 +15,15 @@ public class LikeController {
 
     private final LikeService likeService;
 
-    @PostMapping("/{postId}")
-    public ApiResponse<?> add(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId) {
-        likeService.addLike(postId,userId);
+    @PostMapping("/{boardId}")
+    public ApiResponse<?> add(@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId) {
+        likeService.addLike(boardId,userId);
         return ApiResponse.success(null);
     }
 
-    @DeleteMapping("/{postId}")
-    public ApiResponse<?> remove(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId) {
-        likeService.removeLike(postId,userId);
+    @DeleteMapping("/{boardId}")
+    public ApiResponse<?> remove(@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId) {
+        likeService.removeLike(boardId,userId);
         return ApiResponse.success(null);
     }
 

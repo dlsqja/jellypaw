@@ -9,17 +9,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/posts")
+@RequestMapping("/boards")
 @RequiredArgsConstructor
 public class BoardController {
 
     private final BoardService boardService;
 
     // TODO:: GET post Visibility 확인/팔로워 유무 확인 필요
-    @GetMapping("/{postId}")
-    public ApiResponse<BoardResponse> getPost(@RequestHeader("X-User-Id") Long userId, @PathVariable Long postId) {
+    @GetMapping("/{boardId}")
+    public ApiResponse<BoardResponse> getPost(@RequestHeader("X-User-Id") Long userId, @PathVariable Long boardId) {
 
-        BoardResponse boardResponse = boardService.getPost(userId,postId);
+        BoardResponse boardResponse = boardService.getPost(userId,boardId);
 
         return ApiResponse.success(boardResponse);
     }
@@ -33,18 +33,18 @@ public class BoardController {
 
     }
 
-    @PutMapping("/{postId}")
-    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId, @PathVariable Long postId, @RequestBody BoardUpdateRequest postRequest) {
+    @PutMapping("/{boardId}")
+    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId, @PathVariable Long boardId, @RequestBody BoardUpdateRequest postRequest) {
 
-        boardService.updatePost(userId,postId,postRequest);
+        boardService.updatePost(userId,boardId,postRequest);
 
         return ApiResponse.success(null);
     }
 
-    @DeleteMapping("/{postId}")
-    public ApiResponse<Void> delete(@RequestHeader("X-User-Id") Long userId,@PathVariable Long postId) {
+    @DeleteMapping("/{boardId}")
+    public ApiResponse<Void> delete(@RequestHeader("X-User-Id") Long userId,@PathVariable Long boardId) {
 
-        boardService.deletePost(userId,postId);
+        boardService.deletePost(userId,boardId);
 
         return ApiResponse.success(null);
     }
