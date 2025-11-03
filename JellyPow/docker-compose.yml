@@ -18,6 +18,17 @@ services:
     #networks:
     # - jellypaw-network #여러 Docker 컨테이너가 서로 통신할 수 있도록 하는 가상 네트워크
 
+  # Kafka (KRaft 모드 - Zookeeper 불필요)
+  kafka:
+    image: apache/kafka:3.8.1
+    container_name: jellypaw-kafka
+    environment:
+      TZ: Asia/Seoul
+    ports:
+      - "9092:9092"
+    #networks:
+    # - jellypaw-network
+
 volumes:
   mysql-user-data:
 #networks:

@@ -3,16 +3,19 @@ package a201.user.domain.user.service;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import a201.user.domain.user.dto.UserRequest;
+import a201.user.domain.user.dto.UserSignupEvent;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import a201.common.s3.S3Service;
 import a201.common.enums.ErrorCode;
 import a201.common.exception.CustomException;
+import a201.common.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
 	private final AuthRepository authRepository;
 	private final S3Service s3Service;
+	private final KafkaTemplate<String, String> kafkaTemplate;
 
     // 회원가입	
     @Transactional
@@ -45,7 +49,11 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // 4. 응답 반환
+        // 4. Kafka로 이벤트 발행
+        UserSignupEvent event = new UserSignupEvent(savedUser.getUserId(), savedUser.getNickname(), savedUser.getProfileImg());
+        kafkaTemplate.send("user-signup-topic", JsonUtil.toJsonString(event));
+
+        // 5. 응답 반환
         return UserSignupResponse.from(savedUser);
     }
 
