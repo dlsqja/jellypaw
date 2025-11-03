@@ -17,7 +17,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/{postId}")
-    public ApiResponse<?> create(@PathVariable Long postId,@RequestBody Long userId,
+    public ApiResponse<?> create(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId,
                                  @RequestBody CommentRequest commentRequest) {
 
         commentService.createComment(postId,userId,commentRequest);
@@ -25,18 +25,18 @@ public class CommentController {
     }
 
     @GetMapping("/{postId}")
-    public ApiResponse<?> getCommentsByPost(@PathVariable Long postId,@RequestBody Long userId) {
+    public ApiResponse<?> getCommentsByPost(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId) {
         return ApiResponse.success(commentService.getCommentsByPost(postId,userId));
     }
 
     @GetMapping("/{postId}/{parentId}")
-    public ApiResponse<?> getCommentsByParent(@PathVariable Long parentId,@RequestBody Long userId) {
+    public ApiResponse<?> getCommentsByParent(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
         return ApiResponse.success(commentService.getCommentsByParent(parentId,userId));
     }
 
 
     @DeleteMapping("/{postId}/{parentId}")
-    public ApiResponse<?> delete(@PathVariable Long commentId,@RequestBody Long userId) {
+    public ApiResponse<?> delete(@PathVariable Long commentId,@RequestHeader("X-User-Id") Long userId) {
         commentService.deleteComment(commentId,userId);
         return ApiResponse.success(null);
     }

@@ -16,19 +16,19 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/{postId}")
-    public ApiResponse<?> add(@PathVariable Long postId,@RequestBody Long userId) {
+    public ApiResponse<?> add(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId) {
         likeService.addLike(postId,userId);
         return ApiResponse.success(null);
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<?> remove(@PathVariable Long postId,@RequestBody Long userId) {
+    public ApiResponse<?> remove(@PathVariable Long postId,@RequestHeader("X-User-Id") Long userId) {
         likeService.removeLike(postId,userId);
         return ApiResponse.success(null);
     }
 
     @GetMapping("/my")
-    public ApiResponse<?> getByUser(@RequestBody Long userId) {
+    public ApiResponse<?> getByUser(@RequestHeader("X-User-Id") Long userId) {
         List<Like> likes = likeService.getLikesByMe(userId);
         return ApiResponse.success(likes);
     }

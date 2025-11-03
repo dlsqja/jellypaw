@@ -17,7 +17,7 @@ public class BoardController {
 
     // TODO:: GET post Visibility 확인/팔로워 유무 확인 필요
     @GetMapping("/{postId}")
-    public ApiResponse<BoardResponse> getPost(@RequestBody Long userId, @PathVariable Long postId) {
+    public ApiResponse<BoardResponse> getPost(@RequestHeader("X-User-Id") Long userId, @PathVariable Long postId) {
 
         BoardResponse boardResponse = boardService.getPost(userId,postId);
 
@@ -25,7 +25,7 @@ public class BoardController {
     }
 
     @PostMapping
-    public ApiResponse<Void> create(@RequestBody Long userId, @RequestBody BoardRequest boardRequest) {
+    public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId, @RequestBody BoardRequest boardRequest) {
 
         boardService.createPost(userId, boardRequest);
 
@@ -34,7 +34,7 @@ public class BoardController {
     }
 
     @PutMapping("/{postId}")
-    public ApiResponse<Void> update(@RequestBody Long userId, @PathVariable Long postId, @RequestBody BoardUpdateRequest postRequest) {
+    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId, @PathVariable Long postId, @RequestBody BoardUpdateRequest postRequest) {
 
         boardService.updatePost(userId,postId,postRequest);
 
@@ -42,7 +42,7 @@ public class BoardController {
     }
 
     @DeleteMapping("/{postId}")
-    public ApiResponse<Void> delete(@PathVariable Long userId,@PathVariable Long postId) {
+    public ApiResponse<Void> delete(@RequestHeader("X-User-Id") Long userId,@PathVariable Long postId) {
 
         boardService.deletePost(userId,postId);
 
