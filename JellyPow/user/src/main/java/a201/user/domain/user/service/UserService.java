@@ -3,7 +3,7 @@ package a201.user.domain.user.service;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import a201.user.domain.user.dto.UserRequest;
-import a201.user.domain.user.dto.UserSignupEvent;
+import a201.common.event.UserEvent;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
@@ -50,7 +50,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         // 4. Kafka로 이벤트 발행
-        UserSignupEvent event = new UserSignupEvent(savedUser.getUserId(), savedUser.getNickname(), savedUser.getProfileImg());
+        UserEvent event = new UserEvent(savedUser.getId(), savedUser.getNickname(), savedUser.getProfileImg());
         kafkaTemplate.send("user-create-topic", JsonUtil.toJsonString(event));
 
         // 5. 응답 반환
@@ -109,7 +109,7 @@ public class UserService {
 		//
 
 		// 5. Kafka로 이벤트 발행
-		UserSignupEvent event = new UserSignupEvent(user.getUserId(), user.getNickname(), user.getProfileImg());
+		UserEvent event = new UserEvent(user.getId(), user.getNickname(), user.getProfileImg());
 		kafkaTemplate.send("user-update-topic", JsonUtil.toJsonString(event));
 
         // 5. 응답 반환

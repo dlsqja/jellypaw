@@ -10,6 +10,8 @@ import a201.post.enums.Visibility;
 import a201.post.repository.BoardRepository;
 import a201.post.repository.BoardUserRepository;
 import a201.common.s3.S3Service;
+import a201.common.exception.CustomException;
+import a201.common.enums.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +55,8 @@ public class BoardService {
     public void createPost(Long userId, BoardRequest boardRequest) {
 
         Board newBoard = boardRequest.toEntity();
-        BoardUser boardUser = boardUserRepository.findByUserId(userId);
+        BoardUser boardUser = boardUserRepository.findByUserId(userId)
+			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         newBoard.setUserId(boardUser);
 
         boardRepository.save(newBoard);
