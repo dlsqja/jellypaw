@@ -31,7 +31,7 @@ public class FollowService {
 				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         // 1. 자기 자신 팔로우 방지
-        if (fromUserId.equals(toUser.getUserId())) {
+        if (fromUserId.equals(toUser.getId())) {
             throw new CustomException(ErrorCode.FOLLOW_SELF);
         }
 
