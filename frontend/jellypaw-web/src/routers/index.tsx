@@ -33,12 +33,12 @@ const mainRoutes = {
       path: '/search',
       element: <Search />,
     },
-    // {
-    //   path: '/search/detail/:personId',
-    //   element: <PersonSearchDetail />,
-    // },
     {
-      path: '/search/detail/:locationId',
+      path: '/search/person/:personId',
+      element: <PersonSearchDetail />,
+    },
+    {
+      path: '/search/location/:locationId',
       element: <LocationSearchDetail />,
     },
     {
