@@ -1,13 +1,14 @@
+import CertifiedStaffProfile from './CertifiedStaffProfile';
+import FunctionList from './FunctionList';
+
 import { Badge } from '@/components/ui/badge';
 import { FaStar } from 'react-icons/fa6';
-import FunctionList from './FunctionList';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { IoInformationCircleOutline } from 'react-icons/io5';
 import { SlLocationPin } from 'react-icons/sl';
-import { MdOutlinePhone } from 'react-icons/md';
-import { FiClock } from 'react-icons/fi';
 import { TbWorld } from 'react-icons/tb';
-import { IoDocumentTextOutline } from 'react-icons/io5';
+import { MdOutlinePhone } from 'react-icons/md';
+import { BsPersonFillCheck } from 'react-icons/bs';
 
 interface LocationProfileProps {
   name: string;
@@ -19,6 +20,7 @@ interface LocationProfileProps {
   runningTime: { id: number; name: string; start: string | '휴무'; end: string | '휴무' }[];
   description: string;
   profileImageUrl?: string;
+  CertifiedStaffs?: { name: string; specialties: string; experience: string; profileImageUrl: string }[];
 }
 
 export default function LocationProfile({
@@ -28,13 +30,12 @@ export default function LocationProfile({
   rating,
   phone,
   url,
-  runningTime,
-  description,
   profileImageUrl = '/src/assets/hospitals/동물병원.png',
+  CertifiedStaffs = [],
 }: LocationProfileProps) {
   return (
     <>
-      <div className="flex flex-col gap-4"></div>
+      {/* 가게 기본 프로필 */}
       <div className="flex flex-col items-center">
         {/* 프로필 이미지 */}
         <div className="w-24 h-24 bg-white rounded-2xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center">
@@ -53,9 +54,9 @@ export default function LocationProfile({
           </Badge>
         </div>
       </div>
-      <FunctionList />
-      {/* 카드 1 */}
-      {/* 기본 정보 */}
+      {/* 기능 목록 */}
+      <FunctionList phone={phone} />
+      {/* 기본 정보 카드 */}
       <Card className="p-6">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -81,49 +82,30 @@ export default function LocationProfile({
           </div>
         </CardContent>
       </Card>
-      {/* 카드 2 */}
-      {/* 기본 운영시간 */}
-      <Card className="p-6">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <FiClock className="text-aqua-300 w-4 h-4" />
-            <div className="text-aqua-500 h6">운영시간</div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-2 mt-4">
-            <div className="flex flex-col gap-2">
-              {runningTime.map((time) => (
-                <div key={time.id}>
-                  <div className="flex justify-between">
-                    <p className="text-aqua-500 p2">{time.name}</p>
-                    {time.start === '휴무' ? (
-                      <p className="text-pink-400 p2-b">휴무</p>
-                    ) : (
-                      <p className="text-aqua-500 p2-b">
-                        {time.start} - {time.end}
-                      </p>
-                    )}
-                  </div>
-                </div>
+      {/* 인증 직원 카드 - 있을 때만 보이기*/}
+      {CertifiedStaffs.length > 0 && (
+        <Card className="p-6">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BsPersonFillCheck className="text-aqua-300 w-4 h-4" />
+              <div className="text-aqua-500 h6">인증 직원</div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-3 mt-4">
+              {CertifiedStaffs.map((staff, index) => (
+                <CertifiedStaffProfile
+                  key={index}
+                  name={staff.name}
+                  specialties={staff.specialties}
+                  experience={staff.experience}
+                  profileImageUrl={staff.profileImageUrl}
+                />
               ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      {/* 카드 3 */}
-      {/* 소개 */}
-      <Card className="p-6">
-        <CardHeader>
-          <div className="flex items-center gap-2 mb-4">
-            <IoDocumentTextOutline className="text-aqua-300 w-4 h-4" />
-            <div className="text-aqua-500 h6"> 소개글 </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-aqua-500 p2">{description}</p>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }

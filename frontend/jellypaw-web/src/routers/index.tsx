@@ -12,6 +12,7 @@ import PersonSearchDetail from '@/pages/Search/PersonSearch/PersonSearchDetail';
 import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetail';
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
 import LocationSearchDetail from '@/pages/Search/LocationSearch/LocationSearchDetail';
+import FunctionReservation from '@/pages/Search/LocationSearch/components/Function_reservation';
 
 const mainRoutes = {
   path: '/',
@@ -40,6 +41,10 @@ const mainRoutes = {
     {
       path: '/search/location/:locationId',
       element: <LocationSearchDetail />,
+    },
+    {
+      path: '/search/location/:locationId/reservation',
+      element: <FunctionReservation />,
     },
     {
       path: '/write',
