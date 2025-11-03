@@ -51,7 +51,7 @@ public class UserService {
 
         // 4. Kafka로 이벤트 발행
         UserSignupEvent event = new UserSignupEvent(savedUser.getUserId(), savedUser.getNickname(), savedUser.getProfileImg());
-        kafkaTemplate.send("user-signup-topic", JsonUtil.toJsonString(event));
+        kafkaTemplate.send("user-create-topic", JsonUtil.toJsonString(event));
 
         // 5. 응답 반환
         return UserSignupResponse.from(savedUser);
@@ -105,6 +105,12 @@ public class UserService {
                 profileImgUrl,
                 backgroundImgUrl
         );
+
+		//
+
+		// 5. Kafka로 이벤트 발행
+		UserSignupEvent event = new UserSignupEvent(user.getUserId(), user.getNickname(), user.getProfileImg());
+		kafkaTemplate.send("user-update-topic", JsonUtil.toJsonString(event));
 
         // 5. 응답 반환
         return UserSignupResponse.from(user);
