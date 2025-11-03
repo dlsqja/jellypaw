@@ -1,6 +1,6 @@
 package a201.post.data.request;
 
-import a201.post.data.entity.Post;
+import a201.post.data.entity.Board;
 import a201.post.enums.Category;
 import a201.post.enums.Visibility;
 import lombok.*;
@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostRequest {
+public class BoardRequest {
 
     private Category category;
 
@@ -29,9 +29,9 @@ public class PostRequest {
 
     private List<MultipartFile> newImages;
 
-    public Post toEntity(){
+    public Board toEntity(){
 
-        return Post.builder()
+        return Board.builder()
                 .title(title)
                 .content(content)
                 .placeId(placeId)

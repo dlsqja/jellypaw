@@ -1,25 +1,21 @@
-version: "3.8"
+networks:
+  msa-net:
+    name: msa-net
+    driver: bridge
 
 services:
-  mysql-user:
+  mysql:
     image: mysql:8.0
-    container_name: jellypaw-user
+    container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
-      MYSQL_DATABASE: user_db
-      TZ: Asia/Seoul
+      MYSQL_ROOT_PASSWORD: root1234
     ports:
-      - "3380:3306"
+      - "3306:3306"
     volumes:
-      - mysql-user-data:/var/lib/mysql
-    command:
-      - --character-set-server=utf8mb4 #한글, 이모지 등 모든 문자를 저장할 수 있는 UTF-8 인코딩 설정
-      - --collation-server=utf8mb4_unicode_ci #문자열 비교 및 정렬 규칙 (대소문자 구분 안 함)
-    #networks:
-    # - jellypaw-network #여러 Docker 컨테이너가 서로 통신할 수 있도록 하는 가상 네트워크
+      - ./init:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    networks:
+      - msa-net
 
 volumes:
-  mysql-user-data:
-#networks:
-#  jellypaw-network:
-#    driver: bridge
+  mysql_data:

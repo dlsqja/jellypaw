@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Post {
+public class Board {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class Post {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private PostUser userId;
+    private BoardUser userId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
@@ -55,15 +55,11 @@ public class Post {
     @Column
     private Visibility visibility;
 
-
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE)
     private List<Comment> comments;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-    private List<Like> likes;
 
     //따로 이미지 삭제 로직 필요
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Image> images;
 
 
