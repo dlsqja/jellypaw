@@ -48,7 +48,7 @@ export default function Article({
 
   return (
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
-      <Card className="w-80 h-136 relative border-gray-100">
+      <Card className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100">
         {/* 프로필 헤더 */}
         <CardHeader className="p-4 gap-4">
           <div className="flex items-start">

@@ -14,7 +14,7 @@ export default function CertifiedStaffProfile({
   return (
     <>
       {/* 프로필 이미지 */}
-      <div className="p-4 bg-gray-100 rounded-[12px] inline-flex justify-start items-center shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)]">
+      <div className="p-4 bg-gray-100 border border-gray-200 rounded-[12px] inline-flex justify-start items-center ">
         <img className="w-12 h-12 rounded-full object-cover" src={profileImageUrl} alt={name} />
         {/* 이름, 직급, 경력 */}
         <div className="pl-4 flex flex-col">

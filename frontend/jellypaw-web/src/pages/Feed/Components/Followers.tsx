@@ -11,8 +11,8 @@ export default function Followers({ imageUrl, name, isActive = false, onClick }:
 
   return (
     <div className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer" onClick={onClick}>
-      <div className={`w-16 h-16 p-2 rounded-full outline outline-2 outline-offset-[-2px] ${outlineColor} flex flex-col justify-start items-start`}>
-        <img className="w-12 h-12 rounded-full object-cover" src={imageUrl} alt={name} />
+      <div className={`w-16 h-16 p-1.5 rounded-full outline outline-2 outline-offset-[-2px] ${outlineColor} flex flex-col justify-start items-start`}>
+        <img className="w-14 h-14 rounded-full object-cover" src={imageUrl} alt={name} />
       </div>
 
       <div className="w-full flex justify-center">

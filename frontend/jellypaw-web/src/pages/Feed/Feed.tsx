@@ -71,10 +71,10 @@ export default function Feed() {
         {/* 전체 */}
         <div className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer" onClick={() => setActiveProfile('전체')}>
           <div
-            className="w-16 h-16 p-2 rounded-full outline outline-2 outline-offset-[-2px]
+            className="w-16 h-16 p-1.5 rounded-full outline outline-2 outline-offset-[-2px]
               outline-aqua-300 flex flex-col justify-center items-center"
           >
-            <div className="w-12 h-12 bg-aqua-300 rounded-full inline-flex justify-center items-center">
+            <div className="w-[52px] h-[52px] bg-aqua-300 rounded-full inline-flex justify-center items-center">
               <FiUsers size={24} color="#ffffff" />
             </div>
           </div>
