@@ -65,16 +65,19 @@ public class BoardService {
         String categoryString = boardRequest.getCategory().name();
         List<Image> images = new ArrayList<>();
 
-        for(MultipartFile file : newImages) {
-            String keyPath = s3Service.uploadPostImage(file,categoryString);
+        if(newImages!=null){
+            for(MultipartFile file : newImages) {
+                String keyPath = s3Service.uploadPostImage(file,categoryString);
 
-            Image image = Image.builder()
-                    .board(newBoard)
-                    .imageLink(keyPath)
-                    .build();
+                Image image = Image.builder()
+                        .board(newBoard)
+                        .imageLink(keyPath)
+                        .build();
 
-            images.add(image);
+                images.add(image);
+            }
         }
+
 
         newBoard.setImages(images);
 
