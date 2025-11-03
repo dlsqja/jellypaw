@@ -55,15 +55,11 @@ public class Board {
     @Column
     private Visibility visibility;
 
-
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE)
     private List<Comment> comments;
-    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
-    private List<Like> likes;
 
     //따로 이미지 삭제 로직 필요
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Image> images;
 
 

@@ -17,7 +17,7 @@ public class Image {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
     @Column(name = "image_link", nullable = false)

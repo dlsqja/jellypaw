@@ -3,14 +3,14 @@ networks:
     external: true
 
 services:
-  user-service:
+  board-service:
     build: .
-    container_name: user-service
+    container_name: board-service
+    ports:
+      - "8001:8000"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/board
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root1234
-    depends_on:
-      - mysql
     networks:
       - msa-net

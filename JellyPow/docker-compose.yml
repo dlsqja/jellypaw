@@ -9,7 +9,6 @@ services:
     container_name: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: user_db
     ports:
       - "3306:3306"
     volumes:
