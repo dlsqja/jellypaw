@@ -2,14 +2,16 @@ package a201.reservation.dto;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Builder
-@Setter
+
+
 @Getter
+@NoArgsConstructor
 public class ReservationRequest {
 
     private Long userId;

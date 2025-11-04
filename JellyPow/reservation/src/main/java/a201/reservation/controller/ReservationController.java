@@ -1,5 +1,6 @@
 package a201.reservation.controller;
 
+import a201.common.response.ApiResponse;
 import a201.reservation.dto.ReservationListResponse;
 import a201.reservation.dto.ReservationRequest;
 import a201.reservation.dto.ReservationResponse;
@@ -8,7 +9,6 @@ import a201.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import a201.response.ApiResponse;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public class ReservationController {
 
     @PostMapping("/{place_id}")
     public ApiResponse<ReservationResponse> reserve(@PathVariable Long place_id,
-                                                       @RequestBody ReservationRequest reservationRequest) {
+                                                    @RequestBody ReservationRequest reservationRequest) {
 
         Reservation reservation = reservationService.reserve(place_id, reservationRequest);
 
