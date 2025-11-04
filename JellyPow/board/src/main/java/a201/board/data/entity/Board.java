@@ -55,13 +55,11 @@ public class Board {
     @Column
     private Visibility visibility;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE,fetch = FetchType.LAZY)
     private List<Comment> comments;
 
     //따로 이미지 삭제 로직 필요
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL,orphanRemoval = true,fetch = FetchType.LAZY)
     private List<Image> images;
-
-
 
 }

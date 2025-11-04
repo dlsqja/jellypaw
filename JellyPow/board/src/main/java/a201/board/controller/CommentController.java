@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/boards/comments")
+@RequestMapping("/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -25,12 +25,6 @@ public class CommentController {
     public ApiResponse<?> getCommentsByPost(@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId) {
         return ApiResponse.success(commentService.getCommentsByPost(boardId,userId));
     }
-
-    @GetMapping("/{boardId}/{parentId}")
-    public ApiResponse<?> getCommentsByParent(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
-        return ApiResponse.success(commentService.getCommentsByParent(parentId,userId));
-    }
-
 
     @DeleteMapping("/{boardId}/{parentId}")
     public ApiResponse<?> delete(@PathVariable Long commentId,@RequestHeader("X-User-Id") Long userId) {
