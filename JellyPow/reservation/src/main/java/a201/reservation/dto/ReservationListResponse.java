@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Builder
-@RequiredArgsConstructor
+// @RequiredArgsConstructor
 @Getter
 public class ReservationListResponse {
 

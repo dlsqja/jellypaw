@@ -8,7 +8,7 @@ import a201.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import a201.response.ApiResponse;
+import a201.common.response.ApiResponse;
 
 import java.util.List;
 
