@@ -1,4 +1,3 @@
-// src/ui/components/Button.tsx
 import * as React from 'react';
 import { forwardRef } from 'react';
 import {
@@ -18,24 +17,20 @@ export interface ButtonProps extends ButtonVariantProps {
   loading?: boolean;
   disabled?: boolean;
   onPress?: () => void;
-  children?: React.ReactNode; // asChild 대용: 직접 children을 넣어도 됨
+  children?: React.ReactNode;
   accessibilityLabel?: string;
   titleStyle?: TextStyle;
   style?: StyleProp<ViewStyle>;
 }
 
-export const Button = forwardRef<
-  React.ElementRef<typeof Pressable>,
-  ButtonProps
->(
-  (
-    { title, loading, disabled, onPress, children, titleStyle, ...variants },
-    ref,
-  ) => {
+export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
+  ({ title, loading, disabled, onPress, children, titleStyle, style, ...variants }, ref) => {
     const { container, text } = buttonVariants({
       ...variants,
       state: disabled || loading ? 'disabled' : variants.state ?? 'enabled',
     });
+
+    const textColor = (text as TextStyle)?.color as string | undefined;
 
     return (
       <Pressable
@@ -46,16 +41,15 @@ export const Button = forwardRef<
         style={({ pressed }) => [
           container,
           pressed && !(disabled || loading) && styles.pressed,
+          style, 
         ]}
         accessibilityRole="button"
-        accessibilityState={{
-          disabled: !!(disabled || loading),
-          busy: !!loading,
-        }}
+        accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
         accessibilityLabel={title}
+        hitSlop={8} 
       >
         {loading ? (
-          <ActivityIndicator />
+          <ActivityIndicator color={textColor} />
         ) : children ? (
           children
         ) : (
@@ -63,7 +57,7 @@ export const Button = forwardRef<
         )}
       </Pressable>
     );
-  },
+  }
 );
 
 Button.displayName = 'Button';
