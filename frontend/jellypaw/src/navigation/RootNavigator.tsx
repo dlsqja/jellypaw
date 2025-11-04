@@ -21,7 +21,7 @@ export default function RootNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="SignupWebView"
+        initialRouteName="KakaoLogin"
       >
         <Stack.Screen name="KakaoLogin" component={KakaoLoginScreen} />
         <Stack.Screen name="SignupWebView" component={SignupWebViewScreen} />

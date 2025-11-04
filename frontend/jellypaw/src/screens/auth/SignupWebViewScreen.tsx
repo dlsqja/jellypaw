@@ -14,6 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import SafeAreaLayout from '../../components/MobilelLayout';
+import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
 import { Button } from '../../ui/components/Button';
@@ -23,6 +24,7 @@ type Props = NativeStackScreenProps<any>;
 export default function SignupWebViewScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
 
+  // 카카오에서 넘겨줄 값 (없으면 기본값)
   const kakaoEmail = route?.params?.email ?? '카카오톡 이메일 기본값';
 
   const [nickname, setNickname] = useState('');
@@ -39,10 +41,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaLayout backgroundColor="#FAFAFA" style={S.root}>
-      {/* 상단 타이틀 바 */}
-      <View style={S.header}>
-        <Text style={S.headerTitle}>추가 정보 입력</Text>
-      </View>
+      <BackHeader title="추가 정보 입력" showDivider />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -51,11 +50,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[
-              S.content,
-              // 제스처 홈 인디케이터에 버튼이 가려지지 않도록
-              { paddingBottom: insets.bottom + 24 },
-            ]}
+            contentContainerStyle={[S.content, { paddingBottom: insets.bottom + 24 }]}
           >
             {/* 상단 로고 */}
             <View style={S.logoWrap}>
@@ -106,19 +101,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
 }
 
 const S = StyleSheet.create({
-  root: { flex: 1 }, // 배경색은 SafeAreaLayout의 backgroundColor로 제어
-  header: {
-    height: 60,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  headerTitle: {
-    fontFamily: 'Pretendard-Bold',
-    fontSize: 20,
-    lineHeight: 28,
-    color: '#284542',
-  },
+  root: { flex: 1 },
   content: {
     paddingHorizontal: 24,
     paddingTop: 8,
