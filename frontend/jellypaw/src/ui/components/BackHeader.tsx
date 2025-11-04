@@ -3,7 +3,6 @@ import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
 import { Text } from './Text';
 
 type Props = {
