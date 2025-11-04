@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MobileLayout from '../../../components/MobilelLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
+import BackHeader from '../../../ui/components/BackHeader';
 import type { RootStackParamList } from '../../../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FeedWrite'>;
@@ -47,22 +48,8 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   return (
     <MobileLayout style={styles.container}>
-      {/* 상단 헤더 */}
-      <View style={[styles.topHeader, { paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="chevron-back" size={24} color="#111827" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle} weight="bold">
-              {categoryName}
-            </Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
+      <View style={{ paddingTop: insets.top }}>
+        <BackHeader title={categoryName} showDivider />
       </View>
 
       <ScrollView
@@ -230,38 +217,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-  },
-  topHeader: {
-    width: '100%',
-    height: 64,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    paddingLeft: 12,
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    color: '#111827',
-  },
-  headerSpacer: {
-    width: 24,
   },
   scrollView: {
     flex: 1,

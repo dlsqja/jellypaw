@@ -41,10 +41,20 @@ Open `App.tsx` in your text editor of choice and make some changes. When you sav
 
 ---
 
-### React Navigation과 WebView를 설치
+### 의존성 설치
+
+- React Navigation과 WebView 설치
 
 ```
 npm install @react-navigation/native @react-navigation/native-stack
 npm install react-native-screens react-native-safe-area-context
 npm install react-native-webview
+```
+
+### 아이콘 사용
+
+```
+npm install --save react-native-vector-icons
+# For Typescript
+npm install --save -dev @types/react-native-vector-icons
 ```
