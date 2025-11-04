@@ -1,6 +1,6 @@
 import React from 'react';
-import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import MobileLayout from '../../components/MobilelLayout';
 
 const HTML = `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
@@ -23,14 +23,18 @@ body{margin:0;background:#FAFAFA;font-family:-apple-system,Roboto,Segoe UI,Arial
 </div>`;
 export default function SignupWebViewScreen({ navigation }: any) {
   return (
-    <View style={{ flex:1, backgroundColor:'#FAFAFA' }}>
+    <MobileLayout style={{ flex: 1 }}>
       <WebView
         source={{ html: HTML }} // 나중에 실제 URL로 교체
-        onMessage={(e) => {
-          if (e.nativeEvent.data.includes('profile:completed')) navigation.replace('MainTabs');
+        onMessage={e => {
+          if (e.nativeEvent.data.includes('profile:completed'))
+            navigation.replace('FeedWrite');
         }}
-        javaScriptEnabled domStorageEnabled allowFileAccess={false} mixedContentMode="never"
+        javaScriptEnabled
+        domStorageEnabled
+        allowFileAccess={false}
+        mixedContentMode="never"
       />
-    </View>
+    </MobileLayout>
   );
 }
