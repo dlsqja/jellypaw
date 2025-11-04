@@ -3,23 +3,60 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MobileLayout from '../../../components/MobilelLayout';
+import MobileLayout from '../../../components/MobileLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
+import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'SelectCategory'>;
 
+// 카테고리 목록
 const categories = [
-  { id: 1, name: '일상', icon: 'document-text', iconFamily: 'Ionicons' },
-  { id: 2, name: '건강', icon: 'medical', iconFamily: 'Ionicons' },
-  { id: 3, name: '식당', icon: 'restaurant', iconFamily: 'Ionicons' },
-  { id: 4, name: '미용', icon: 'sparkles', iconFamily: 'Ionicons' },
-  { id: 5, name: '음식', icon: 'fast-food', iconFamily: 'Ionicons' },
-  { id: 6, name: '장난감', icon: 'heart', iconFamily: 'Ionicons' },
-  { id: 7, name: '장소', icon: 'location', iconFamily: 'Ionicons' },
-  { id: 8, name: '기타', icon: 'ellipsis-horizontal', iconFamily: 'Ionicons' },
+  {
+    id: 1,
+    name: '일상',
+    icon: 'calendar-blank-outline',
+    iconFamily: 'MaterialCommunityIcons',
+  },
+  {
+    id: 2,
+    name: '건강',
+    icon: 'cards-heart-outline',
+    iconFamily: 'MaterialCommunityIcons',
+  },
+  {
+    id: 3,
+    name: '식당',
+    icon: 'silverware-variant',
+    iconFamily: 'MaterialCommunityIcons',
+  },
+  {
+    id: 4,
+    name: '미용',
+    icon: 'content-cut',
+    iconFamily: 'MaterialCommunityIcons',
+  },
+  {
+    id: 5,
+    name: '음식',
+    icon: 'food',
+    iconFamily: 'MaterialCommunityIcons',
+  },
+  {
+    id: 6,
+    name: '장난감',
+    icon: 'game-controller-outline',
+    iconFamily: 'Ionicons',
+  },
+  { id: 7, name: '장소', icon: 'location-outline', iconFamily: 'Ionicons' },
+  {
+    id: 8,
+    name: '기타',
+    icon: 'dots-vertical',
+    iconFamily: 'MaterialCommunityIcons',
+  },
 ];
 
 const bottomNavItems = [
@@ -50,19 +87,18 @@ export default function SelectCategory({ navigation }: Props) {
     navigation.navigate('FeedWrite', { categoryId, categoryName });
   };
 
+  const renderIcon = (iconFamily: string, iconName: string) => {
+    if (iconFamily === 'Ionicons') {
+      return <Icon name={iconName} size={32} color="#FFFFFF" />;
+    }
+    return <MaterialCommunityIcons name={iconName} size={32} color="#FFFFFF" />;
+  };
+
   return (
     <MobileLayout style={styles.container}>
       {/* 상단 헤더 */}
-      <View style={[styles.topHeader, { paddingTop: insets.top }]}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity style={styles.backButton}>
-            <Icon name="chevron-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>무엇을 기록할까요?</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
+      <View style={{ paddingTop: insets.top }}>
+        <BackHeader title="무엇을 기록할까요?" />
       </View>
 
       {/* 메인 콘텐츠 */}
@@ -79,6 +115,7 @@ export default function SelectCategory({ navigation }: Props) {
               어떤 이야기를 들려주실건가요?
             </Text>
           </View>
+
           <View style={styles.subtitleContainer}>
             <Text style={styles.subtitle}>카테고리를 선택해주세요</Text>
           </View>
@@ -89,22 +126,17 @@ export default function SelectCategory({ navigation }: Props) {
           {categories.map(category => (
             <TouchableOpacity
               key={category.id}
-              style={[
-                styles.categoryCard,
-                selectedCategory === category.id && styles.categoryCardSelected,
-              ]}
+              style={styles.categoryCard}
               onPress={() => handleCategorySelect(category.id, category.name)}
             >
-              <View style={styles.categoryIconContainer}>
-                {category.iconFamily === 'Ionicons' ? (
-                  <Icon name={category.icon} size={32} color="#FFFFFF" />
-                ) : (
-                  <MaterialCommunityIcons
-                    name={category.icon}
-                    size={32}
-                    color="#FFFFFF"
-                  />
-                )}
+              <View
+                style={[
+                  styles.categoryIconContainer,
+                  selectedCategory === category.id &&
+                    styles.categoryIconContainerSelected,
+                ]}
+              >
+                {renderIcon(category.iconFamily, category.icon)}
               </View>
               <View style={styles.categoryLabelContainer}>
                 <Text style={styles.categoryLabel}>{category.name}</Text>
@@ -114,8 +146,8 @@ export default function SelectCategory({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      {/* 하단 네비게이션 바 */}
-      <View style={[styles.bottomNav, { paddingBottom: insets.bottom }]}>
+      {/* 메뉴바 - 추후에 컴포넌트로 전환환 */}
+      {/* <View style={[styles.bottomNav, { paddingBottom: insets.bottom }]}>
         <View style={styles.bottomNavContent}>
           {bottomNavItems.map(item => (
             <TouchableOpacity
@@ -148,93 +180,69 @@ export default function SelectCategory({ navigation }: Props) {
             </TouchableOpacity>
           ))}
         </View>
-      </View>
+      </View> */}
     </MobileLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  // 컴포넌트 스타일
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAFAFA',
   },
-  topHeader: {
-    width: '100%',
-    height: 64,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    paddingLeft: 12,
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1F2937',
-  },
-  headerSpacer: {
-    width: 0.01,
-    height: 0.01,
-  },
+  // 스크롤 뷰 스타일
   scrollView: {
     flex: 1,
   },
+  // 스크롤 뷰 콘텐츠 스타일
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 64,
     paddingBottom: 80,
     gap: 36,
   },
+  // 스페서 스타일
   spacer: {
     paddingTop: 24,
     paddingBottom: 20,
   },
+  // 타이틀 섹션 스타일
   titleSection: {
     width: '100%',
     height: 64,
     gap: 8,
   },
+  // 타이틀 컨테이너 스타일
   titleContainer: {
     paddingBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 메인 타이틀 스타일
   mainTitle: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+    fontFamily: 'Pretendard-Bold',
+    color: '#284542',
     textAlign: 'center',
     lineHeight: 32,
   },
+  // 서브타이틀 컨테이너 스타일
   subtitleContainer: {
     width: '100%',
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 서브타이틀 스타일
   subtitle: {
     fontSize: 14,
-    fontWeight: '400',
-    color: '#4B5563',
+    fontFamily: 'Pretendard-Regular',
+    color: '#284542',
     textAlign: 'center',
     lineHeight: 20,
   },
+  // 카테고리 그리드 스타일
   categoryGrid: {
     width: '100%',
     minHeight: 288,
@@ -244,88 +252,100 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
+  // 카테고리 카드 스타일
   categoryCard: {
     width: 64,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingBottom: 8,
     backgroundColor: '#FAFAFA',
     borderRadius: 16,
     alignItems: 'center',
   },
-  categoryCardSelected: {
-    backgroundColor: '#E5E7EB',
-  },
+  // 카테고리 아이콘 컨테이너 스타일
   categoryIconContainer: {
     width: 64,
     height: 64,
-    backgroundColor: '#6EE7B7',
+    backgroundColor: '#6ABFB8',
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 선택된 카테고리 아이콘 컨테이너 스타일
+  categoryIconContainerSelected: {
+    backgroundColor: '#4D8983',
+  },
+  // 카테고리 라벨 컨테이너 스타일
   categoryLabelContainer: {
     paddingTop: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 카테고리 라벨 스타일
   categoryLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1F2937',
+    fontFamily: 'Pretendard-Bold',
+    color: '#284542',
     textAlign: 'center',
     lineHeight: 20,
   },
-  bottomNav: {
-    width: '100%',
-    height: 80,
-    paddingTop: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  bottomNavContent: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  bottomNavItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bottomNavIcon: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomNavLabelContainer: {
-    paddingTop: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bottomNavLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  writeButton: {
-    width: 56,
-    height: 56,
-    backgroundColor: '#6EE7B7',
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-  },
+  // 메뉴바 스타일
+  // bottomNav: {
+  //   width: '100%',
+  //   height: 80,
+  //   paddingTop: 1,
+  //   backgroundColor: 'rgba(255, 255, 255, 0.95)',
+  //   borderTopWidth: 1,
+  //   borderTopColor: '#E5E7EB',
+  // },
+  // // 메뉴바 컨테이너 스타일
+  // bottomNavContent: {
+  //   flex: 1,
+  //   flexDirection: 'row',
+  //   justifyContent: 'space-between',
+  //   alignItems: 'center',
+  //   paddingHorizontal: 32,
+  // },
+  // // 메뉴바 아이템 스타일
+  // bottomNavItem: {
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  // },
+  // // 메뉴바 아이콘 스타일
+  // bottomNavIcon: {
+  //   width: 24,
+  //   height: 24,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  // },
+  // // 메뉴바 라벨 컨테이너 스타일
+  // bottomNavLabelContainer: {
+  //   paddingTop: 4,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  // },
+  // // 메뉴바 라벨 스타일
+  // bottomNavLabel: {
+  //   fontSize: 12,
+  //   fontWeight: '500',
+  //   color: '#9CA3AF',
+  //   textAlign: 'center',
+  //   lineHeight: 16,
+  // },
+  // // 글쓰기 버튼 스타일
+  //   writeButton: {
+  //   width: 56,
+  //   height: 56,
+  //   backgroundColor: '#6EE7B7',
+  //   borderRadius: 28,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   shadowColor: '#000',
+  //   shadowOffset: {
+  //     width: 0,
+  //     height: 4,
+  //   },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 6,
+  //   elevation: 4,
+  // },
 });

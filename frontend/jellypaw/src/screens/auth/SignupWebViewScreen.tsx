@@ -13,7 +13,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import SafeAreaLayout from '../../components/MobilelLayout';
+import SafeAreaLayout from '../../components/MobileLayout';
 import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
@@ -50,7 +50,10 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <ScrollView
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[S.content, { paddingBottom: insets.bottom + 24 }]}
+            contentContainerStyle={[
+              S.content,
+              { paddingBottom: insets.bottom + 24 },
+            ]}
           >
             {/* 상단 로고 */}
             <View style={S.logoWrap}>

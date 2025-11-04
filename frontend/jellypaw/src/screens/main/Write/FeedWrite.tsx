@@ -11,10 +11,11 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
-import MobileLayout from '../../../components/MobilelLayout';
+import MobileLayout from '../../../components/MobileLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
+import { Button } from '../../../ui/components/Button';
 import type { RootStackParamList } from '../../../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FeedWrite'>;
@@ -26,7 +27,7 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState<number>(0);
   const [images, setImages] = useState<string[]>([]);
 
   const handleImagePicker = () => {
@@ -41,6 +42,21 @@ export default function FeedWrite({ route, navigation }: Props) {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const handleStarClick = (star: number, event: any) => {
+    const locationX = event.nativeEvent?.locationX || 0;
+    // 별 버튼의 절반 위치 계산 (아이콘 크기 32 + padding 8 = 약 40)
+    const buttonWidth = 40;
+    const isLeftHalf = locationX < buttonWidth / 2;
+
+    if (isLeftHalf) {
+      // 왼쪽 클릭: 해당 별의 0.5로 설정
+      setRating(star - 0.5);
+    } else {
+      // 오른쪽 클릭: 해당 별의 1.0로 설정
+      setRating(star);
+    }
+  };
+
   const handleSubmit = () => {
     // TODO: 게시물 작성 API 호출
     console.log('제출:', { title, content, location, rating, images });
@@ -49,7 +65,7 @@ export default function FeedWrite({ route, navigation }: Props) {
   return (
     <MobileLayout style={styles.container}>
       <View style={{ paddingTop: insets.top }}>
-        <BackHeader title={categoryName} showDivider />
+        <BackHeader title={categoryName} />
       </View>
 
       <ScrollView
@@ -59,9 +75,7 @@ export default function FeedWrite({ route, navigation }: Props) {
         {/* 제목 입력 */}
         <View style={styles.section}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label} weight="semiBold">
-              제목
-            </Text>
+            <Text style={styles.label}>제목</Text>
           </View>
           <View style={styles.inputContainer}>
             <TextInput
@@ -81,14 +95,12 @@ export default function FeedWrite({ route, navigation }: Props) {
         {/* 내용 입력 */}
         <View style={styles.section}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label} weight="semiBold">
-              내용
-            </Text>
+            <Text style={styles.label}>내용</Text>
           </View>
           <View style={[styles.inputContainer, styles.textAreaContainer]}>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="오늘의 펫 라이프를 공유해보세요..."
+              placeholder="내용을 입력하세요"
               placeholderTextColor="#A3A3A3"
               value={content}
               onChangeText={setContent}
@@ -103,11 +115,9 @@ export default function FeedWrite({ route, navigation }: Props) {
         </View>
 
         {/* 위치 입력 */}
-        <View style={styles.section}>
+        <View style={[styles.section, styles.optionalSection]}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label} weight="semiBold">
-              위치 (선택사항)
-            </Text>
+            <Text style={styles.label}>위치 (선택사항)</Text>
           </View>
           <View style={styles.locationInputContainer}>
             <View style={styles.locationIconContainer}>
@@ -126,35 +136,47 @@ export default function FeedWrite({ route, navigation }: Props) {
         </View>
 
         {/* 평점 선택 */}
-        <View style={styles.section}>
+        <View style={[styles.section, styles.optionalSection]}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label} weight="semiBold">
-              평점 (선택사항)
-            </Text>
+            <Text style={styles.label}>평점 (선택사항)</Text>
           </View>
           <View style={styles.ratingContainer}>
-            {[1, 2, 3, 4, 5].map(star => (
-              <TouchableOpacity
-                key={star}
-                style={styles.starButton}
-                onPress={() => setRating(star)}
-              >
-                <Icon
-                  name={star <= rating ? 'star' : 'star-outline'}
-                  size={32}
-                  color={star <= rating ? '#FBBF24' : '#A3A3A3'}
-                />
-              </TouchableOpacity>
-            ))}
+            <View style={styles.starsDisplay}>
+              {[1, 2, 3, 4, 5].map(star => {
+                const isFullStar = rating >= star;
+                const isHalfStar = rating >= star - 0.5 && rating < star;
+                const starIconName = isFullStar
+                  ? 'star'
+                  : isHalfStar
+                  ? 'star-half'
+                  : 'star-outline';
+                const starColor =
+                  isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
+
+                return (
+                  <TouchableOpacity
+                    key={star}
+                    style={styles.starButton}
+                    onPress={e => handleStarClick(star, e)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name={starIconName} size={32} color={starColor} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <View style={styles.ratingValueContainer}>
+              <Text style={styles.ratingValue}>
+                {rating > 0 ? rating.toFixed(1) : '0.0'}
+              </Text>
+            </View>
           </View>
         </View>
 
         {/* 사진 선택 */}
-        <View style={styles.section}>
+        <View style={[styles.section, styles.optionalSection]}>
           <View style={styles.labelContainer}>
-            <Text style={styles.label} weight="semiBold">
-              사진 선택 (최대 3장)
-            </Text>
+            <Text style={styles.label}>사진 선택 (최대 3장)</Text>
           </View>
           <View style={styles.imageContainer}>
             {images.length < 3 && (
@@ -188,56 +210,53 @@ export default function FeedWrite({ route, navigation }: Props) {
           { paddingBottom: insets.bottom + 16 },
         ]}
       >
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            (title.length === 0 || content.length === 0) &&
-              styles.submitButtonDisabled,
-          ]}
+        <Button
+          title="게시물 작성하기"
           onPress={handleSubmit}
           disabled={title.length === 0 || content.length === 0}
-        >
-          <Text
-            style={[
-              styles.submitButtonText,
-              (title.length === 0 || content.length === 0) &&
-                styles.submitButtonTextDisabled,
-            ]}
-            weight="semiBold"
-          >
-            게시물 작성하기
-          </Text>
-        </TouchableOpacity>
+        />
       </View>
     </MobileLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  // 컴포넌트 스타일
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
+  // 스크롤 뷰 스타일
   scrollView: {
     flex: 1,
   },
+  // 스크롤 뷰 콘텐츠 스타일
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 24,
-    gap: 24,
+    gap: 16,
   },
+  // 섹션 스타일
   section: {
     width: '100%',
   },
-  labelContainer: {
-    paddingBottom: 12,
+  // 선택사항 섹션 스타일 (위치, 평점, 사진 선택)
+  optionalSection: {
+    marginBottom: 32,
   },
+  // 라벨 컨테이너 스타일
+  labelContainer: {
+    paddingBottom: 16,
+  },
+  // 라벨 스타일
   label: {
-    fontSize: 14,
-    color: '#111827',
+    fontFamily: 'Pretendard-Bold',
+    fontSize: 18,
+    color: '#284542',
     lineHeight: 20,
   },
+  // 인풋 컨테이너 스타일
   inputContainer: {
     width: '100%',
     height: 48,
@@ -249,17 +268,20 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     justifyContent: 'center',
   },
+  // 인풋 스타일
   input: {
     fontSize: 14,
-    color: '#111827',
-    fontFamily: 'Pretendard-Regular',
+    color: '#A3A3A3',
+    fontFamily: 'Pretendard-Medium',
     padding: 0,
     margin: 0,
   },
+  // 텍스트 에어리어 컨테이너 스타일
   textAreaContainer: {
     height: 112,
     alignItems: 'flex-start',
   },
+  // 텍스트 에어리어 스타일
   textArea: {
     height: '100%',
     ...Platform.select({
@@ -271,25 +293,30 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  // 카운터 컨테이너 스타일
   counterContainer: {
     paddingTop: 4,
     alignItems: 'flex-end',
   },
+  // 카운터 스타일
   counter: {
     fontSize: 12,
     color: '#A3A3A3',
     lineHeight: 16,
   },
+  // 위치 입력 컨테이너 스타일
   locationInputContainer: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
   },
+  // 위치 입력 컨테이너 스타일
   locationInputWrapper: {
     flex: 1,
     paddingLeft: 48,
   },
+  // 위치 아이콘 컨테이너 스타일
   locationIconContainer: {
     position: 'absolute',
     left: 16,
@@ -299,25 +326,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 위치 입력 스타일
   locationInput: {
     paddingLeft: 0,
   },
+  // 평점 컨테이너 스타일
   ratingContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  // 별점 표시 스타일
+  starsDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 12,
   },
+  // 별 버튼 스타일
   starButton: {
-    width: 32,
-    height: 32,
+    padding: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 평점 값 컨테이너 스타일
+  ratingValueContainer: {
+    alignItems: 'center',
+  },
+  // 평점 값 스타일
+  ratingValue: {
+    fontSize: 16,
+    fontFamily: 'Pretendard-Bold',
+    color: '#284542',
+  },
+  // 이미지 컨테이너 스타일
   imageContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
+  // 이미지 선택 버튼 스타일
   imagePickerButton: {
     width: 80,
     height: 80,
@@ -329,11 +376,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
+  // 이미지 선택 텍스트 스타일
   imagePickerText: {
     fontSize: 12,
     color: '#A3A3A3',
     lineHeight: 16,
   },
+  // 이미지 랩퍼 스타일
   imageWrapper: {
     width: 80,
     height: 80,
@@ -341,10 +390,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  // 이미지 스타일
   image: {
     width: '100%',
     height: '100%',
   },
+  // 이미지 제거 버튼 스타일
   removeImageButton: {
     position: 'absolute',
     top: 2,
@@ -352,29 +403,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 10,
   },
+  // 제출 버튼 컨테이너 스타일
   submitButtonContainer: {
     width: '100%',
     paddingHorizontal: 16,
     paddingTop: 16,
-    backgroundColor: '#F9FAFB',
+    marginBottom: 16,
   },
-  submitButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#111827',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#E5E7EB',
-  },
-  submitButtonText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-    lineHeight: 20,
-  },
-  submitButtonTextDisabled: {
-    color: '#9CA3AF',
-  },
+  // 제출 버튼 스타일
+  // submitButton: {
+  //   width: '100%',
+  //   height: 56,
+  //   backgroundColor: '#111827',
+  //   borderRadius: 12,
+  // },
+  // 제출 버튼 텍스트 스타일
+  // submitButtonText: {
+  //   fontFamily: 'Pretendard-Bold',
+  //   color: '#FFFFFF',
+  //   lineHeight: 20,
+  // },
 });
