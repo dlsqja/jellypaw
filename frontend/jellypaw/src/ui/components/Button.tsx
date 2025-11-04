@@ -1,7 +1,14 @@
 // src/ui/components/Button.tsx
 import * as React from 'react';
 import { forwardRef } from 'react';
-import { Pressable, ActivityIndicator, StyleSheet, TextStyle } from 'react-native';
+import {
+  Pressable,
+  ActivityIndicator,
+  StyleSheet,
+  TextStyle,
+  StyleProp,
+  ViewStyle,
+} from 'react-native';
 import { AppText } from './AppText';
 import type { ButtonVariantProps } from '../system/variants';
 import { buttonVariants } from '../system/variants';
@@ -14,20 +21,16 @@ export interface ButtonProps extends ButtonVariantProps {
   children?: React.ReactNode; // asChild 대용: 직접 children을 넣어도 됨
   accessibilityLabel?: string;
   titleStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const Button = forwardRef<Pressable, ButtonProps>(
+export const Button = forwardRef<
+  React.ElementRef<typeof Pressable>,
+  ButtonProps
+>(
   (
-    {
-      title,
-      loading,
-      disabled,
-      onPress,
-      children,
-      titleStyle,
-      ...variants
-    },
-    ref
+    { title, loading, disabled, onPress, children, titleStyle, ...variants },
+    ref,
   ) => {
     const { container, text } = buttonVariants({
       ...variants,
@@ -45,7 +48,10 @@ export const Button = forwardRef<Pressable, ButtonProps>(
           pressed && !(disabled || loading) && styles.pressed,
         ]}
         accessibilityRole="button"
-        accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
+        accessibilityState={{
+          disabled: !!(disabled || loading),
+          busy: !!loading,
+        }}
         accessibilityLabel={title}
       >
         {loading ? (
@@ -53,11 +59,11 @@ export const Button = forwardRef<Pressable, ButtonProps>(
         ) : children ? (
           children
         ) : (
-           <AppText style={[text, titleStyle]}>{title}</AppText>
+          <AppText style={[text, titleStyle]}>{title}</AppText>
         )}
       </Pressable>
     );
-  }
+  },
 );
 
 Button.displayName = 'Button';
