@@ -14,7 +14,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import SafeAreaLayout from '../../components/MobilelLayout';
-import { AppText } from '../../ui/components/AppText';
+import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
 import { Button } from '../../ui/components/Button';
 
@@ -41,7 +41,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
     <SafeAreaLayout backgroundColor="#FAFAFA" style={S.root}>
       {/* 상단 타이틀 바 */}
       <View style={S.header}>
-        <AppText style={S.headerTitle}>추가 정보 입력</AppText>
+        <Text style={S.headerTitle}>추가 정보 입력</Text>
       </View>
 
       <KeyboardAvoidingView
@@ -69,13 +69,13 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
             {/* 폼 */}
             <View style={{ width: '100%' }}>
               <Input label="이메일" value={kakaoEmail} editable={false} />
-              <AppText style={S.meta}>
+              <Text style={S.meta}>
                 카카오에서 제공된 이메일이에요. 수정은 카카오에서 가능
-              </AppText>
+              </Text>
 
               <View style={{ height: 12 }} />
 
-              <AppText style={S.nickLabel}>닉네임</AppText>
+              <Text style={S.nickLabel}>닉네임</Text>
               <Input
                 placeholder="닉네임을 입력하세요"
                 value={nickname}

@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { View, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { AppText } from './AppText';
+import { Text } from './Text';
 
 type Props = {
   label?: string;
   errorText?: string;
 } & TextInputProps;
 
-export default function Input({ label, errorText, style, editable = true, ...rest }: Props) {
+export default function Input({
+  label,
+  errorText,
+  style,
+  editable = true,
+  ...rest
+}: Props) {
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={{ width: '100%', marginBottom: 20 }}>
-      {label ? (
-        <AppText style={S.label}>{label}</AppText>
-      ) : null}
+      {label ? <Text style={S.label}>{label}</Text> : null}
 
       <View
         style={[
@@ -40,7 +44,7 @@ export default function Input({ label, errorText, style, editable = true, ...res
         />
       </View>
 
-      {errorText ? <AppText style={S.error}>{errorText}</AppText> : null}
+      {errorText ? <Text style={S.error}>{errorText}</Text> : null}
     </View>
   );
 }
