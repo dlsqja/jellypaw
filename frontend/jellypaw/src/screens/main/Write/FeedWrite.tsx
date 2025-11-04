@@ -1,5 +1,5 @@
 // FeedWrite.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -16,6 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
+import PlaceSearchModal from './PlaceSearchModal';
+import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { RootStackParamList } from '../../../navigation/RootNavigator';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'FeedWrite'>;
@@ -29,6 +31,8 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [location, setLocation] = useState('');
   const [rating, setRating] = useState<number>(0);
   const [images, setImages] = useState<string[]>([]);
+  const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
+  const pendingLocationRef = useRef<string | null>(null);
 
   const handleImagePicker = () => {
     // TODO: 이미지 선택 기능 구현
@@ -40,6 +44,27 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   const handleRemoveImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handlePlaceSelect = (place: PlaceDetails) => {
+    // 모달이 닫힌 후 상태를 업데이트하기 위해 ref에 저장
+    pendingLocationRef.current = place.name || '';
+    // 즉시 상태 업데이트 시도
+    setLocation(place.name || '');
+  };
+
+  // 모달이 닫힌 후 location을 다시 업데이트
+  const handleModalClose = () => {
+    setShowPlaceSearchModal(false);
+    // 모달이 완전히 닫힌 후 location 업데이트
+    const pendingLocation = pendingLocationRef.current;
+    if (pendingLocation) {
+      setTimeout(() => {
+        console.log('모달 닫힌 후 location 업데이트:', pendingLocation);
+        setLocation(pendingLocation);
+        pendingLocationRef.current = null;
+      }, 100);
+    }
   };
 
   const handleStarClick = (star: number, event: any) => {
@@ -63,160 +88,179 @@ export default function FeedWrite({ route, navigation }: Props) {
   };
 
   return (
-    <MobileLayout style={styles.container}>
-      <View style={{ paddingTop: insets.top }}>
-        <BackHeader title={categoryName} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* 제목 입력 */}
-        <View style={styles.section}>
-          <View style={styles.labelContainer}>
-            <Text style={styles.label}>제목</Text>
-          </View>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="제목을 입력하세요"
-              placeholderTextColor="#A3A3A3"
-              value={title}
-              onChangeText={setTitle}
-              maxLength={50}
-            />
-          </View>
-          <View style={styles.counterContainer}>
-            <Text style={styles.counter}>{title.length}/50</Text>
-          </View>
+    <>
+      <MobileLayout style={styles.container}>
+        <View style={{ paddingTop: insets.top }}>
+          <BackHeader title={categoryName} />
         </View>
 
-        {/* 내용 입력 */}
-        <View style={styles.section}>
-          <View style={styles.labelContainer}>
-            <Text style={styles.label}>내용</Text>
-          </View>
-          <View style={[styles.inputContainer, styles.textAreaContainer]}>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="내용을 입력하세요"
-              placeholderTextColor="#A3A3A3"
-              value={content}
-              onChangeText={setContent}
-              maxLength={500}
-              multiline
-              textAlignVertical="top"
-            />
-          </View>
-          <View style={styles.counterContainer}>
-            <Text style={styles.counter}>{content.length}/500</Text>
-          </View>
-        </View>
-
-        {/* 위치 입력 */}
-        <View style={[styles.section, styles.optionalSection]}>
-          <View style={styles.labelContainer}>
-            <Text style={styles.label}>위치 (선택사항)</Text>
-          </View>
-          <View style={styles.locationInputContainer}>
-            <View style={styles.locationIconContainer}>
-              <Icon name="location-outline" size={20} color="#A3A3A3" />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* 제목 입력 */}
+          <View style={styles.section}>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>제목</Text>
             </View>
-            <View style={[styles.inputContainer, styles.locationInputWrapper]}>
+            <View style={styles.inputContainer}>
               <TextInput
-                style={[styles.input, styles.locationInput]}
-                placeholder="위치를 입력하세요"
+                style={styles.input}
+                placeholder="제목을 입력하세요"
                 placeholderTextColor="#A3A3A3"
-                value={location}
-                onChangeText={setLocation}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={50}
               />
             </View>
-          </View>
-        </View>
-
-        {/* 평점 선택 */}
-        <View style={[styles.section, styles.optionalSection]}>
-          <View style={styles.labelContainer}>
-            <Text style={styles.label}>평점 (선택사항)</Text>
-          </View>
-          <View style={styles.ratingContainer}>
-            <View style={styles.starsDisplay}>
-              {[1, 2, 3, 4, 5].map(star => {
-                const isFullStar = rating >= star;
-                const isHalfStar = rating >= star - 0.5 && rating < star;
-                const starIconName = isFullStar
-                  ? 'star'
-                  : isHalfStar
-                  ? 'star-half'
-                  : 'star-outline';
-                const starColor =
-                  isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
-
-                return (
-                  <TouchableOpacity
-                    key={star}
-                    style={styles.starButton}
-                    onPress={e => handleStarClick(star, e)}
-                    activeOpacity={0.7}
-                  >
-                    <Icon name={starIconName} size={32} color={starColor} />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            <View style={styles.ratingValueContainer}>
-              <Text style={styles.ratingValue}>
-                {rating > 0 ? rating.toFixed(1) : '0.0'}
-              </Text>
+            <View style={styles.counterContainer}>
+              <Text style={styles.counter}>{title.length}/50</Text>
             </View>
           </View>
-        </View>
 
-        {/* 사진 선택 */}
-        <View style={[styles.section, styles.optionalSection]}>
-          <View style={styles.labelContainer}>
-            <Text style={styles.label}>사진 선택 (최대 3장)</Text>
+          {/* 내용 입력 */}
+          <View style={styles.section}>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>내용</Text>
+            </View>
+            <View style={[styles.inputContainer, styles.textAreaContainer]}>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="내용을 입력하세요"
+                placeholderTextColor="#A3A3A3"
+                value={content}
+                onChangeText={setContent}
+                maxLength={500}
+                multiline
+                textAlignVertical="top"
+              />
+            </View>
+            <View style={styles.counterContainer}>
+              <Text style={styles.counter}>{content.length}/500</Text>
+            </View>
           </View>
-          <View style={styles.imageContainer}>
-            {images.length < 3 && (
-              <TouchableOpacity
-                style={styles.imagePickerButton}
-                onPress={handleImagePicker}
-              >
-                <Icon name="camera-outline" size={24} color="#A3A3A3" />
-                <Text style={styles.imagePickerText}>카메라</Text>
-              </TouchableOpacity>
-            )}
-            {images.map((uri, index) => (
-              <View key={index} style={styles.imageWrapper}>
-                <Image source={{ uri }} style={styles.image} />
-                <TouchableOpacity
-                  style={styles.removeImageButton}
-                  onPress={() => handleRemoveImage(index)}
-                >
-                  <Icon name="close-circle" size={20} color="#FFFFFF" />
-                </TouchableOpacity>
+
+          {/* 위치 입력 */}
+          <View style={[styles.section, styles.optionalSection]}>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>위치 (선택사항)</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.locationInputContainer}
+              onPress={() => setShowPlaceSearchModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.locationIconContainer} pointerEvents="none">
+                <Icon name="location-outline" size={20} color="#A3A3A3" />
               </View>
-            ))}
+              <View
+                style={[styles.inputContainer, styles.locationInputWrapper]}
+                pointerEvents="none"
+              >
+                <Text
+                  style={[
+                    styles.input,
+                    styles.locationInput,
+                    location ? { color: '#284542' } : {},
+                  ]}
+                  numberOfLines={1}
+                >
+                  {location || '위치를 검색하세요'}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
 
-      {/* 게시물 작성하기 버튼 */}
-      <View
-        style={[
-          styles.submitButtonContainer,
-          { paddingBottom: insets.bottom + 16 },
-        ]}
-      >
-        <Button
-          title="게시물 작성하기"
-          onPress={handleSubmit}
-          disabled={title.length === 0 || content.length === 0}
-        />
-      </View>
-    </MobileLayout>
+          {/* 평점 선택 */}
+          <View style={[styles.section, styles.optionalSection]}>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>평점 (선택사항)</Text>
+            </View>
+            <View style={styles.ratingContainer}>
+              <View style={styles.starsDisplay}>
+                {[1, 2, 3, 4, 5].map(star => {
+                  const isFullStar = rating >= star;
+                  const isHalfStar = rating >= star - 0.5 && rating < star;
+                  const starIconName = isFullStar
+                    ? 'star'
+                    : isHalfStar
+                    ? 'star-half'
+                    : 'star-outline';
+                  const starColor =
+                    isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
+
+                  return (
+                    <TouchableOpacity
+                      key={star}
+                      style={styles.starButton}
+                      onPress={e => handleStarClick(star, e)}
+                      activeOpacity={0.7}
+                    >
+                      <Icon name={starIconName} size={32} color={starColor} />
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <View style={styles.ratingValueContainer}>
+                <Text style={styles.ratingValue}>
+                  {rating > 0 ? rating.toFixed(1) : '0.0'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* 사진 선택 */}
+          <View style={[styles.section, styles.optionalSection]}>
+            <View style={styles.labelContainer}>
+              <Text style={styles.label}>사진 선택 (최대 3장)</Text>
+            </View>
+            <View style={styles.imageContainer}>
+              {images.length < 3 && (
+                <TouchableOpacity
+                  style={styles.imagePickerButton}
+                  onPress={handleImagePicker}
+                >
+                  <Icon name="camera-outline" size={24} color="#A3A3A3" />
+                  <Text style={styles.imagePickerText}>카메라</Text>
+                </TouchableOpacity>
+              )}
+              {images.map((uri, index) => (
+                <View key={index} style={styles.imageWrapper}>
+                  <Image source={{ uri }} style={styles.image} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => handleRemoveImage(index)}
+                  >
+                    <Icon name="close-circle" size={20} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* 게시물 작성하기 버튼 */}
+        <View
+          style={[
+            styles.submitButtonContainer,
+            { paddingBottom: insets.bottom + 16 },
+          ]}
+        >
+          <Button
+            title="게시물 작성하기"
+            onPress={handleSubmit}
+            disabled={title.length === 0 || content.length === 0}
+          />
+        </View>
+      </MobileLayout>
+
+      {/* 장소 검색 모달 */}
+      <PlaceSearchModal
+        visible={showPlaceSearchModal}
+        onClose={handleModalClose}
+        onPlaceSelect={handlePlaceSelect}
+      />
+    </>
   );
 }
 
@@ -329,6 +373,7 @@ const styles = StyleSheet.create({
   // 위치 입력 스타일
   locationInput: {
     paddingLeft: 0,
+    flex: 1,
   },
   // 평점 컨테이너 스타일
   ratingContainer: {
