@@ -1,11 +1,15 @@
 // src/screens/auth/KakaoLoginScreen.tsx
 import React, { useState } from 'react';
-import { View, Image, SafeAreaView, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../ui/components/Text';
+
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../../ui/components/Button';
 
-export default function KakaoLoginScreen({ navigation }: NativeStackScreenProps<any>) {
+export default function KakaoLoginScreen({
+  navigation,
+}: NativeStackScreenProps<any>) {
   const [loading, setLoading] = useState(false);
   const onPress = () => {
     setLoading(true);
