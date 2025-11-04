@@ -16,19 +16,16 @@ public class BoardUserService {
 
     private final BoardUserRepository boardUserRepository;
 
-    /**
-     * 사용자 생성 (User 서비스에서 회원가입 이벤트 수신)
-     */
     @Transactional
     public void createUser(Long userId, String nickname, String profileImg) {
         // 중복 체크
-        if (boardUserRepository.existsByUserId(userId)) {
+        if (boardUserRepository.existsById(userId)) {
             log.warn("이미 존재하는 사용자: userId={}", userId);
             return;
         }
 
         BoardUser boardUser = BoardUser.builder()
-                .userId(userId)
+                .id(userId)
                 .nickname(nickname)
                 .profileImg(profileImg)
                 .build();
@@ -37,16 +34,12 @@ public class BoardUserService {
         log.info("Board 서비스에 사용자 생성: userId={}, nickname={}", userId, nickname);
     }
 
-    /**
-     * 사용자 정보 업데이트 (User 서비스에서 프로필 수정 이벤트 수신)
-     */
     @Transactional
     public void updateUser(Long userId, String nickname, String profileImg) {
-        Optional<BoardUser> userOptional = boardUserRepository.findByUserId(userId);
+        Optional<BoardUser> userOptional = boardUserRepository.findById(userId);
 
         if (userOptional.isEmpty()) {
             log.warn("존재하지 않는 사용자 업데이트 시도: userId={}", userId);
-            // 존재하지 않으면 생성
             createUser(userId, nickname, profileImg);
             return;
         }

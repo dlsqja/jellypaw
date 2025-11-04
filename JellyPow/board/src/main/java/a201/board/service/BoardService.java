@@ -55,7 +55,7 @@ public class BoardService {
     public void createPost(Long userId, BoardRequest boardRequest) {
 
         Board newBoard = boardRequest.toEntity();
-        BoardUser boardUser = boardUserRepository.findByUserId(userId)
+        BoardUser boardUser = boardUserRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         newBoard.setUserId(boardUser);
 

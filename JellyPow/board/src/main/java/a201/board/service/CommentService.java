@@ -27,7 +27,7 @@ public class CommentService {
     public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
         Board board = boardRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
-        BoardUser boardUser = boardUserRepository.findByUserId(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
+        BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
         Comment comment = Comment.builder()
                 .board(board)
@@ -64,7 +64,6 @@ public class CommentService {
         commentRepository.delete(comment);
 
         //TODO::댓글 삭제 이벤트 발생
-
     }
 }
 

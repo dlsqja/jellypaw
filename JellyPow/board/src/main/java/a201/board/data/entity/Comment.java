@@ -29,13 +29,13 @@ public class Comment {
 
     @Builder.Default
     @ManyToOne
-    @JoinColumn(name = "parent_id")
+    @JoinColumn
     private Comment parent=null;
 
     @Column(nullable = false)
     private String content;
 
     @Builder.Default
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }
