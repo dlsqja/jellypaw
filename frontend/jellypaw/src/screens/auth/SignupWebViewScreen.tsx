@@ -34,7 +34,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
       return;
     }
     setError(undefined);
-    navigation.replace('FeedWrite');
+    navigation.replace('SelectCategory');
   };
 
   return (
