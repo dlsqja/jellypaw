@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import KakaoLoginScreen from '../features/auth/KakaoLoginScreen';
-import SignupWebViewScreen from '../features/auth/SignupWebViewScreen';
-import MainTabs from '../features/main/MainTabs';
+import KakaoLoginScreen from '../screens/auth/KakaoLoginScreen';
+import SignupWebViewScreen from '../screens/auth/SignupWebViewScreen';
+import MainTabs from '../screens/main/MainTabs';
 
 type StackParam = {
   KakaoLogin: undefined;
