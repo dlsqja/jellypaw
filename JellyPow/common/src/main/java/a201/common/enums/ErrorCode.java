@@ -14,6 +14,7 @@ public enum ErrorCode {
 	ALREADY_EXISTS_EMAIL(400, "이미 존재하는 이메일입니다"),
 
 	FOLLOW_SELF(400, "자기 자신은 팔로우할 수 없습니다"),
+    UNFOLLOW_SELF(400, "자기 자신은 언팔로우할 수 없습니다"),
 	ALREADY_FOLLOWING(400, "이미 팔로우한 사용자입니다"),
 	NOT_FOLLOWING(400, "팔로우하지 않은 사용자입니다"),
 

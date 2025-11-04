@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class KakaoAuthController {
 

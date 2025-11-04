@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/public")
+@RequestMapping("/public")
 @RequiredArgsConstructor
 public class PublicUserController {
 
