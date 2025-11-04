@@ -14,10 +14,6 @@ import org.springframework.stereotype.Component;
 public class UserEventConsumer {
 
     private final BoardUserService boardUserService;
-
-    /**
-     * User 생성 이벤트 구독
-     */
     @KafkaListener(topics = "user-create-topic", groupId = "board-service")
     public void handleUserCreate(String message) {
         log.info("User 생성 이벤트 수신: {}", message);
@@ -30,9 +26,6 @@ public class UserEventConsumer {
         }
     }
 
-    /**
-     * User 업데이트 이벤트 구독
-     */
     @KafkaListener(topics = "user-update-topic", groupId = "board-service")
     public void handleUserUpdate(String message) {
         log.info("User 업데이트 이벤트 수신: {}", message);

@@ -55,7 +55,7 @@ public class BoardService {
     public void createPost(Long userId, BoardRequest boardRequest) {
 
         Board newBoard = boardRequest.toEntity();
-        BoardUser boardUser = boardUserRepository.findByUserId(userId)
+        BoardUser boardUser = boardUserRepository.findById(userId)
 			.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         newBoard.setUserId(boardUser);
 
@@ -65,16 +65,19 @@ public class BoardService {
         String categoryString = boardRequest.getCategory().name();
         List<Image> images = new ArrayList<>();
 
-        for(MultipartFile file : newImages) {
-            String keyPath = s3Service.uploadPostImage(file,categoryString);
+        if(newImages!=null){
+            for(MultipartFile file : newImages) {
+                String keyPath = s3Service.uploadPostImage(file,categoryString);
 
-            Image image = Image.builder()
-                    .board(newBoard)
-                    .imageLink(keyPath)
-                    .build();
+                Image image = Image.builder()
+                        .board(newBoard)
+                        .imageLink(keyPath)
+                        .build();
 
-            images.add(image);
+                images.add(image);
+            }
         }
+
 
         newBoard.setImages(images);
 
@@ -87,29 +90,39 @@ public class BoardService {
 
         Board board = boardRepository.getBoardById(postId);
 
+        board.setTitle(postRequest.getTitle());
+        board.setContent(postRequest.getContent());
+
 
         List<Image> images = board.getImages();
 
+
         //이미지 삭제
-        Set<String> removeImageSet = new HashSet<>(postRequest.getRemoveImages());
+        List<String> removeImages = postRequest.getRemoveImages();
+        if(removeImages!=null){
+            Set<String> removeImageSet = new HashSet<>(removeImages);
 
-        images.removeIf(image -> removeImageSet.contains(image.getImageLink()));
+            images.removeIf(image -> removeImageSet.contains(image.getImageLink()));
 
-        for(String removeImage : postRequest.getRemoveImages()) {
-            s3Service.deleteFile(removeImage);
+            for(String removeImage : postRequest.getRemoveImages()) {
+                s3Service.deleteFile(removeImage);
+            }
         }
 
-        //이미지 추가
-        String categoryString = board.getCategory().name();
-        for(MultipartFile file : postRequest.getNewImages()) {
-            String keyPath = s3Service.uploadPostImage(file,categoryString);
+        List<MultipartFile> newImages = postRequest.getNewImages();
+        if(newImages!=null){
+            //이미지 추가
+            String categoryString = board.getCategory().name();
+            for(MultipartFile file : newImages) {
+                String keyPath = s3Service.uploadPostImage(file,categoryString);
 
-            Image image = Image.builder()
-                    .board(board)
-                    .imageLink(keyPath)
-                    .build();
+                Image image = Image.builder()
+                        .board(board)
+                        .imageLink(keyPath)
+                        .build();
 
-            images.add(image);
+                images.add(image);
+            }
         }
 
         //TODO:: 업데이트 이벤트 발생
@@ -120,9 +133,12 @@ public class BoardService {
         Board board = boardRepository.getBoardById(postId);
 
         List<Image> images = board.getImages();
-        for(Image image : images) {
-            s3Service.deleteFile(image.getImageLink());
+        if(images!=null){
+            for(Image image : images) {
+                s3Service.deleteFile(image.getImageLink());
+            }
         }
+
 
         boardRepository.deleteById(postId);
 

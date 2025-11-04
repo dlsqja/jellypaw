@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "like")
+@Table(name = "board_like")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,6 +21,6 @@ public class Like {
     private BoardUser userId;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 }

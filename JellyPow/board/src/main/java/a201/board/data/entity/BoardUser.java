@@ -13,11 +13,7 @@ import lombok.*;
 public class BoardUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, unique = true)
-    private Long userId;
 
     @Column(nullable = false, length = 50)
     private String nickname;

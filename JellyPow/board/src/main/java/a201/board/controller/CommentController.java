@@ -26,15 +26,9 @@ public class CommentController {
         return ApiResponse.success(commentService.getCommentsByPost(boardId,userId));
     }
 
-    @GetMapping("/{boardId}/{parentId}")
-    public ApiResponse<?> getCommentsByParent(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
-        return ApiResponse.success(commentService.getCommentsByParent(parentId,userId));
-    }
-
-
     @DeleteMapping("/{boardId}/{parentId}")
-    public ApiResponse<?> delete(@PathVariable Long commentId,@RequestHeader("X-User-Id") Long userId) {
-        commentService.deleteComment(commentId,userId);
+    public ApiResponse<?> delete(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
+        commentService.deleteComment(parentId,userId);
         return ApiResponse.success(null);
     }
 }
