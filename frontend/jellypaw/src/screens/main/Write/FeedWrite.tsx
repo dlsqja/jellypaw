@@ -1,16 +1,15 @@
 // FeedWrite.tsx
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MobileLayout from '../../components/MobilelLayout';
+import MobileLayout from '../../../components/MobilelLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from '../../../ui/components/Text';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../../navigation/RootNavigator';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'FeedWrite'>;
 
 const categories = [
   { id: 1, name: '일상', icon: 'document-text', iconFamily: 'Ionicons' },
@@ -42,9 +41,14 @@ const bottomNavItems = [
   { id: 5, label: '내 공간', icon: 'person', iconFamily: 'Ionicons' },
 ];
 
-export default function FeedWrite() {
+export default function FeedWrite({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const insets = useSafeAreaInsets();
+
+  const handleCategorySelect = (categoryId: number, categoryName: string) => {
+    setSelectedCategory(categoryId);
+    navigation.navigate('Step2', { categoryId, categoryName });
+  };
 
   return (
     <MobileLayout style={styles.container}>
@@ -71,7 +75,9 @@ export default function FeedWrite() {
         {/* 제목 영역 */}
         <View style={styles.titleSection}>
           <View style={styles.titleContainer}>
-            <Text style={styles.mainTitle}>어떤 이야기를 들려주실건가요?</Text>
+            <Text style={styles.mainTitle} weight="bold">
+              어떤 이야기를 들려주실건가요?
+            </Text>
           </View>
           <View style={styles.subtitleContainer}>
             <Text style={styles.subtitle}>카테고리를 선택해주세요</Text>
@@ -87,7 +93,7 @@ export default function FeedWrite() {
                 styles.categoryCard,
                 selectedCategory === category.id && styles.categoryCardSelected,
               ]}
-              onPress={() => setSelectedCategory(category.id)}
+              onPress={() => handleCategorySelect(category.id, category.name)}
             >
               <View style={styles.categoryIconContainer}>
                 {category.iconFamily === 'Ionicons' ? (
@@ -181,7 +187,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#1F2937',
-    fontFamily: 'Pretendard',
   },
   headerSpacer: {
     width: 0.01,
@@ -215,7 +220,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
     textAlign: 'center',
-    fontFamily: 'Pretendard',
     lineHeight: 32,
   },
   subtitleContainer: {
@@ -229,7 +233,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#4B5563',
     textAlign: 'center',
-    fontFamily: 'Pretendard',
     lineHeight: 20,
   },
   categoryGrid: {
@@ -270,7 +273,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#1F2937',
     textAlign: 'center',
-    fontFamily: 'Roboto',
     lineHeight: 20,
   },
   bottomNav: {
@@ -308,7 +310,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#9CA3AF',
     textAlign: 'center',
-    fontFamily: 'Roboto',
     lineHeight: 16,
   },
   writeButton: {

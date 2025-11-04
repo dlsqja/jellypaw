@@ -26,9 +26,9 @@ export default function SignupWebViewScreen({ navigation }: any) {
     <MobileLayout style={{ flex: 1 }}>
       <WebView
         source={{ html: HTML }} // 나중에 실제 URL로 교체
-        onMessage={e => {
-          if (e.nativeEvent.data.includes('profile:completed'))
-            navigation.replace('FeedWrite');
+        onMessage={() => {
+          // 회원가입 버튼 클릭 시 무조건 FeedWrite로 이동
+          navigation.replace('FeedWrite');
         }}
         javaScriptEnabled
         domStorageEnabled

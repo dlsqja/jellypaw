@@ -9,7 +9,7 @@ import {
   StyleProp,
   ViewStyle,
 } from 'react-native';
-import { AppText } from './AppText';
+import { Text } from './Text';
 import type { ButtonVariantProps } from '../system/variants';
 import { buttonVariants } from '../system/variants';
 
@@ -59,7 +59,7 @@ export const Button = forwardRef<
         ) : children ? (
           children
         ) : (
-          <AppText style={[text, titleStyle]}>{title}</AppText>
+          <Text style={[text, titleStyle]}>{title}</Text>
         )}
       </Pressable>
     );

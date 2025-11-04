@@ -1,7 +1,7 @@
 // src/screens/auth/KakaoLoginScreen.tsx
 import React, { useState } from 'react';
 import { View, Image, SafeAreaView, StyleSheet } from 'react-native';
-import { AppText } from '../../ui/components/AppText';
+import { Text } from '../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button } from '../../ui/components/Button';
 
@@ -27,9 +27,7 @@ export default function KakaoLoginScreen({
       />
 
       {/* 서브 카피 */}
-      <AppText style={S.subtitle}>
-        반려동물과 함께하는 일상을 공유해보세요
-      </AppText>
+      <Text style={S.subtitle}>반려동물과 함께하는 일상을 공유해보세요</Text>
 
       {/* 버튼: 가로 꽉, 높이 64, paddingHorizontal 16(px-4) */}
       <View style={S.ctaWrap}>
