@@ -90,7 +90,7 @@ const commentData: CommentProps[] = [
     name: '멍멍이집사3',
     content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
     createdAt: '2시간 전',
-    likeCount: 0,
+    likeCount: 10,
     replyCount: 1,
     replies: [
       {
@@ -99,7 +99,7 @@ const commentData: CommentProps[] = [
         name: '멍멍이집사',
         content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
         createdAt: '2시간 전',
-        likeCount: 0,
+        likeCount: 9,
       },
     ],
   },
@@ -129,7 +129,7 @@ export default function FeedDetail() {
 
         <CardContent>
           {/* 이미지 */}
-          <img className="w-full h-96 object-cover" src={detailData.postImageUrl} alt="게시글 이미지" />
+          <img className="w-full h-96 rounded-[12px] object-cover" src={detailData.postImageUrl} alt="게시글 이미지" />
 
           {/* 액션 바 및 본문 */}
           {/* 본문 */}
