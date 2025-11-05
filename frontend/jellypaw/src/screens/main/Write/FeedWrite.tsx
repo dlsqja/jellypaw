@@ -8,9 +8,14 @@ import {
   TouchableOpacity,
   Image,
   Platform,
+  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
+import {
+  launchImageLibrary,
+  ImagePickerResponse,
+} from 'react-native-image-picker';
 import MobileLayout from '../../../components/MobileLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
@@ -30,16 +35,58 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
   const [rating, setRating] = useState<number>(0);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<(string | number)[]>([
+    require('../../../../assets/pets/반려동물1.png'),
+    require('../../../../assets/pets/반려동물2.png'),
+    require('../../../../assets/pets/반려동물3.png'),
+  ]);
   const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
 
   const handleImagePicker = () => {
-    // TODO: 이미지 선택 기능 구현
-    if (images.length < 3) {
-      // 임시로 placeholder 이미지 추가
-      setImages([...images, 'https://placehold.co/77x77']);
+    if (images.length >= 3) {
+      Alert.alert('알림', '최대 3장까지 선택할 수 있습니다.');
+      return;
     }
+
+    const options = {
+      mediaType: 'photo' as const,
+      quality: 0.8 as const,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      selectionLimit: 3 - images.length, // 남은 이미지 개수만큼만 선택 가능
+    };
+
+    launchImageLibrary(options, (response: ImagePickerResponse) => {
+      if (response.didCancel) {
+        // 사용자가 취소한 경우
+        return;
+      }
+
+      if (response.errorMessage) {
+        Alert.alert('오류', response.errorMessage);
+        return;
+      }
+
+      if (response.assets && response.assets.length > 0) {
+        const newImageUris = response.assets
+          .map(asset => asset.uri)
+          .filter((uri): uri is string => uri !== undefined);
+
+        if (newImageUris.length > 0) {
+          const totalImages = images.length + newImageUris.length;
+          if (totalImages > 3) {
+            Alert.alert('알림', '최대 3장까지 선택할 수 있습니다.');
+            setImages([
+              ...images,
+              ...newImageUris.slice(0, 3 - images.length),
+            ] as (string | number)[]);
+          } else {
+            setImages([...images, ...newImageUris] as (string | number)[]);
+          }
+        }
+      }
+    });
   };
 
   const handleRemoveImage = (index: number) => {
@@ -221,12 +268,17 @@ export default function FeedWrite({ route, navigation }: Props) {
                   onPress={handleImagePicker}
                 >
                   <Icon name="camera-outline" size={24} color="#A3A3A3" />
-                  <Text style={styles.imagePickerText}>카메라</Text>
+                  <Text style={styles.imagePickerText}>사진 추가</Text>
                 </TouchableOpacity>
               )}
+              {/* 이미지 목록 */}
               {images.map((uri, index) => (
                 <View key={index} style={styles.imageWrapper}>
-                  <Image source={{ uri }} style={styles.image} />
+                  <Image
+                    source={typeof uri === 'string' ? { uri } : uri}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
                   <TouchableOpacity
                     style={styles.removeImageButton}
                     onPress={() => handleRemoveImage(index)}
