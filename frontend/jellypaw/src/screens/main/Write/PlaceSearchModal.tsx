@@ -13,12 +13,14 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
+import BackHeader from '../../../ui/components/BackHeader';
 import {
   searchPlaces,
   getPlaceDetails,
 } from '../../../services/googleMaps/GoogleMapApi';
 // types
 import { SearchResult, PlaceDetails } from '../../../types/GoogleMapType';
+import { Button } from '../../../ui/components/Button';
 
 interface PlaceSearchModalProps {
   visible: boolean;
@@ -97,8 +99,6 @@ export default function PlaceSearchModal({
 
   const handleConfirmPlace = () => {
     if (selectedPlaceDetails) {
-      console.log('handleConfirmPlace 호출됨:', selectedPlaceDetails);
-      console.log('장소 이름:', selectedPlaceDetails.name);
       // onPlaceSelect를 먼저 호출하고 약간의 지연 후 모달 닫기
       onPlaceSelect(selectedPlaceDetails);
       // 상태 업데이트가 완료될 시간을 주기 위해 약간의 지연
@@ -117,12 +117,10 @@ export default function PlaceSearchModal({
       style={styles.resultItem}
       onPress={() => handlePlaceSelect(item)}
     >
-      <View style={styles.resultContent}>
-        <Text style={styles.resultName}>{item.name}</Text>
-        <Text style={styles.resultAddress} numberOfLines={1}>
-          {item.address}
-        </Text>
-      </View>
+      <Text style={styles.resultName}>{item.name}</Text>
+      <Text style={styles.resultAddress} numberOfLines={1}>
+        {item.address}
+      </Text>
     </TouchableOpacity>
   );
 
@@ -135,30 +133,17 @@ export default function PlaceSearchModal({
     >
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={selectedPlaceDetails ? handleBackToList : onClose}
-            style={styles.closeButton}
-          >
-            <Icon
-              name={selectedPlaceDetails ? 'arrow-back' : 'close'}
-              size={24}
-              color="#284542"
-            />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {selectedPlaceDetails ? '장소 상세 정보' : '장소 검색'}
-          </Text>
-          <View style={styles.closeButton} />
+        <View style={styles.headerContainer}>
+          <BackHeader
+            title={selectedPlaceDetails ? '장소 상세 정보' : '장소 검색'}
+            onBackPress={selectedPlaceDetails ? handleBackToList : onClose}
+          />
         </View>
 
         {selectedPlaceDetails ? (
           /* 장소 상세 정보 화면 */
           <View style={styles.detailsContainer}>
-            <ScrollView
-              style={styles.detailsScrollView}
-              contentContainerStyle={styles.detailsContent}
-            >
+            <ScrollView style={styles.detailsScrollView}>
               <View style={styles.detailsSection}>
                 <Text style={styles.detailsName}>
                   {selectedPlaceDetails.name}
@@ -191,14 +176,15 @@ export default function PlaceSearchModal({
                 )}
               </View>
             </ScrollView>
-            <View style={styles.confirmButtonContainer}>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleConfirmPlace}
-              >
-                <Text style={styles.confirmButtonText}>이 장소 선택</Text>
-              </TouchableOpacity>
-            </View>
+            <Button
+              titleStyle={{ fontFamily: 'Pretendard-Bold' }}
+              title="이 장소 선택"
+              tone="aqua"
+              shape="pillSolid"
+              size="lg"
+              onPress={handleConfirmPlace}
+              style={styles.confirmButton}
+            />
           </View>
         ) : (
           <>
@@ -215,7 +201,7 @@ export default function PlaceSearchModal({
                   style={styles.searchInput}
                   value={query}
                   onChangeText={setQuery}
-                  placeholder="장소를 검색하세요..."
+                  placeholder="원하는 장소를 검색하세요"
                   placeholderTextColor="#A3A3A3"
                   autoFocus
                   returnKeyType="search"
@@ -223,7 +209,7 @@ export default function PlaceSearchModal({
                 />
                 {loading && (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#6ABFB8" />
+                    <ActivityIndicator size="small" color="#A3A3A3" />
                   </View>
                 )}
               </View>
@@ -236,10 +222,9 @@ export default function PlaceSearchModal({
                 renderItem={renderResultItem}
                 keyExtractor={item => item.place_id}
                 keyboardShouldPersistTaps="handled"
-                style={styles.resultsList}
-                contentContainerStyle={styles.resultsContent}
               />
-            ) : query.trim().length > 0 && !loading ? (
+            ) : // 로딩 후에도 검색 결과가 없는 경우
+            query.trim().length > 0 && !loading ? (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>검색 결과가 없습니다</Text>
               </View>
@@ -252,28 +237,12 @@ export default function PlaceSearchModal({
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    paddingHorizontal: 16,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FAFAFA',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Pretendard-Bold',
-    color: '#284542',
   },
   searchContainer: {
     paddingHorizontal: 16,
@@ -301,46 +270,29 @@ const styles = StyleSheet.create({
   loadingContainer: {
     marginLeft: 8,
   },
-  resultsList: {
-    flex: 1,
-  },
-  resultsContent: {
-    paddingVertical: 8,
-  },
   resultItem: {
     padding: 16,
     backgroundColor: '#FAFAFA',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
-  resultContent: {
-    flex: 1,
-  },
   resultName: {
     fontSize: 16,
     fontFamily: 'Pretendard-Bold',
     color: '#284542',
-    marginBottom: 4,
   },
   resultAddress: {
-    fontSize: 14,
-    fontFamily: 'Pretendard-Regular',
-    color: '#6B7280',
-    marginBottom: 4,
+    fontSize: 12,
+    color: '#A3A3A3',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
   noResultsContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 32,
   },
   noResultsText: {
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Pretendard-Bold',
     color: '#A3A3A3',
   },
@@ -350,15 +302,14 @@ const styles = StyleSheet.create({
   },
   detailsScrollView: {
     flex: 1,
+    paddingHorizontal: 16,
   },
-  detailsContent: {
-    padding: 16,
-  },
+
   detailsSection: {
-    backgroundColor: '#FAFAFA',
-    borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 8,
+    paddingTop: 12,
   },
+
   detailsName: {
     fontSize: 20,
     fontFamily: 'Pretendard-Bold',
@@ -367,7 +318,8 @@ const styles = StyleSheet.create({
   },
   detailsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
   },
   detailsIcon: {
@@ -381,30 +333,9 @@ const styles = StyleSheet.create({
     color: '#284542',
     lineHeight: 20,
   },
-  openingHoursContainer: {
-    flex: 1,
-  },
-  weekdayTextContainer: {
-    marginTop: 4,
-  },
 
-  confirmButtonContainer: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
   confirmButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#6ABFB8',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-Bold',
-    color: '#FFFFFF',
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
 });

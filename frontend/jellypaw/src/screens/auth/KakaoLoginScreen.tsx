@@ -25,13 +25,13 @@ export default function KakaoLoginScreen({
       <View style={S.content}>
         {/* 로고 */}
         <Image
-          source={{ uri: 'https://placehold.co/95x95' }}
-          style={S.logo}
+          source={require('../../../assets/images/logo.png')}
+          style={{ width: 300, height: 300 }}
           resizeMode="contain"
         />
 
         {/* 서브 카피 */}
-        <Text style={S.subtitle}>반려동물과 함께하는 일상을 공유해보세요</Text>
+        {/* <Text style={S.subtitle}>반려동물과 함께하는 일상을 공유해보세요</Text> */}
 
         {/* 버튼 */}
         <View style={S.ctaWrap}>
@@ -64,10 +64,10 @@ const S = StyleSheet.create({
     width: '100%',
   },
   // 로고 95px + 다음 요소와 51px 간격
-  logo: {
-    width: 95,
-    height: 95,
-  },
+  // logo: {
+  //   width: 95,
+  //   height: 95,
+  // },
   // 텍스트는 기존 타이포 유지, 아래와 51px 간격
   subtitle: {
     textAlign: 'center',

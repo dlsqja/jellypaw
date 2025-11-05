@@ -24,13 +24,21 @@ export default function MainLayout({
         styles.container,
         {
           backgroundColor,
-          paddingTop: insets.top,
-          paddingHorizontal: 16,
         },
         style,
       ]}
     >
-      {children}
+      <View
+        style={[
+          styles.content,
+          {
+            paddingTop: insets.top,
+            paddingHorizontal: 16,
+          },
+        ]}
+      >
+        {children}
+      </View>
       {showMenuBar && <MenuBar />}
     </View>
   );
@@ -38,6 +46,9 @@ export default function MainLayout({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     flex: 1,
   },
 });

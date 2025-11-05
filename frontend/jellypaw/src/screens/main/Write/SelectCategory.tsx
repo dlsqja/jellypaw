@@ -140,42 +140,6 @@ export default function SelectCategory({ navigation }: Props) {
           ))}
         </View>
       </ScrollView>
-
-      {/* 메뉴바 - 추후에 컴포넌트로 전환환 */}
-      {/* <View style={[styles.bottomNav, { paddingBottom: insets.bottom }]}>
-        <View style={styles.bottomNavContent}>
-          {bottomNavItems.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.bottomNavItem}
-              disabled={item.isActive}
-            >
-              {item.isActive ? (
-                <View style={styles.writeButton}>
-                  <Icon name={item.icon} size={24} color="#FFFFFF" />
-                </View>
-              ) : (
-                <>
-                  <View style={styles.bottomNavIcon}>
-                    {item.iconFamily === 'Ionicons' ? (
-                      <Icon name={item.icon} size={24} color="#9CA3AF" />
-                    ) : (
-                      <MaterialCommunityIcons
-                        name={item.icon}
-                        size={24}
-                        color="#9CA3AF"
-                      />
-                    )}
-                  </View>
-                  <View style={styles.bottomNavLabelContainer}>
-                    <Text style={styles.bottomNavLabel}>{item.label}</Text>
-                  </View>
-                </>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View> */}
     </View>
   );
 }

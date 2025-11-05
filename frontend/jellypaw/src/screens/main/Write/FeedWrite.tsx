@@ -10,16 +10,15 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import MobileLayout from '../../../components/AuthLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
-import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
@@ -29,26 +28,22 @@ type Props = NativeStackScreenProps<MainStackParamList, 'FeedWrite'>;
 
 export default function FeedWrite({ route, navigation }: Props) {
   const { categoryId, categoryName } = route.params;
-  const insets = useSafeAreaInsets();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
   const [rating, setRating] = useState<number>(0);
   const [images, setImages] = useState<(string | number)[]>([
-    require('../../../../assets/pets/반려동물1.png'),
-    require('../../../../assets/pets/반려동물2.png'),
-    require('../../../../assets/pets/반려동물3.png'),
+    require('../../../../assets/images/pets/반려동물1.png'),
+    require('../../../../assets/images/pets/반려동물2.png'),
+    require('../../../../assets/images/pets/반려동물3.png'),
   ]);
   const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
 
+  // 이미지 선택 핸들러
   const handleImagePicker = () => {
-    if (images.length >= 3) {
-      Alert.alert('알림', '최대 3장까지 선택할 수 있습니다.');
-      return;
-    }
-
+    // 이미지 선택 옵션
     const options = {
       mediaType: 'photo' as const,
       quality: 0.8 as const,
@@ -73,10 +68,11 @@ export default function FeedWrite({ route, navigation }: Props) {
           .map(asset => asset.uri)
           .filter((uri): uri is string => uri !== undefined);
 
+        // 이미지 3장 이상 선택 경고
         if (newImageUris.length > 0) {
           const totalImages = images.length + newImageUris.length;
           if (totalImages > 3) {
-            Alert.alert('알림', '최대 3장까지 선택할 수 있습니다.');
+            Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
             setImages([
               ...images,
               ...newImageUris.slice(0, 3 - images.length),
@@ -116,7 +112,6 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   const handleStarClick = (star: number, event: any) => {
     const locationX = event.nativeEvent?.locationX || 0;
-    // 별 버튼의 절반 위치 계산 (아이콘 크기 32 + padding 8 = 약 40)
     const buttonWidth = 40;
     const isLeftHalf = locationX < buttonWidth / 2;
 
@@ -290,10 +285,14 @@ export default function FeedWrite({ route, navigation }: Props) {
         </ScrollView>
 
         {/* 게시물 작성하기 버튼 */}
-        <View style={[styles.submitButtonContainer, ,]}>
+        <View style={[styles.submitButtonContainer]}>
           <Button
             title="게시물 작성하기"
             onPress={handleSubmit}
+            size="lg"
+            shape="pillSolid"
+            tone="aqua"
+            titleStyle={{ fontFamily: 'Pretendard-Bold' }}
             disabled={title.length === 0 || content.length === 0}
           />
         </View>
@@ -495,7 +494,6 @@ const styles = StyleSheet.create({
   // 제출 버튼 컨테이너 스타일
   submitButtonContainer: {
     width: '100%',
-    paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 16,
   },

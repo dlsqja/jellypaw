@@ -110,7 +110,7 @@ export default function MenuBar({
 const S = StyleSheet.create({
   wrap: {
     width: '100%',
-    height: 100, // h-16
+    height: 80, // h-16
     backgroundColor: '#F3F4F6', // bg-gray-100
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB', // border-gray-200
@@ -147,8 +147,8 @@ const S = StyleSheet.create({
     marginHorizontal: -4, // 음수 마진으로 간격 줄이기 (값을 더 줄이면 간격이 더 좁아짐)
   },
   fab: {
-    width: 60,
-    height: 60,
+    width: 52,
+    height: 52,
     borderRadius: 30, // rounded-full
     backgroundColor: ACTIVE, // bg-aqua-300
     alignItems: 'center',
