@@ -27,11 +27,11 @@ export const buttonVariants = cva(
       },
       size: {
         // 기본 사이즈 버튼
-        default: 'w-full h-10 px-4 p2-b',
+        default: 'w-full h-12 px-4 p2-b',
         // 팔로우 버튼
         sm: 'w-16 h-8 px-4 p2-b',
         // 카테고리 및 큰 버튼
-        lg: 'w-24 h-16 px-2',
+        lg: 'w-24 h-14 px-2 py-1',
         // icon: "h-9 w-9 p-0",
       },
       // 테두리 기본 색 아닐 경우 따로 설정할 것

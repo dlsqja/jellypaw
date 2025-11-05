@@ -117,13 +117,13 @@ export default function MyFeed() {
             shape={activeCategory === index ? 'solid' : 'outline'}
             tone={activeCategory === index ? 'aqua' : 'white'}
             borderTone="gray"
-            className={`rounded-[16px] py-2 h-full ${activeCategory === index ? 'border-0' : 'border-2'}`}
+            className={`rounded-[16px] h-full ${activeCategory === index ? 'border-0' : 'border-2'}`}
             onClick={() => setActiveCategory(index)}
           >
             <div className="inline-flex flex-col items-center">
-              <span className={`h5 ${activeCategory === index ? 'text-white' : 'text-gray-300'}`}>{category.label}</span>
+              <span className={`p2 ${activeCategory === index ? 'text-white' : 'text-gray-300'}`}>{category.label}</span>
               {/* 카테고리별 게시글 수 계산한 값으로 표시 */}
-              <span className={`h3-b ${activeCategory === index ? 'text-white' : 'text-aqua-500'}`}>{getCategoryCount(category.label)}</span>
+              <span className={`h4-b ${activeCategory === index ? 'text-white' : 'text-aqua-500'}`}>{getCategoryCount(category.label)}</span>
             </div>
           </Button>
         ))}
