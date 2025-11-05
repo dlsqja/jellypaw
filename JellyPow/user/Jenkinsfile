@@ -69,7 +69,7 @@ pipeline {
             passwordVariable: 'DOCKERHUB_PASSWORD'
           ),
           file(
-            credentialsId: 'board_env',
+            credentialsId: 'user_env',
             variable: 'ENV_FILE'
           )
         ]) {
