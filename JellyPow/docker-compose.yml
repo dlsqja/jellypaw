@@ -10,7 +10,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${ROOT_PASSWORD}
     ports:
-      - "127.0.0.1:3306:3306"
+      #- "127.0.0.1:3306:3306"
+      - "3306:3306"
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
@@ -20,13 +21,11 @@ services:
   # Kafka (KRaft 모드 - Zookeeper 불필요)
   kafka:
     image: apache/kafka:3.8.1
-    container_name: jellypaw-kafka
+    container_name: kafka
     environment:
       TZ: Asia/Seoul
-    ports:
-      - "9092:9092"
-    #networks:
-    # - jellypaw-network
+    networks:
+      - msa-net
 
 volumes:
   mysql_data:
