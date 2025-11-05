@@ -1,0 +1,13 @@
+networks:
+  msa-net:
+    external: true
+
+services:
+  user:
+    image: dlsqja3436/user
+    container_name: user
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    networks:
+      - msa-net
