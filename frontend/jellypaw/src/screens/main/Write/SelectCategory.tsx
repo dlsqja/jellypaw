@@ -8,9 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList } from '../../../navigation/RootNavigator';
+import type { MainStackParamList } from '../../../navigation/MainStackNavigator';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'SelectCategory'>;
+type Props = NativeStackScreenProps<MainStackParamList, 'SelectCategory'>;
 
 // 카테고리 목록
 const categories = [

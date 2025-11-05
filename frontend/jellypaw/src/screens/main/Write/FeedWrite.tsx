@@ -23,9 +23,9 @@ import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
-import type { RootStackParamList } from '../../../navigation/RootNavigator';
+import type { MainStackParamList } from '../../../navigation/MainStackNavigator';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'FeedWrite'>;
+type Props = NativeStackScreenProps<MainStackParamList, 'FeedWrite'>;
 
 export default function FeedWrite({ route, navigation }: Props) {
   const { categoryId, categoryName } = route.params;
@@ -83,7 +83,7 @@ export default function FeedWrite({ route, navigation }: Props) {
             ] as (string | number)[]);
           } else {
             setImages([...images, ...newImageUris] as (string | number)[]);
-          }
+    }
         }
       }
     });
@@ -136,70 +136,70 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   return (
     <>
-      <MobileLayout style={styles.container}>
-        <View style={{ paddingTop: insets.top }}>
+    <MobileLayout style={styles.container}>
+      <View style={{ paddingTop: insets.top }}>
           <BackHeader title={categoryName} />
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* 제목 입력 */}
+        <View style={styles.section}>
+          <View style={styles.labelContainer}>
+              <Text style={styles.label}>제목</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="제목을 입력하세요"
+              placeholderTextColor="#A3A3A3"
+              value={title}
+              onChangeText={setTitle}
+              maxLength={50}
+            />
+          </View>
+          <View style={styles.counterContainer}>
+            <Text style={styles.counter}>{title.length}/50</Text>
+          </View>
         </View>
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* 제목 입력 */}
-          <View style={styles.section}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>제목</Text>
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="제목을 입력하세요"
-                placeholderTextColor="#A3A3A3"
-                value={title}
-                onChangeText={setTitle}
-                maxLength={50}
-              />
-            </View>
-            <View style={styles.counterContainer}>
-              <Text style={styles.counter}>{title.length}/50</Text>
-            </View>
-          </View>
-
-          {/* 내용 입력 */}
-          <View style={styles.section}>
-            <View style={styles.labelContainer}>
+        {/* 내용 입력 */}
+        <View style={styles.section}>
+          <View style={styles.labelContainer}>
               <Text style={styles.label}>내용</Text>
-            </View>
-            <View style={[styles.inputContainer, styles.textAreaContainer]}>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="내용을 입력하세요"
-                placeholderTextColor="#A3A3A3"
-                value={content}
-                onChangeText={setContent}
-                maxLength={500}
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-            <View style={styles.counterContainer}>
-              <Text style={styles.counter}>{content.length}/500</Text>
-            </View>
           </View>
+          <View style={[styles.inputContainer, styles.textAreaContainer]}>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+                placeholder="내용을 입력하세요"
+              placeholderTextColor="#A3A3A3"
+              value={content}
+              onChangeText={setContent}
+              maxLength={500}
+              multiline
+              textAlignVertical="top"
+            />
+          </View>
+          <View style={styles.counterContainer}>
+            <Text style={styles.counter}>{content.length}/500</Text>
+          </View>
+        </View>
 
-          {/* 위치 입력 */}
+        {/* 위치 입력 */}
           <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
+          <View style={styles.labelContainer}>
               <Text style={styles.label}>위치 (선택사항)</Text>
-            </View>
+          </View>
             <TouchableOpacity
               style={styles.locationInputContainer}
               onPress={() => setShowPlaceSearchModal(true)}
               activeOpacity={0.7}
             >
               <View style={styles.locationIconContainer} pointerEvents="none">
-                <Icon name="location-outline" size={20} color="#A3A3A3" />
-              </View>
+              <Icon name="location-outline" size={20} color="#A3A3A3" />
+            </View>
               <View
                 style={[styles.inputContainer, styles.locationInputWrapper]}
                 pointerEvents="none"
@@ -214,16 +214,16 @@ export default function FeedWrite({ route, navigation }: Props) {
                 >
                   {location || '위치를 검색하세요'}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* 평점 선택 */}
-          <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>평점 (선택사항)</Text>
             </View>
-            <View style={styles.ratingContainer}>
+            </TouchableOpacity>
+        </View>
+
+        {/* 평점 선택 */}
+          <View style={[styles.section, styles.optionalSection]}>
+          <View style={styles.labelContainer}>
+              <Text style={styles.label}>평점 (선택사항)</Text>
+          </View>
+          <View style={styles.ratingContainer}>
               <View style={styles.starsDisplay}>
                 {[1, 2, 3, 4, 5].map(star => {
                   const isFullStar = rating >= star;
@@ -237,14 +237,14 @@ export default function FeedWrite({ route, navigation }: Props) {
                     isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
 
                   return (
-                    <TouchableOpacity
-                      key={star}
-                      style={styles.starButton}
+              <TouchableOpacity
+                key={star}
+                style={styles.starButton}
                       onPress={e => handleStarClick(star, e)}
                       activeOpacity={0.7}
-                    >
+              >
                       <Icon name={starIconName} size={32} color={starColor} />
-                    </TouchableOpacity>
+              </TouchableOpacity>
                   );
                 })}
               </View>
@@ -253,58 +253,58 @@ export default function FeedWrite({ route, navigation }: Props) {
                   {rating > 0 ? rating.toFixed(1) : '0.0'}
                 </Text>
               </View>
-            </View>
           </View>
+        </View>
 
-          {/* 사진 선택 */}
+        {/* 사진 선택 */}
           <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
+          <View style={styles.labelContainer}>
               <Text style={styles.label}>사진 선택 (최대 3장)</Text>
-            </View>
-            <View style={styles.imageContainer}>
-              {images.length < 3 && (
-                <TouchableOpacity
-                  style={styles.imagePickerButton}
-                  onPress={handleImagePicker}
-                >
-                  <Icon name="camera-outline" size={24} color="#A3A3A3" />
+          </View>
+          <View style={styles.imageContainer}>
+            {images.length < 3 && (
+              <TouchableOpacity
+                style={styles.imagePickerButton}
+                onPress={handleImagePicker}
+              >
+                <Icon name="camera-outline" size={24} color="#A3A3A3" />
                   <Text style={styles.imagePickerText}>사진 추가</Text>
-                </TouchableOpacity>
-              )}
+              </TouchableOpacity>
+            )}
               {/* 이미지 목록 */}
-              {images.map((uri, index) => (
-                <View key={index} style={styles.imageWrapper}>
+            {images.map((uri, index) => (
+              <View key={index} style={styles.imageWrapper}>
                   <Image
                     source={typeof uri === 'string' ? { uri } : uri}
                     style={styles.image}
                     resizeMode="cover"
                   />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => handleRemoveImage(index)}
-                  >
-                    <Icon name="close-circle" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => handleRemoveImage(index)}
+                >
+                  <Icon name="close-circle" size={20} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
-        </ScrollView>
+        </View>
+      </ScrollView>
 
-        {/* 게시물 작성하기 버튼 */}
-        <View
-          style={[
-            styles.submitButtonContainer,
-            { paddingBottom: insets.bottom + 16 },
-          ]}
-        >
+      {/* 게시물 작성하기 버튼 */}
+      <View
+        style={[
+          styles.submitButtonContainer,
+          { paddingBottom: insets.bottom + 16 },
+        ]}
+      >
           <Button
             title="게시물 작성하기"
-            onPress={handleSubmit}
-            disabled={title.length === 0 || content.length === 0}
+          onPress={handleSubmit}
+          disabled={title.length === 0 || content.length === 0}
           />
-        </View>
-      </MobileLayout>
+      </View>
+    </MobileLayout>
 
       {/* 장소 검색 모달 */}
       <PlaceSearchModal

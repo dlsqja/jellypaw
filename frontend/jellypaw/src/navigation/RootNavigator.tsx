@@ -1,33 +1,36 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import KakaoLoginScreen from '../screens/auth/KakaoLoginScreen';
-import SignupWebViewScreen from '../screens/auth/SignupWebViewScreen';
-import SelectCategory from '../screens/main/Write/SelectCategory';
-import FeedWrite from '../screens/main/Write/FeedWrite';
+import AuthStackNavigator from './AuthStackNavigator';
+import MainStackNavigator from './MainStackNavigator';
+import type { MainStackParamList } from './MainStackNavigator';
 
 export type RootStackParamList = {
-  KakaoLogin: undefined;
-  SignupWebView: undefined;
-  SelectCategory: undefined;
-  FeedWrite: { categoryId: number; categoryName: string };
+  AuthStack: undefined;
+  MainStack:
+    | undefined
+    | {
+        screen: keyof MainStackParamList;
+        params?: MainStackParamList[keyof MainStackParamList];
+      };
 };
 
-type StackParam = RootStackParamList;
-const Stack = createNativeStackNavigator<StackParam>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="KakaoLogin"
+        initialRouteName="MainStack"
       >
-        <Stack.Screen name="KakaoLogin" component={KakaoLoginScreen} />
-        <Stack.Screen name="SignupWebView" component={SignupWebViewScreen} />
-        <Stack.Screen name="SelectCategory" component={SelectCategory} />
-        <Stack.Screen name="FeedWrite" component={FeedWrite} />
+        <Stack.Screen name="AuthStack" component={AuthStackNavigator} />
+        <Stack.Screen name="MainStack" component={MainStackNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
+// Export types for use in other components
+export type { AuthStackParamList } from './AuthStackNavigator';
+export type { MainStackParamList } from './MainStackNavigator';

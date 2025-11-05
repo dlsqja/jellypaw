@@ -5,11 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../ui/components/Text';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import { Button } from '../../ui/components/Button';
 
 export default function KakaoLoginScreen({
   navigation,
-}: NativeStackScreenProps<any>) {
+}: NativeStackScreenProps<AuthStackParamList, 'KakaoLogin'>) {
   const [loading, setLoading] = useState(false);
   const onPress = () => {
     setLoading(true);

@@ -11,6 +11,9 @@ import {
   Keyboard,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import SafeAreaLayout from '../../components/MobileLayout';
@@ -19,7 +22,10 @@ import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
 import { Button } from '../../ui/components/Button';
 
-type Props = NativeStackScreenProps<any>;
+type Props = CompositeScreenProps<
+  NativeStackScreenProps<AuthStackParamList, 'SignupWebView'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function SignupWebViewScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
@@ -36,7 +42,10 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
       return;
     }
     setError(undefined);
-    navigation.replace('SelectCategory');
+    // Root Navigator를 통해 MainStack의 SelectCategory로 이동
+    navigation.getParent()?.navigate('MainStack', {
+      screen: 'SelectCategory',
+    });
   };
 
   return (
