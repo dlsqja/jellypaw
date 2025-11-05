@@ -17,6 +17,8 @@ export default function KakaoLoginScreen({
     setTimeout(() => {
       setLoading(false);
       navigation.replace('SignupWebView');
+      
+
     }, 400);
   };
 
