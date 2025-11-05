@@ -9,6 +9,8 @@ import { PetMiniCard, AddPetCard } from '../../ui/components/PetMiniCard';
 import PetSummaryCard from '../../ui/components/PetSummaryCard';
 import VaccinationSection from '../../ui/components/VaccinationSection';
 import MenuBar from '../../ui/components/MenuBar';
+import { theme } from '../../ui/system/variants';
+import Header from '../../ui/components/Header';
 
 export default function PetManageScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -27,38 +29,38 @@ export default function PetManageScreen({ navigation }: any) {
 
   return (
     <SafeAreaLayout backgroundColor="#F9FAFB" style={{ flex: 1 }}>
-      {/* 고정 헤더 */}
-      <View style={[S.header, { paddingTop: 16 }]}>
-        <Text weight="bold" style={S.headerTitle}>동물관리</Text>
-        <View style={S.headerIcon} />
-      </View>
+  {/* 헤더 */}
+  <Header title="동물관리" showDivider />
+
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 상단 펫 카드들 */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
-          <View style={S.petRow}>
-            <PetMiniCard
-              name="초코"
-              kind="강아지"
-              avatarUri={pets[0].avatar}
-              selected={selectedPetId === pets[0].id}
-              onPress={() => setSelectedPetId(pets[0].id)}
-            />
-            <View style={{ width: 16 }} />
-            <PetMiniCard
-              name="루비"
-              kind="강아지"
-              avatarUri={pets[1].avatar}
-              selected={selectedPetId === pets[1].id}
-              onPress={() => setSelectedPetId(pets[1].id)}
-            />
-            <View style={{ width: 16 }} />
-            <AddPetCard onPress={() => { /* 추가 */ }} />
-          </View>
-        </View>
+      <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+        <View style={S.petRow}>
+          <PetMiniCard
+            name="초코"
+            kind="강아지"
+            avatarUri={pets[0].avatar}
+            selected={selectedPetId === pets[0].id}
+            onPress={() => setSelectedPetId(pets[0].id)}
+          />
+
+
+    <PetMiniCard
+      name="루비"
+      kind="강아지"
+      avatarUri={pets[1].avatar}
+      selected={selectedPetId === pets[1].id}
+      onPress={() => setSelectedPetId(pets[1].id)}
+    />
+
+    <AddPetCard onPress={() => navigation.navigate('AddPet')} />
+  </View>
+</View>
+
 
         {/* 탭 */}
         <View style={{ paddingTop: 24 }}>
@@ -66,36 +68,39 @@ export default function PetManageScreen({ navigation }: any) {
         </View>
 
         {/* 콘텐츠 */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 16, gap: 16 }}>
-          <PetSummaryCard
-            name="초코"
-            kind="강아지"
-            registeredAt="2021.03.15"
-            avatarUri="https://placehold.co/80x80"
-            age="3살"
-            weight="28kg"
-            sex="수컷"
-            onEdit={() => {}}
-          />
+<View style={{ paddingHorizontal: 24, paddingTop: 16, gap: 16 }}>
+  {activeTab === 'info' && (
+    <>
+      <PetSummaryCard
+        name="초코"
+        kind="강아지"
+        registeredAt="2021.03.15"
+        avatarUri="https://placehold.co/80x80"
+        age="3살"
+        weight="28kg"
+        sex="수컷"
+        onEdit={() => navigation.navigate('EditPet')}
+      />
 
-          {activeTab === 'info' && (
-            <View style={{ paddingTop: 16 }}>
-              <VaccinationSection
-                items={[
-                  { title: '종합백신', date: '2024.01.15', nextDate: '2025.01.15' },
-                  { title: '광견병', date: '2024.01.15', nextDate: '2025.01.15' },
-                  { title: '심장사상충', date: '2024.01.01', nextDate: '2024.02.01' },
-                ]}
-              />
-            </View>
-          )}
+      <View style={{ paddingTop: 16 }}>
+        <VaccinationSection
+          items={[
+            { title: '종합백신', date: '2024.01.15', nextDate: '2025.01.15' },
+            { title: '광견병', date: '2024.01.15', nextDate: '2025.01.15' },
+            { title: '심장사상충', date: '2024.01.01', nextDate: '2024.02.01' },
+          ]}
+        />
+      </View>
+    </>
+  )}
 
-          {activeTab === 'health' && (
-            <View style={S.healthPlaceholder}>
-              <Text>건강 체크 콘텐츠 영역</Text>
-            </View>
-          )}
-        </View>
+  {activeTab === 'health' && (
+    <View style={S.healthPlaceholder}>
+      <Text>건강 체크 콘텐츠 영역</Text>
+    </View>
+  )}
+</View>
+
       </ScrollView>
 
       {/* 하단 탭바 */}
@@ -114,15 +119,32 @@ export default function PetManageScreen({ navigation }: any) {
 
 const S = StyleSheet.create({
   header: {
-    height: 64, paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.95)', borderBottomWidth: 1, borderBottomColor: '#E5E7EB',
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    height: 64,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border.gray, // '#E5E7EB'
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerTitle: { fontSize: 20, lineHeight: 28, color: '#111827' },
-  headerIcon: { width: 24, height: 24, backgroundColor: '#111827', borderRadius: 2 },
-  petRow: { flexDirection: 'row', alignItems: 'center' },
+  headerTitle: { fontSize: 20, lineHeight: 28, color: theme.text.primary }, // '#111827'
+  headerIcon: { width: 24, height: 24, backgroundColor: theme.text.primary, borderRadius: 2 },
+
+  petRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // 3장을 가로로 균등 배치
+  },
+
   healthPlaceholder: {
-    width: '100%', height: 200, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.border.gray,   // '#E5E7EB'
+    backgroundColor: theme.bg.surface, // '#FFFFFF'
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

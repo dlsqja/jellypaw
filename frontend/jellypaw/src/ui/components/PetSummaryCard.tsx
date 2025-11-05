@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Image, StyleSheet, Pressable } from 'react-native';
 import { Text } from './Text';
+import Feather from 'react-native-vector-icons/Feather';
+import { palette, theme } from '../system/variants'; // ⬅️ 추가
 
 function InfoChip({ title, caption }: { title: string; caption: string }) {
   return (
@@ -43,7 +45,7 @@ export default function PetSummaryCard({ avatarUri, name, kind, registeredAt, ag
       </View>
 
       <Pressable onPress={onEdit} style={S.editBtn}>
-        <View style={{ width: 18, height: 18, backgroundColor: '#6ABFB8', borderRadius: 2 }} />
+        <Feather name="edit-3" size={18} color={theme.border.default} />
         <Text weight="medium" style={S.editLabel}>정보 수정</Text>
       </Pressable>
     </View>
@@ -51,19 +53,49 @@ export default function PetSummaryCard({ avatarUri, name, kind, registeredAt, ag
 }
 
 const S = StyleSheet.create({
-  card: { width: '100%', padding: 25, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB' },
-  avatar: { width: 80, height: 80, borderRadius: 9999 },
-  title: { fontSize: 20, lineHeight: 28, color: '#111827' },
-  sub: { fontSize: 14, lineHeight: 20, color: '#4B5563' },
-  meta: { fontSize: 14, lineHeight: 20, color: '#6B7280' },
-  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  chip: { width: 82, height: 61, padding: 12, backgroundColor: '#FAFAFA', borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  chipTitle: { fontSize: 14, lineHeight: 20, color: '#111827', textAlign: 'center' },
-  chipCaption: { fontSize: 11, lineHeight: 14, color: '#4B5563', textAlign: 'center' },
-  editBtn: {
-    height: 38, borderRadius: 12, backgroundColor: '#F0F7F9',
-    borderWidth: 1, borderColor: '#6ABFB8',
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, gap: 8,
+  card: {
+    width: '100%',
+    padding: 25,
+    backgroundColor: theme.bg.surface,               // '#FFFFFF' → 토큰
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.border.gray,                  // '#E5E7EB' → 토큰
   },
-  editLabel: { fontSize: 14, lineHeight: 21, color: '#6ABFB8' },
+  avatar: { width: 80, height: 80, borderRadius: 9999 },
+  title: { fontSize: 20, lineHeight: 28, color: theme.text.primary },   // '#111827'
+  sub:   { fontSize: 14, lineHeight: 20, color: theme.text.muted },     // '#4B5563'
+  meta:  { fontSize: 14, lineHeight: 20, color: theme.text.secondary }, // '#6B7280'
+
+  // 3등분 그리드 유지
+  chipsRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 12,
+  },
+  chip: {
+    flex: 1,
+    minWidth: 0,
+    height: 61,
+    padding: 12,
+    backgroundColor: theme.bg.subtle, // '#FAFAFA'
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipTitle:   { fontSize: 14, lineHeight: 20, color: theme.text.primary,   textAlign: 'center' },
+  chipCaption: { fontSize: 11, lineHeight: 14, color: theme.text.muted,     textAlign: 'center' },
+
+  editBtn: {
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: theme.bg.brandSubtle,  // '#F0F7F9'
+    borderWidth: 1,
+    borderColor: theme.border.default,      // '#6ABFB8'
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    gap: 8,
+  },
+  editLabel: { fontSize: 14, lineHeight: 21, color: theme.border.default }, // '#6ABFB8'
 });
