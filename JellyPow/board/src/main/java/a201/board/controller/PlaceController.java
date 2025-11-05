@@ -23,10 +23,8 @@ public class PlaceController {
 
 	// Place 조회
     @GetMapping("/{placeId}")
-    public ApiResponse<PlaceResponse> getPlaceById(@PathVariable Long placeId) {
+    public ApiResponse<PlaceResponse> getPlaceById(@PathVariable String placeId) {
         return ApiResponse.success(PlaceResponse.from(placeService.getPlaceById(placeId)));
     }
-
-
 
 }

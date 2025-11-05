@@ -13,12 +13,8 @@ import lombok.*;
 public class Place {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	private Long id;
-
-	@Column(name = "code", nullable = false, unique = true)
-	private String code;
+	@Column(name = "place_id")
+	private String id;
 
 	@Column(name = "title", nullable = false)
 	private String title;

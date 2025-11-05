@@ -9,7 +9,6 @@ import a201.board.data.request.PlaceCreateRequest;
 import a201.board.repository.PlaceRepository;
 import a201.common.enums.ErrorCode;
 import a201.common.exception.CustomException;
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 @Transactional
@@ -18,13 +17,14 @@ public class PlaceService {
 
     private final PlaceRepository placeRepository;
 
-	// Place 생성
+	// Place 생성 (없을 경우에만 생성)
 	public Place createPlace(PlaceCreateRequest placeCreateRequest) {
-		return placeRepository.save(placeCreateRequest.toEntity());
+		return placeRepository.findById(placeCreateRequest.getPlaceId())
+				.orElseGet(() -> placeRepository.save(placeCreateRequest.toEntity()));
 	}
 
 	// Place 조회
-	public Place getPlaceById(Long id) {
-		return placeRepository.findById(id).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+	public Place getPlaceById(String placeId) {
+		return placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 	}
 }
