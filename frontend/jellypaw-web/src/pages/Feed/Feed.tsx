@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiUsers } from 'react-icons/fi';
 import Header from '@/components/headers/Header';
 import Followers from '@/pages/Feed/Components/Followers';
 import Article from '@/pages/Feed/Components/Article';
+import { getFeeds } from '@/services/api/feed';
 
 export default function Feed() {
+  useEffect(() => {
+    getFeeds().then((data) => {
+      console.log(data);
+    });
+  }, []);
   // 팔로워 목록
   const petProfiles = [
     { name: '탄산', imageUrl: '/src/assets/pets/반려동물1.png' },
