@@ -13,6 +13,7 @@ pipeline {
       agent {
         docker {
           image 'gradle:7.6-jdk17'
+          args '-u root'
         }
       }
       steps {
