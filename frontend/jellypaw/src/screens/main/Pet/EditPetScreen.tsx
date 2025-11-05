@@ -149,16 +149,16 @@ export default function EditPetScreen() {
             <Button
               title="수정 완료"
               shape="pillSolid"
-              size="lg"
               tone="aqua"
               onPress={onSave}
+              titleStyle={{ fontFamily: 'Pretendard-Bold' }}
             />
 
             {/* 삭제 – 스샷처럼 연분홍 배경 + 빨간 아웃라인/텍스트 */}
             <Button
               title="동물 정보 삭제"
               shape="pillOutline"
-              size="lg"
+              titleStyle={{ fontFamily: 'Pretendard-Bold' }}
               tone="red" // 텍스트 핑크톤
               borderTone="pink" // 보더 핑크
               onPress={onDelete}

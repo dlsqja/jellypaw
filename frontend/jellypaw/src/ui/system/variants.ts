@@ -60,7 +60,7 @@ export const theme = {
   },
   size: {
     btn: {
-      default: { h: 40, px: 16, fs: 14 },
+      default: { h: 52, px: 24, fs: 16 },
       sm: { h: 32, px: 16, fs: 14 },
       lg: { h: 64, px: 8, fs: 16 },
     },

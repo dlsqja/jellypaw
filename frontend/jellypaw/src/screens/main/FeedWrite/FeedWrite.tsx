@@ -289,7 +289,6 @@ export default function FeedWrite({ route, navigation }: Props) {
           <Button
             title="게시물 작성하기"
             onPress={handleSubmit}
-            size="lg"
             shape="pillSolid"
             tone="aqua"
             titleStyle={{ fontFamily: 'Pretendard-Bold' }}
