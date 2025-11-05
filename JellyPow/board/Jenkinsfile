@@ -30,9 +30,9 @@ pipeline {
             }
             stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
           }
-        }
+       }
 
-      /*
+/*
       steps {
         sh '''
           cd ./${COMPOSE_DIR}
@@ -41,8 +41,7 @@ pipeline {
         '''
         stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
       }
-      */
-    }
+ */
 
     stage('Build and Push Docker Image') {
       steps {
