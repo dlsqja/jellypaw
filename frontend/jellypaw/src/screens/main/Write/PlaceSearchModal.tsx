@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
 import {
   View,
   StyleSheet,
@@ -39,6 +40,8 @@ export default function PlaceSearchModal({
   const [loading, setLoading] = useState(false);
   const [selectedPlaceDetails, setSelectedPlaceDetails] =
     useState<PlaceDetails | null>(null);
+  const mapRef = React.useRef<MapView>(null);
+  const markerRef = React.useRef<any>(null);
 
   // Debounce를 위한 타이머
   useEffect(() => {
@@ -62,6 +65,20 @@ export default function PlaceSearchModal({
       setSelectedPlaceDetails(null);
     }
   }, [visible]);
+
+  // 마커가 표시될 때 자동으로 callout 표시
+  useEffect(() => {
+    if (
+      selectedPlaceDetails?.latitude &&
+      selectedPlaceDetails?.longitude &&
+      markerRef.current
+    ) {
+      // 약간의 지연 후 마커의 callout 표시
+      setTimeout(() => {
+        markerRef.current?.showCallout?.();
+      }, 500);
+    }
+  }, [selectedPlaceDetails]);
 
   const performSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -88,6 +105,11 @@ export default function PlaceSearchModal({
 
       const details = await getPlaceDetails(place.place_id);
       if (details) {
+        console.log('장소 상세 정보:', details);
+        console.log('좌표:', {
+          latitude: details.latitude,
+          longitude: details.longitude,
+        });
         setSelectedPlaceDetails(details);
       }
     } catch (error) {
@@ -110,6 +132,10 @@ export default function PlaceSearchModal({
 
   const handleBackToList = () => {
     setSelectedPlaceDetails(null);
+  };
+
+  const handleMarkerPress = () => {
+    console.log('마커 클릭:', selectedPlaceDetails?.name);
   };
 
   const renderResultItem = ({ item }: { item: SearchResult }) => (
@@ -151,9 +177,9 @@ export default function PlaceSearchModal({
                 {selectedPlaceDetails.address && (
                   <View style={styles.detailsRow}>
                     <Icon
-                      name="location-outline"
+                      name="location"
                       size={20}
-                      color="#6B7280"
+                      color="#6ABFB8"
                       style={styles.detailsIcon}
                     />
                     <Text style={styles.detailsText}>
@@ -164,9 +190,9 @@ export default function PlaceSearchModal({
                 {selectedPlaceDetails.phone_number && (
                   <View style={styles.detailsRow}>
                     <Icon
-                      name="call-outline"
+                      name="call"
                       size={20}
-                      color="#6B7280"
+                      color="#6ABFB8"
                       style={styles.detailsIcon}
                     />
                     <Text style={styles.detailsText}>
@@ -175,7 +201,69 @@ export default function PlaceSearchModal({
                   </View>
                 )}
               </View>
+              {/* 장소 지도 */}
+              {selectedPlaceDetails.latitude &&
+              selectedPlaceDetails.longitude ? (
+                <View style={styles.mapContainer}>
+                  <MapView
+                    ref={mapRef}
+                    style={styles.map}
+                    provider={PROVIDER_GOOGLE}
+                    initialRegion={{
+                      latitude: selectedPlaceDetails.latitude!,
+                      longitude: selectedPlaceDetails.longitude!,
+                      latitudeDelta: 0.00001,
+                      longitudeDelta: 0.00001,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={true}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                    onMapReady={() => {
+                      // 지도가 준비되면 마커의 callout 표시
+                      setTimeout(() => {
+                        markerRef.current?.showCallout?.();
+                      }, 300);
+                    }}
+                  >
+                    <Marker
+                      ref={markerRef}
+                      coordinate={{
+                        latitude: selectedPlaceDetails.latitude!,
+                        longitude: selectedPlaceDetails.longitude!,
+                      }}
+                      identifier="selectedPlace"
+                      onPress={handleMarkerPress}
+                      draggable={false}
+                    >
+                      <Callout tooltip={false}>
+                        <View style={styles.calloutContainer}>
+                          <Text style={styles.calloutTitle} numberOfLines={1}>
+                            {selectedPlaceDetails.name}
+                          </Text>
+                        </View>
+                      </Callout>
+                    </Marker>
+                  </MapView>
+                </View>
+              ) : (
+                <View style={styles.mapContainer}>
+                  <View
+                    style={{
+                      flex: 1,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: '#E5E5E5',
+                    }}
+                  >
+                    <Text style={{ color: '#284542' }}>
+                      좌표 정보가 없습니다
+                    </Text>
+                  </View>
+                </View>
+              )}
             </ScrollView>
+            {/* 이 장소 선택 버튼 */}
             <Button
               titleStyle={{ fontFamily: 'Pretendard-Bold' }}
               title="이 장소 선택"
@@ -328,14 +416,35 @@ const styles = StyleSheet.create({
   },
   detailsText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Pretendard-Regular',
     color: '#284542',
     lineHeight: 20,
   },
+  mapContainer: {
+    height: 400,
+    width: '100%',
+    marginTop: 16,
 
+    borderRadius: 12,
+  },
+  map: {
+    width: '100%',
+    height: '100%',
+  },
   confirmButton: {
     marginHorizontal: 16,
     marginBottom: 16,
+  },
+  calloutContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  calloutTitle: {
+    fontSize: 14,
+    fontFamily: 'Pretendard-Bold',
+    color: '#284542',
+    textAlign: 'center',
   },
 });

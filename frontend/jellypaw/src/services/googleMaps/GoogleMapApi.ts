@@ -49,7 +49,7 @@ export async function getPlaceDetails(
     }
 
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}&language=ko&fields=place_id,name,formatted_address,formatted_phone_number,website,opening_hours`,
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}&language=ko&fields=place_id,name,formatted_address,formatted_phone_number,website,opening_hours,geometry`,
     );
     const data = await response.json();
 
@@ -61,6 +61,8 @@ export async function getPlaceDetails(
         address: data.result.formatted_address,
         phone_number: data.result.formatted_phone_number,
         website: data.result.website,
+        latitude: data.result.geometry?.location?.lat,
+        longitude: data.result.geometry?.location?.lng,
         opening_hours: data.result.opening_hours
           ? {
               open_now: data.result.opening_hours.open_now,

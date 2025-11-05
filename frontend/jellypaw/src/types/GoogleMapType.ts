@@ -10,6 +10,8 @@ export interface PlaceDetails {
   address?: string;
   phone_number?: string;
   website?: string;
+  latitude?: number;
+  longitude?: number;
   opening_hours?: {
     open_now?: boolean;
     weekday_text: string[];
