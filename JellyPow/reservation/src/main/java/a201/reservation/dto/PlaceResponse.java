@@ -1,0 +1,35 @@
+package a201.reservation.dto;
+
+import a201.reservation.entity.Place;
+import lombok.Builder;
+import lombok.Getter;
+import java.math.BigDecimal;
+
+@Getter
+@Builder
+public class PlaceResponse {
+
+    private Long id;
+    private String title;
+    private String address;
+    private String description;
+    private String phoneNumber;
+    private String link;
+    private Long userId;
+    private BigDecimal starRating;
+    private Long postCount;
+
+	public static PlaceResponse from(Place place) {
+		return PlaceResponse.builder()
+				.id(place.getId())
+				.title(place.getTitle())
+				.address(place.getAddress())
+				.description(place.getDescription())
+				.phoneNumber(place.getPhoneNumber())
+				.link(place.getLink())
+				.userId(place.getUserId())
+				.starRating(place.getStarRating())
+				.postCount(place.getPostCount())
+				.build();
+	}
+}
