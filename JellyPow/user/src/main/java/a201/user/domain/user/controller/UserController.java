@@ -7,6 +7,8 @@ import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +42,16 @@ public class UserController {
 			User user = userService.getUserById(userId);
 			UserSignupResponse response = UserSignupResponse.from(user);
 			return ApiResponse.success(response);
+		} catch (CustomException e) {
+			return ApiResponse.error(e.getErrorCode());
+		}
+	}
+
+	@GetMapping("/search")
+	public ApiResponse<List<UserSignupResponse>> searchUsers(@RequestParam String nickname) {
+		try {
+			List<User> users = userService.searchUsers(nickname);
+			return ApiResponse.success(users.stream().map(UserSignupResponse::from).collect(Collectors.toList()));
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
 		}

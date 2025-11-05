@@ -1,5 +1,6 @@
 package a201.user.domain.user.service;
 
+import a201.user.common.annotation.TimeTrace;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import a201.user.domain.user.dto.UserRequest;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @Service
@@ -115,6 +117,12 @@ public class UserService {
         // 5. 응답 반환
         return UserSignupResponse.from(user);
     }
+	
+	// 유저 검색
+	@TimeTrace  // AOP로 자동으로 실행 시간 측정
+	public List<User> searchUsers(String nickname) {
+		return userRepository.findByNicknameStartingWith(nickname);
+	}
 
     // 닉네임 중복 체크
     public boolean isNicknameDuplicate(String nickname) {
