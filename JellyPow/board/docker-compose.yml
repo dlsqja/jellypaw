@@ -3,18 +3,11 @@ networks:
     external: true
 
 services:
-  board-service:
-    build: .
-    container_name: board-service
-    ports:
-      - "8001:8000"
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      CLOUD_AWS_CREDENTIALS_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      CLOUD_AWS_CREDENTIALS_SECRET_KEY: ${AWS_ACCESS_SECRET_KEY}
-      CLOUD_AWS_REGION_STATIC: ${AWS_REGION}
-      CLOUD_AWS_S3_BUCKET: ${S3_BUCKET}
+  user:
+    image: dlsqja3436/board
+    container_name: board
+    env_file:
+      - ./.env
+    restart: unless-stopped
     networks:
       - msa-net
