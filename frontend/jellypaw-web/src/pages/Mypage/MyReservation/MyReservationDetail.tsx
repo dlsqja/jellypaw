@@ -14,7 +14,7 @@ export default function MyReservationDetail() {
       <div className="flex flex-col gap-5">
         {/*카드 1 */}
         {/* 가게 정보 */}
-        <Card className="p-6">
+        <Card className="p-4">
           <CardHeader className="flex flex-col justify-center items-center gap-2">
             <h2 className="text-aqua-500 h4-b">펫살롱 아름다운</h2>
             <div className="flex items-center gap-1">
@@ -50,7 +50,7 @@ export default function MyReservationDetail() {
         </Card>
         {/* 카드 2 */}
         {/* 예약 내용 */}
-        <Card className="p-6">
+        <Card className="p-4">
           <CardHeader>
             <h2 className="text-aqua-500 h6-b">예약 내용</h2>
           </CardHeader>

@@ -47,18 +47,22 @@ export default function FunctionList({ phone }: FunctionListProps) {
     }
   };
 
+  const handleNavigationClick = () => {
+    alert('길찾기 기능은 준비 중입니다.');
+  };
+
   return (
     <>
-      <div className="flex gap-3">
+      <div className="flex gap-2.5">
         {functionList.map((functionItem) => {
           // '전화' 누르면 전화번호 모달 오픈
           if (functionItem.name === '전화' && phone) {
             return (
               <Drawer key={functionItem.name} open={isPhoneDrawerOpen} onOpenChange={setIsPhoneDrawerOpen}>
                 <DrawerTrigger asChild>
-                  <Button size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col items-center hover:bg-aqua-100">
-                    <div>{functionItem.icon}</div>
-                    <div>{functionItem.name}</div>
+                  <Button size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col gap-1 items-center hover:bg-aqua-100">
+                    <p>{functionItem.icon}</p>
+                    <p>{functionItem.name}</p>
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent className="max-w-[360px] mx-auto">
@@ -90,19 +94,35 @@ export default function FunctionList({ phone }: FunctionListProps) {
                 size="lg"
                 shape="outline"
                 tone="lightAqua"
-                className="w-full flex flex-col items-center"
+                className="w-full flex flex-col gap-1 items-center"
                 // 예약 버튼 클릭하면 예약 페이지로 이동 함수
                 onClick={handleReservationClick}
               >
-                <div>{functionItem.icon}</div>
-                <div>{functionItem.name}</div>
+                <p>{functionItem.icon}</p>
+                <p>{functionItem.name}</p>
+              </Button>
+            );
+          }
+          // '길찾기' 누르면 alert 창 띄우기
+          if (functionItem.name === '길찾기') {
+            return (
+              <Button
+                key={functionItem.name}
+                size="lg"
+                shape="outline"
+                tone="lightAqua"
+                className="w-full flex flex-col gap-1 items-center"
+                onClick={handleNavigationClick}
+              >
+                <p>{functionItem.icon}</p>
+                <p>{functionItem.name}</p>
               </Button>
             );
           }
           return (
-            <Button key={functionItem.name} size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col items-center">
-              <div>{functionItem.icon}</div>
-              <div>{functionItem.name}</div>
+            <Button key={functionItem.name} size="lg" shape="outline" tone="lightAqua" className="w-full flex flex-col gap-1 items-center">
+              <p>{functionItem.icon}</p>
+              <p>{functionItem.name}</p>
             </Button>
           );
         })}

@@ -11,7 +11,7 @@ interface ArticleBoxProps {
 
 export default function ArticleBox({ imageUrl, title, date, content, likeCount, commentCount }: ArticleBoxProps) {
   return (
-    <div className="py-2 px-6 border-b border-gray-200 last:border-b-0 flex items-start gap-4">
+    <div className="px-4 pb-2 border-b border-gray-200 last:border-b-0 flex items-start gap-4">
       {/* 이미지 */}
       <img className="w-20 h-20 rounded-lg object-cover flex-shrink-0" src={imageUrl} alt="article image" />
       <div className="flex-1 flex flex-col gap-1">
