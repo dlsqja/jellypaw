@@ -21,7 +21,7 @@ export default function KakaoLoginScreen({
   };
 
   return (
-    <SafeAreaView style={S.root}>
+    <View style={S.root}>
       <View style={S.content}>
         {/* 로고 */}
         <Image
@@ -48,7 +48,7 @@ export default function KakaoLoginScreen({
           />
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -56,7 +56,6 @@ const S = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#FAFAFA',
-    paddingHorizontal: 24, // 좌우 여백 → 버튼 w:327
   },
   // 시안처럼 전체 블록을 아래로 내리기
   content: {
@@ -68,7 +67,6 @@ const S = StyleSheet.create({
   logo: {
     width: 95,
     height: 95,
-    marginBottom: 51,
   },
   // 텍스트는 기존 타이포 유지, 아래와 51px 간격
   subtitle: {

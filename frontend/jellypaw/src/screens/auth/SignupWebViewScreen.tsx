@@ -16,7 +16,7 @@ import type { AuthStackParamList } from '../../navigation/AuthStackNavigator';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import SafeAreaLayout from '../../components/MobileLayout';
+import AuthLayout from '../../components/AuthLayout';
 import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
@@ -49,8 +49,8 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaLayout backgroundColor="#FAFAFA" style={S.root}>
-      <BackHeader title="추가 정보 입력" showDivider />
+    <View style={S.root}>
+      <BackHeader title="추가 정보 입력" />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -108,12 +108,12 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </SafeAreaLayout>
+    </View>
   );
 }
 
 const S = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#FAFAFA' },
   content: {
     paddingHorizontal: 24,
     paddingTop: 8,

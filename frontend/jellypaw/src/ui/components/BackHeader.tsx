@@ -55,7 +55,7 @@ const S = StyleSheet.create({
   wrap: {
     height: 60,
     backgroundColor: '#FAFAFA',
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

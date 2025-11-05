@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MenuBar from './MenuBar';
+import MenuBar from '../ui/components/MenuBar';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -24,13 +24,13 @@ export default function MainLayout({
         styles.container,
         {
           backgroundColor,
+          paddingTop: insets.top,
+          paddingHorizontal: 16,
         },
         style,
       ]}
     >
-      <View style={[styles.content, { paddingTop: insets.top }]}>
-        {children}
-      </View>
+      {children}
       {showMenuBar && <MenuBar />}
     </View>
   );
@@ -40,8 +40,4 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-  },
 });
-

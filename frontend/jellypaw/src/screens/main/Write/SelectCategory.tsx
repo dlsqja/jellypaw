@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MobileLayout from '../../../components/MobileLayout';
+import MobileLayout from '../../../components/AuthLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
@@ -80,7 +80,6 @@ const bottomNavItems = [
 
 export default function SelectCategory({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const insets = useSafeAreaInsets();
 
   const handleCategorySelect = (categoryId: number, categoryName: string) => {
     setSelectedCategory(categoryId);
@@ -95,19 +94,15 @@ export default function SelectCategory({ navigation }: Props) {
   };
 
   return (
-    <MobileLayout style={styles.container}>
+    <View style={styles.container}>
+      <BackHeader title="무엇을 기록할까요?" />
       {/* 상단 헤더 */}
-      <View style={{ paddingTop: insets.top }}>
-        <BackHeader title="무엇을 기록할까요?" />
-      </View>
 
       {/* 메인 콘텐츠 */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.spacer} />
-
         {/* 제목 영역 */}
         <View style={styles.titleSection}>
           <View style={styles.titleContainer}>
@@ -181,7 +176,7 @@ export default function SelectCategory({ navigation }: Props) {
           ))}
         </View>
       </View> */}
-    </MobileLayout>
+    </View>
   );
 }
 
@@ -197,16 +192,14 @@ const styles = StyleSheet.create({
   },
   // 스크롤 뷰 콘텐츠 스타일
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 64,
-    paddingBottom: 80,
-    gap: 36,
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    paddingVertical: 32,
+    gap: 32,
   },
-  // 스페서 스타일
-  spacer: {
-    paddingTop: 24,
-    paddingBottom: 20,
-  },
+
   // 타이틀 섹션 스타일
   titleSection: {
     width: '100%',

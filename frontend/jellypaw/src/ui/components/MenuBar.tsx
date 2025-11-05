@@ -1,6 +1,7 @@
 // src/ui/components/MenuBar.tsx
 import React from 'react';
-import { View, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from './Text';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -17,96 +18,90 @@ type Props = {
   onWrite?: () => void;
 };
 
-const ACTIVE = '#6ABFB8';
+const ACTIVE = '#6abfb8';
 const INACTIVE = '#A3A3A3';
-
-const ROW_H = 80;
-const SIDE_PAD = 32;
-const ITEM_BOX = 44;   // 아이콘 앵커 박스(가로/세로)
-const CENTER_W = 64;   // 플로팅 + 지름
 
 export default function MenuBar({
   activeKey = 'feed',
-  onFeedPress, onSearchPress, onPetPress, onMyPagePress, onWrite,
+  onFeedPress,
+  onSearchPress,
+  onPetPress,
+  onMyPagePress,
+  onWrite,
 }: Props) {
-  const { width } = useWindowDimensions();
-  const contentW = Math.max(0, width - SIDE_PAD * 2);
-
-  // 중심점(좌측 패딩부터의 거리): 1/8, 3/8, 5/8, 7/8, 9/8? → 5개라면 1/8,3/8,5/8,7/8, 즉 4등분 간격
-  const c1 = SIDE_PAD + (contentW * 1) / 8; // 피드
-  const c2 = SIDE_PAD + (contentW * 3) / 8; // 검색
-  const c3 = SIDE_PAD + (contentW * 5) / 8; // + (정중앙)
-  const c4 = SIDE_PAD + (contentW * 7) / 8; // 동물관리
-  const c5 = SIDE_PAD + (contentW * 9) / 8; // 내 공간  ← (주의) 9/8은 범위를 넘어서므로 아래처럼 5개 균등은 0/4~4/4 방식이 더 깔끔
-
-  const GAP = 20; 
-  
-  // 깔끔한 5등분(0~4 index): i * (contentW/4)
-  const step = contentW / 4;
-  const centers = [
-    SIDE_PAD + step * 0, // 피드
-    SIDE_PAD + step * 1, // 검색
-    SIDE_PAD + step * 2, // + (정중앙)
-    SIDE_PAD + step * 3, // 동물관리
-    SIDE_PAD + step * 4, // 내 공간
-  ];
-
+  const insets = useSafeAreaInsets();
   const color = (k: MenuKey) => (activeKey === k ? ACTIVE : INACTIVE);
 
   return (
-    <View style={S.wrap}>
-      <View style={[S.inner, { paddingHorizontal: SIDE_PAD }]}>
+    <View style={[S.wrap, { paddingBottom: insets.bottom }]}>
+      <View style={S.inner}>
         {/* 피드 */}
-        <Pressable
+        <TouchableOpacity
           onPress={onFeedPress}
-          hitSlop={8}
-          style={[S.slot, { left: centers[0] - ITEM_BOX / 2 }]}
+          style={S.menuItem}
+          activeOpacity={0.7}
         >
           <Entypo name="home" size={20} color={color('feed')} />
-          <Text weight="semiBold" style={[S.tabLabel, { color: color('feed') }]}>피드</Text>
-        </Pressable>
+          <Text
+            weight="semiBold"
+            style={[S.tabLabel, { color: color('feed') }]}
+          >
+            피드
+          </Text>
+        </TouchableOpacity>
 
         {/* 검색 */}
-        <Pressable
+        <TouchableOpacity
           onPress={onSearchPress}
-          hitSlop={8}
-          style={[S.slot, { left: centers[1] - ITEM_BOX / 2 }]}
+          style={S.menuItem}
+          activeOpacity={0.7}
         >
           <Ionicons name="search" size={20} color={color('search')} />
-          <Text weight="semiBold" style={[S.tabLabel, { color: color('search') }]}>검색</Text>
-        </Pressable>
+          <Text
+            weight="semiBold"
+            style={[S.tabLabel, { color: color('search') }]}
+          >
+            검색
+          </Text>
+        </TouchableOpacity>
 
         {/* + (FAB) */}
-        <Pressable
+        <TouchableOpacity
           onPress={onWrite}
-          hitSlop={8}
-          android_ripple={{ color: '#ffffff22', borderless: true }}
-          style={[S.fab, {
-            left: centers[2] - CENTER_W / 2,
-          }]}
+          style={S.fabContainer}
+          activeOpacity={0.7}
         >
-          <Feather name="plus" size={28} color="#FFFFFF" />
-        </Pressable>
+          <View style={S.fab}>
+            <Feather name="plus" size={20} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
 
         {/* 동물관리 */}
-        <Pressable
+        <TouchableOpacity
           onPress={onPetPress}
-          hitSlop={8}
-          style={[S.slot, { left: centers[3] - ITEM_BOX / 2 }]}
+          style={S.menuItem}
+          activeOpacity={0.7}
         >
           <FontAwesome5 name="paw" solid size={20} color={color('pet')} />
-          <Text weight="semiBold" style={[S.tabLabel, { color: color('pet') }]}>동물관리</Text>
-        </Pressable>
+          <Text weight="semiBold" style={[S.tabLabel, { color: color('pet') }]}>
+            동물관리
+          </Text>
+        </TouchableOpacity>
 
         {/* 내 공간 */}
-        <Pressable
+        <TouchableOpacity
           onPress={onMyPagePress}
-          hitSlop={8}
-          style={[S.slot, { left: centers[4] - ITEM_BOX / 2 }]}
+          style={S.menuItem}
+          activeOpacity={0.7}
         >
           <Feather name="user" size={20} color={color('mypage')} />
-          <Text weight="semiBold" style={[S.tabLabel, { color: color('mypage') }]}>내 공간</Text>
-        </Pressable>
+          <Text
+            weight="semiBold"
+            style={[S.tabLabel, { color: color('mypage') }]}
+          >
+            내 공간
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -114,30 +109,49 @@ export default function MenuBar({
 
 const S = StyleSheet.create({
   wrap: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderTopWidth: 1, borderTopColor: '#E5E7EB',
-    zIndex: 50,
+    width: '100%',
+    height: 100, // h-16
+    backgroundColor: '#F3F4F6', // bg-gray-100
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB', // border-gray-200
   },
   inner: {
-    height: ROW_H,
-    position: 'relative',   // ★ 절대배치 기준
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6, // 상하 패딩으로 여유 공간 확보
+    paddingTop: 12,
+    paddingHorizontal: 8, // 좌우 패딩 줄이면 간격이 줄어듦 (기본값보다 작게)
   },
-  slot: {
-    position: 'absolute',
-    top: (ROW_H - ITEM_BOX) / 2,   // 수직 가운데
-    width: ITEM_BOX, height: ITEM_BOX,
-    alignItems: 'center', justifyContent: 'center',
+  menuItem: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%', // 전체 높이 사용
+    marginHorizontal: -4, // 음수 마진으로 간격 줄이기 (값을 더 줄이면 간격이 더 좁아짐)
   },
-  tabLabel: { fontSize: 12, lineHeight: 16, marginTop: 4, textAlign: 'center' },
+  tabLabel: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 4, // gap-2 (웹에서 gap-2는 8px, 아이콘과 라벨 사이 간격)
+    textAlign: 'center',
+  },
+  fabContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%', // 전체 높이 사용
+    marginHorizontal: -4, // 음수 마진으로 간격 줄이기 (값을 더 줄이면 간격이 더 좁아짐)
+  },
   fab: {
-    position: 'absolute',
-    top: (ROW_H - CENTER_W) / 2,   // 수직 가운데
-    width: CENTER_W, height: CENTER_W,
-    borderRadius: CENTER_W / 2,
-    backgroundColor: ACTIVE,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.10,
-    shadowOffset: { width: 0, height: 10 }, shadowRadius: 15, elevation: 6,
+    width: 60,
+    height: 60,
+    borderRadius: 30, // rounded-full
+    backgroundColor: ACTIVE, // bg-aqua-300
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

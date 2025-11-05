@@ -2,27 +2,26 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-interface SafeAreaLayoutProps {
+interface AuthLayoutProps {
   children: React.ReactNode;
   style?: ViewStyle;
   backgroundColor?: string;
 }
 
-export default function SafeAreaLayout({
+export default function AuthLayout({
   children,
   style,
   backgroundColor = '#FAFAFA',
-}: SafeAreaLayoutProps) {
+}: AuthLayoutProps) {
   const insets = useSafeAreaInsets();
-
   return (
     <View
       style={[
         styles.container,
         {
-          paddingTop: insets.top,
           backgroundColor,
+          paddingTop: insets.top,
+          paddingHorizontal: 16,
         },
         style,
       ]}
