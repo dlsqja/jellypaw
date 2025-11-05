@@ -24,6 +24,24 @@ services:
     container_name: kafka
     environment:
       TZ: Asia/Seoul
+
+      # 이 노드가 broker + controller 둘 다 한다
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_NODE_ID: 1
+      # 컨트롤러 합의는 이 컨테이너의 29093 포트로
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+
+      # 실제로 바인딩할 포트들 (컨테이너 내부)
+      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:29093"
+
+      # 리스너 이름 → 프로토콜 매핑
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+
+      # 컨트롤러들끼리 통신할 때 CONTROLLER 리스너 쓴다
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+
+      # ★ 내부 MSA 컨테이너들이 부를 이름만 광고
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
     networks:
       - msa-net
 
