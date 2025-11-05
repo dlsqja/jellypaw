@@ -19,8 +19,8 @@ pipeline {
             script {
               withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
                 sh '''
-                  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources && chmod 777 ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
-                  cp $COMMON_CONFIG ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+                  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+                  cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
 
                   cd ./${COMPOSE_DIR}
                   chmod +x ./gradlew
