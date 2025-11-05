@@ -6,7 +6,7 @@ import { Text } from '../../../ui/components/Text';
 import Input from '../../../ui/components/Input';
 import { Button } from '../../../ui/components/Button';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
-import { theme } from '../../../ui/system/variants';
+import { palette } from '../../../ui/system/variants';
 import Dropdown from '../../../ui/components/Dropdown';
 
 export default function AddPetScreen() {
@@ -38,8 +38,8 @@ export default function AddPetScreen() {
   }, [animalType]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg.subtle }}>
-      <BackHeader title="동물 추가" showDivider />
+    <View style={{ flex: 1, backgroundColor: palette.gray100 }}>
+      <BackHeader title="동물 추가" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* 프로필 사진 */}
@@ -59,7 +59,7 @@ export default function AddPetScreen() {
         </View>
 
         {/* 기본 정보 */}
-        <View style={{ paddingHorizontal: 24 }}>
+        <View>
           <Text weight="bold" style={S.sectionTitle}>
             기본 정보
           </Text>
@@ -140,7 +140,7 @@ const S = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     lineHeight: 28,
-    color: theme.text.primary,
+    color: palette.gray800,
     marginBottom: 16,
   },
 });

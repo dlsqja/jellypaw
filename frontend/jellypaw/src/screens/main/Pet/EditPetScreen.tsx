@@ -50,8 +50,8 @@ export default function EditPetScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg.subtle }}>
-      <BackHeader title="동물 정보 수정" showDivider />
+    <View style={{ flex: 1, backgroundColor: palette.gray100 }}>
+      <BackHeader title="동물 정보 수정" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* 프로필 사진 */}
@@ -83,7 +83,7 @@ export default function EditPetScreen() {
         </View>
 
         {/* 기본 정보 */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
+        <View style={{ paddingTop: 24 }}>
           <Text weight="bold" style={S.sectionTitle}>
             기본 정보
           </Text>

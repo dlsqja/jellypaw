@@ -12,6 +12,7 @@ export const palette = {
   pink100: '#ffe0e0',
   pink400: '#e85555',
 
+  gray100: '#FAFAFA',
   gray200: '#e5e5e5',
   gray400: '#A3A3A3',
   gray700: '#4B5563',
@@ -67,7 +68,13 @@ export const theme = {
 } as const;
 
 /** ========== 버튼 variants ========== */
-export type ButtonTone = 'default' | 'aqua' | 'lightAqua' | 'white' | 'red' | 'kakao';
+export type ButtonTone =
+  | 'default'
+  | 'aqua'
+  | 'lightAqua'
+  | 'white'
+  | 'red'
+  | 'kakao';
 export type ButtonShape = 'solid' | 'outline' | 'pillSolid' | 'pillOutline';
 export type ButtonSize = 'default' | 'sm' | 'lg';
 export type ButtonBorderTone = 'default' | 'gray' | 'pink';
@@ -107,7 +114,8 @@ const borderToneColor: Record<ButtonBorderTone, string> = {
 };
 
 function getRadius(shape: ButtonShape) {
-  if (shape === 'pillSolid' || shape === 'pillOutline') return theme.radius.pill;
+  if (shape === 'pillSolid' || shape === 'pillOutline')
+    return theme.radius.pill;
   return theme.radius.md;
 }
 

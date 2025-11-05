@@ -11,7 +11,12 @@ type Props = {
   style?: ViewStyle;
 };
 
-export default function SegmentedTabs({ tabs, activeTab, onTabChange, style }: Props) {
+export default function SegmentedTabs({
+  tabs,
+  activeTab,
+  onTabChange,
+  style,
+}: Props) {
   return (
     <View style={[S.wrap, style]}>
       <View style={S.container}>
@@ -24,7 +29,10 @@ export default function SegmentedTabs({ tabs, activeTab, onTabChange, style }: P
               android_ripple={{ color: '#00000010' }}
               style={[S.item, active && S.itemActive]}
             >
-              <Text weight={active ? 'semiBold' : 'regular'} style={[S.label, active ? S.labelActive : S.labelInactive]}>
+              <Text
+                weight={active ? 'semiBold' : 'regular'}
+                style={[S.label, active ? S.labelActive : S.labelInactive]}
+              >
                 {tab.label}
               </Text>
             </Pressable>
@@ -36,16 +44,28 @@ export default function SegmentedTabs({ tabs, activeTab, onTabChange, style }: P
 }
 
 const S = StyleSheet.create({
-  wrap: { width: '100%', paddingHorizontal: 24 },
+  wrap: { width: '100%' },
   container: {
     height: 46,
     backgroundColor: '#FAFAFA',
     borderRadius: 9999,
-    borderWidth: 1, borderColor: '#E5E5E5',
-    flexDirection: 'row', padding: 5,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowOffset: { width: 0, height: 1 }, shadowRadius: 2, elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    flexDirection: 'row',
+    padding: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 2,
+    elevation: 1,
   },
-  item: { flex: 1, height: 36, borderRadius: 9999, alignItems: 'center', justifyContent: 'center' },
+  item: {
+    flex: 1,
+    height: 36,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   itemActive: { backgroundColor: '#6ABFB8' },
   label: { fontSize: 14, lineHeight: 20 },
   labelActive: { color: '#FFFFFF' },

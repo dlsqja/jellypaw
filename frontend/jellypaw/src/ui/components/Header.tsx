@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
-import { theme } from '../system/variants';
+import { palette } from '../system/variants';
 
 type Props = {
   title: string;
@@ -21,11 +21,13 @@ export default function Header({
     <View
       style={[
         S.wrap,
-        { backgroundColor: background === 'surface' ? theme.bg.surface : theme.bg.subtle },
+        { backgroundColor: palette.gray100 },
         showDivider && S.divider,
       ]}
     >
-      <Text weight="bold" style={S.title}>{title}</Text>
+      <Text weight="bold" style={S.title}>
+        {title}
+      </Text>
       <View style={S.right}>{rightSlot}</View>
     </View>
   );
@@ -38,7 +40,12 @@ const S = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  divider: { borderBottomWidth: 1, borderBottomColor: theme.border.gray },
-  title: { fontSize: 20, lineHeight: 28, color: theme.text.primary },
-  right: { marginLeft: 'auto', minWidth: 24, alignItems: 'flex-end', justifyContent: 'center' },
+  divider: { borderBottomWidth: 1, borderBottomColor: palette.gray200 },
+  title: { fontSize: 20, lineHeight: 28, color: palette.gray800 },
+  right: {
+    marginLeft: 'auto',
+    minWidth: 24,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
 });

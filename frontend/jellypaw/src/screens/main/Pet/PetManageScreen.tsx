@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { Text } from '../../../ui/components/Text';
 import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
 import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
@@ -38,14 +37,14 @@ export default function PetManageScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       {/* 헤더 */}
-      <Header title="동물관리" showDivider />
+      <Header title="동물관리" />
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 상단 펫 카드들 */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 16 }}>
+        <View style={{ paddingTop: 16 }}>
           <View style={S.petRow}>
             <PetMiniCard
               name="초코"
@@ -77,7 +76,7 @@ export default function PetManageScreen({ navigation }: any) {
         </View>
 
         {/* 콘텐츠 */}
-        <View style={{ paddingHorizontal: 24, paddingTop: 16, gap: 16 }}>
+        <View style={{ paddingTop: 16, gap: 16 }}>
           {activeTab === 'info' && (
             <>
               <PetSummaryCard
