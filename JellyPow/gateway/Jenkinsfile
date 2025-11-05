@@ -68,7 +68,7 @@ pipeline {
           sh '''
             chmod 600 "$KEYFILE"
 
-            ssh -i ${KEYFILE} -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "mkdir -p /home/ubuntu/${COMPOSE_DIR}/${SERVICE_DIR} && chmod 755 /home/ubuntu/${COMPOSE_DIR}/${SERVICE_DIR}"
+            ssh -i ${KEYFILE} -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "mkdir -p /home/ubuntu/${COMPOSE_DIR}/${SERVICE_DIR} && chmod 755 /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR} && rm -f /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/.env"
 
             scp -i "$KEYFILE" -o StrictHostKeyChecking=no ./${COMPOSE_DIR}/${SERVICE_DIR}/docker-compose.yml $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/
 
@@ -81,8 +81,9 @@ pipeline {
               echo '$DOCKERHUB_PASSWORD' | docker login -u '$DOCKERHUB_USERNAME' --password-stdin
               docker compose down || true
               docker compose pull
-              docker compose up -d --remove-orphans
-              rm -f .env
+              docker compose up -d
+
+              docker image prune -f
             '
 
           '''
