@@ -21,7 +21,7 @@ pipeline {
           chmod +x ./gradlew
           ./gradlew :gateway:clean :gateway:build -x test
         '''
-        stash name: 'built-jar', includes: './${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar'
+        stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
       }
     }
 
