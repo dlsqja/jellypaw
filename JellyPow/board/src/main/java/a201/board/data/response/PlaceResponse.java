@@ -1,6 +1,6 @@
-package a201.reservation.dto;
+package a201.board.data.response;
 
-import a201.reservation.entity.Place;
+import a201.board.data.entity.Place;
 import lombok.Builder;
 import lombok.Getter;
 import java.math.BigDecimal;

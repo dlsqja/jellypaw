@@ -1,4 +1,4 @@
-package a201.reservation.entity;
+package a201.board.data.entity;
 
 import java.math.BigDecimal;
 import jakarta.persistence.*;

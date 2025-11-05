@@ -1,6 +1,6 @@
-package a201.reservation.dto;
+package a201.board.data.request;
 
-import a201.reservation.entity.Place;
+import a201.board.data.entity.Place;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +14,6 @@ public class PlaceCreateRequest {
     private String description;
     private String phoneNumber;
     private String link;
-    private Long userId;
 
     public Place toEntity() {
         return Place.builder()
@@ -23,7 +22,6 @@ public class PlaceCreateRequest {
                 .description(this.description)
                 .phoneNumber(this.phoneNumber)
                 .link(this.link)
-                .userId(this.userId)
                 .build();
     }
 }
