@@ -6,6 +6,9 @@ import SignupWebViewScreen from '../screens/auth/SignupWebViewScreen';
 import FeedWrite from '../screens/main/Write/FeedWrite';
 import Step2 from '../screens/main/Write/Step2';
 import PetManageScreen from '../screens/pets/PetManageScreen';
+import AddPetScreen from '../screens/pets/AddPetScreen';
+import EditPetScreen from '../screens/pets/EditPetScreen';
+
 export type RootStackParamList = {
   KakaoLogin: undefined;
   SignupWebView: undefined;
@@ -30,6 +33,9 @@ export default function RootNavigator() {
         <Stack.Screen name="FeedWrite" component={FeedWrite} />
         <Stack.Screen name="Step2" component={Step2} />
         <Stack.Screen name="PetManage" component={PetManageScreen} />
+        <Stack.Screen name="AddPet" component={AddPetScreen} />
+        <Stack.Screen name="EditPet" component={EditPetScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

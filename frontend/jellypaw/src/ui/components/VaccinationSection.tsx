@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from './Text';
-
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Feather from 'react-native-vector-icons/Feather';
+import { theme } from '../system/variants';
 type Item = { title: string; date: string; nextDate?: string };
 
 export default function VaccinationSection({ items }: { items: Item[] }) {
   return (
     <View style={S.card}>
       <View style={S.header}>
-        <View style={{ width: 14, height: 14, backgroundColor: '#BADFDB', borderRadius: 2, marginRight: 8 }} />
+        <MaterialIcons name="vaccines" size={18} color={theme.border.default}></MaterialIcons>
         <Text weight="medium" style={S.headerTitle}>예방접종 기록</Text>
       </View>
 
@@ -28,7 +30,7 @@ export default function VaccinationSection({ items }: { items: Item[] }) {
       </View>
 
       <View style={S.bottomBtn}>
-        <View style={{ width: 18, height: 18, backgroundColor: '#6ABFB8', borderRadius: 2 }} />
+        <Feather name="edit-3" size={18} color={theme.border.default} />
         <Text weight="medium" style={S.bottomBtnText}>정보 추가 및 변경</Text>
       </View>
     </View>
