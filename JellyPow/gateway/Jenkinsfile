@@ -17,9 +17,9 @@ pipeline {
       }
       steps {
         sh '''
-          cd ./${COMPOSE_DIR}/${SERVICE_DIR}
+          cd ./${COMPOSE_DIR}
           chmod +x ./gradlew
-          ./gradlew clean build
+          ./gradlew :gateway:clean :gateway:build
         '''
         stash name: 'built-jar', includes: './${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar'
       }
