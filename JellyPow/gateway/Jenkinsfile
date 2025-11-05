@@ -68,7 +68,7 @@ pipeline {
           sh '''
             chmod 600 "$KEYFILE"
 
-            ssh -i **** ubuntu@k13a201.p.ssafy.io "mkdir -p /home/ubuntu/${COMPOSE_DIR}/${SERVICE_DIR}"
+            ssh -i "$KEYFILE" -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "mkdir -p /home/ubuntu/${COMPOSE_DIR}/${SERVICE_DIR}"
 
             scp -i "$KEYFILE" -o StrictHostKeyChecking=no ./${COMPOSE_DIR}/${SERVICE_DIR}/docker-compose.yml $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/
 
