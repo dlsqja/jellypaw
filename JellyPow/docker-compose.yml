@@ -1,7 +1,3 @@
-networks:
-  msa-net:
-    name: msa-net
-    driver: bridge
 
 services:
   mysql:
@@ -14,8 +10,6 @@ services:
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
-    networks:
-      - msa-net
 
   # Kafka (KRaft 모드 - Zookeeper 불필요)
   kafka:
@@ -32,8 +26,6 @@ services:
 
     ports:
       - "9092:9092"
-    #networks:
-    # - jellypaw-network
 
 
   mongo:
