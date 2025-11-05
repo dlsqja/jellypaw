@@ -1,23 +1,29 @@
 // src/screens/pet/EditPetScreen.tsx
 import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import BackHeader from '../../ui/components/BackHeader';
-import { Text } from '../../ui/components/Text';
-import Input from '../../ui/components/Input';
-import Dropdown from '../../ui/components/Dropdown';
-import PhotoPicker from '../../ui/components/PhotoPicker';
-import { Button } from '../../ui/components/Button';
-import { palette, theme } from '../../ui/system/variants';
+import BackHeader from '../../../ui/components/BackHeader';
+import { Text } from '../../../ui/components/Text';
+import Input from '../../../ui/components/Input';
+import Dropdown from '../../../ui/components/Dropdown';
+import PhotoPicker from '../../../ui/components/PhotoPicker';
+import { Button } from '../../../ui/components/Button';
+import { palette, theme } from '../../../ui/system/variants';
 
 export default function EditPetScreen() {
   // 기존 값(예시) – 필요하면 props/route로 주입해서 초기화하세요.
-  const [photoUri, setPhotoUri] = useState<string | null>('https://placehold.co/200x200'); // 기존 사진
+  const [photoUri, setPhotoUri] = useState<string | null>(
+    'https://placehold.co/200x200',
+  ); // 기존 사진
   const [name, setName] = useState('초코');
-  const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('강아지');
+  const [animalType, setAnimalType] = useState<
+    '강아지' | '고양이' | '기타' | ''
+  >('강아지');
   const [breed, setBreed] = useState('골든 리트리버');
   const [age, setAge] = useState('3살');
   const [weight, setWeight] = useState('28kg');
-  const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('남자');
+  const [gender, setGender] = useState<
+    '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''
+  >('남자');
 
   const breedPlaceholder = useMemo(() => {
     if (animalType === '강아지') return '예: 골든 리트리버';
@@ -49,7 +55,9 @@ export default function EditPetScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* 프로필 사진 */}
-        <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}>
+        <View
+          style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}
+        >
           <PhotoPicker
             uri={photoUri || undefined}
             onTakePhoto={() => {
@@ -65,7 +73,10 @@ export default function EditPetScreen() {
             style={{ paddingTop: 16 }}
             accessibilityRole="button"
           >
-            <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
+            <Text
+              weight="semiBold"
+              style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}
+            >
               프로필 사진 제거
             </Text>
           </Pressable>
@@ -73,7 +84,9 @@ export default function EditPetScreen() {
 
         {/* 기본 정보 */}
         <View style={{ paddingHorizontal: 24, paddingTop: 24 }}>
-          <Text weight="bold" style={S.sectionTitle}>기본 정보</Text>
+          <Text weight="bold" style={S.sectionTitle}>
+            기본 정보
+          </Text>
 
           <Input
             label="이름"
@@ -146,8 +159,8 @@ export default function EditPetScreen() {
               title="동물 정보 삭제"
               shape="pillOutline"
               size="lg"
-              tone="red"                 // 텍스트 핑크톤
-              borderTone="pink"          // 보더 핑크
+              tone="red" // 텍스트 핑크톤
+              borderTone="pink" // 보더 핑크
               onPress={onDelete}
               style={{ backgroundColor: palette.pink100 }} // 연분홍 배경
             />

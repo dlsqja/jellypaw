@@ -17,14 +17,14 @@ import {
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
-import type { MainStackParamList } from '../../../navigation/MainStackNavigator';
+import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
 
-type Props = NativeStackScreenProps<MainStackParamList, 'FeedWrite'>;
+type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
 export default function FeedWrite({ route, navigation }: Props) {
   const { categoryId, categoryName } = route.params;

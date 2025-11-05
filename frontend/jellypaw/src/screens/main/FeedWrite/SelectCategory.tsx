@@ -3,14 +3,12 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MobileLayout from '../../../components/AuthLayout';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { MainStackParamList } from '../../../navigation/MainStackNavigator';
+import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
 
-type Props = NativeStackScreenProps<MainStackParamList, 'SelectCategory'>;
+type Props = NativeStackScreenProps<FeedWriteStackParamList, 'SelectCategory'>;
 
 // 카테고리 목록
 const categories = [

@@ -1,54 +1,42 @@
+// SafeAreaLayout.tsx - 모든 화면에 적용할 공통 레이아웃
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MenuBar from '../ui/components/MenuBar';
 
-interface MainLayoutProps {
+// 인증 레이아웃 타입
+interface AuthLayoutProps {
   children: React.ReactNode;
   style?: ViewStyle;
   backgroundColor?: string;
-  showMenuBar?: boolean;
 }
 
-export default function MainLayout({
+// 인증 레이아웃
+export default function AuthLayout({
   children,
   style,
   backgroundColor = '#FAFAFA',
-  showMenuBar = true,
-}: MainLayoutProps) {
+}: AuthLayoutProps) {
   const insets = useSafeAreaInsets();
-
   return (
     <View
       style={[
         styles.container,
         {
           backgroundColor,
+          paddingTop: insets.top,
+          paddingHorizontal: 16,
         },
         style,
       ]}
     >
-      <View
-        style={[
-          styles.content,
-          {
-            paddingTop: insets.top,
-            paddingHorizontal: 16,
-          },
-        ]}
-      >
-        {children}
-      </View>
-      {showMenuBar && <MenuBar />}
+      {children}
     </View>
   );
 }
 
+// 인증 레이아웃 스타일
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-  },
-  content: {
     flex: 1,
   },
 });

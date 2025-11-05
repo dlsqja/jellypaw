@@ -1,17 +1,18 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SelectCategory from '../screens/main/Write/SelectCategory';
-import FeedWrite from '../screens/main/Write/FeedWrite';
-import MainLayout from '../components/MainLayout';
+import SelectCategory from '../screens/main/FeedWrite/SelectCategory';
+import FeedWrite from '../screens/main/FeedWrite/FeedWrite';
+import MainLayout from '../layouts/MainLayout';
 
-export type MainStackParamList = {
+export type FeedWriteStackParamList = {
   SelectCategory: undefined;
   FeedWrite: { categoryId: number; categoryName: string };
 };
 
-const Stack = createNativeStackNavigator<MainStackParamList>();
+const Stack = createNativeStackNavigator<FeedWriteStackParamList>();
 
-export default function MainStackNavigator() {
+// 피드 작성 네비게이터
+export default function FeedWriteNavigator() {
   return (
     <MainLayout>
       <Stack.Navigator

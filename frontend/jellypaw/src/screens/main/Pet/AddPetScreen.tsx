@@ -1,27 +1,30 @@
 // src/screens/pet/AddPetScreen.tsx
 import React, { useState, useMemo } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import BackHeader from '../../ui/components/BackHeader';
-import { Text } from '../../ui/components/Text';
-import Input from '../../ui/components/Input';
-import { Button } from '../../ui/components/Button';
-import PhotoPicker from '../../ui/components/PhotoPicker';
-import { theme } from '../../ui/system/variants';
-import Dropdown from '../../ui/components/Dropdown';
+import BackHeader from '../../../ui/components/BackHeader';
+import { Text } from '../../../ui/components/Text';
+import Input from '../../../ui/components/Input';
+import { Button } from '../../../ui/components/Button';
+import PhotoPicker from '../../../ui/components/PhotoPicker';
+import { theme } from '../../../ui/system/variants';
+import Dropdown from '../../../ui/components/Dropdown';
 
 export default function AddPetScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   // ✅ 동물 “종류” 드롭다운 (강아지/고양이/기타)
-  const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('');
+  const [animalType, setAnimalType] = useState<
+    '강아지' | '고양이' | '기타' | ''
+  >('');
 
   // 기존 필드
   const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');     // 품종
+  const [breed, setBreed] = useState(''); // 품종
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
-  const [gender, setGender] =
-    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('남자');
+  const [gender, setGender] = useState<
+    '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''
+  >('남자');
 
   const onSave = () => {
     // TODO: 저장 로직
@@ -40,7 +43,9 @@ export default function AddPetScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* 프로필 사진 */}
-        <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 16 }}>
+        <View
+          style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 16 }}
+        >
           <PhotoPicker
             uri={photoUri || undefined}
             onTakePhoto={() => {
@@ -55,7 +60,9 @@ export default function AddPetScreen() {
 
         {/* 기본 정보 */}
         <View style={{ paddingHorizontal: 24 }}>
-          <Text weight="bold" style={S.sectionTitle}>기본 정보</Text>
+          <Text weight="bold" style={S.sectionTitle}>
+            기본 정보
+          </Text>
 
           <Input
             label="이름"
@@ -72,7 +79,7 @@ export default function AddPetScreen() {
             options={[
               { label: '강아지', value: '강아지' },
               { label: '고양이', value: '고양이' },
-              { label: '기타',   value: '기타' },
+              { label: '기타', value: '기타' },
             ]}
             onChange={setAnimalType}
           />
@@ -84,19 +91,19 @@ export default function AddPetScreen() {
             value={breed}
             onChangeText={setBreed}
           />
-{/* 성별 */}
-<Dropdown
-  label="성별"
-  value={gender}
-  placeholder="선택하세요"
-  options={[
-    { label: '남자', value: '남자' },
-    { label: '여자', value: '여자' },
-    { label: '남자(중성화)', value: '남자(중성화)' },
-    { label: '여자(중성화)', value: '여자(중성화)' },
-  ]}
-  onChange={setGender}
-/>
+          {/* 성별 */}
+          <Dropdown
+            label="성별"
+            value={gender}
+            placeholder="선택하세요"
+            options={[
+              { label: '남자', value: '남자' },
+              { label: '여자', value: '여자' },
+              { label: '남자(중성화)', value: '남자(중성화)' },
+              { label: '여자(중성화)', value: '여자(중성화)' },
+            ]}
+            onChange={setGender}
+          />
 
           <Input
             label="나이"
@@ -112,7 +119,6 @@ export default function AddPetScreen() {
             onChangeText={setWeight}
             keyboardType="default"
           />
-
 
           {/* 저장하기 */}
           <View style={{ paddingTop: 8, paddingBottom: 24 }}>

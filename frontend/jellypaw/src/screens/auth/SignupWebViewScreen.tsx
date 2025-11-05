@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import AuthLayout from '../../components/AuthLayout';
+import AuthLayout from '../../layouts/AuthLayout';
 import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
@@ -42,10 +42,8 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
       return;
     }
     setError(undefined);
-    // Root Navigator를 통해 MainStack의 SelectCategory로 이동
-    navigation.getParent()?.navigate('MainStack', {
-      screen: 'SelectCategory',
-    });
+    // Root Navigator를 통해 FeedStack으로 이동 (메인 피드 화면)
+    navigation.getParent()?.navigate('FeedStack');
   };
 
   return (

@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../ui/components/Text';
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../navigation/AuthStackNavigator';
+import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
 import { Button } from '../../ui/components/Button';
 
 export default function KakaoLoginScreen({

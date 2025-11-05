@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import KakaoLoginScreen from '../screens/auth/KakaoLoginScreen';
-import SignupWebViewScreen from '../screens/auth/SignupWebViewScreen';
-import AuthLayout from '../components/AuthLayout';
+import KakaoLoginScreen from '../../screens/auth/KakaoLoginScreen';
+import SignupWebViewScreen from '../../screens/auth/SignupWebViewScreen';
+import AuthLayout from '../../layouts/AuthLayout';
 
 export type AuthStackParamList = {
   KakaoLogin: undefined;
@@ -11,6 +11,7 @@ export type AuthStackParamList = {
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
+// 로그인/회원가입 네비게이터
 export default function AuthStackNavigator() {
   return (
     <AuthLayout>

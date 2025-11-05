@@ -2,42 +2,75 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Text } from './Text';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Feather from 'react-native-vector-icons/Feather';
+import type { RootStackParamList } from '../../navigation/RootNavigator';
 
-type MenuKey = 'feed' | 'search' | 'pet' | 'mypage';
-type Props = {
-  activeKey?: MenuKey;
-  onFeedPress?: () => void;
-  onSearchPress?: () => void;
-  onPetPress?: () => void;
-  onMyPagePress?: () => void;
-  onWrite?: () => void;
-};
+type MenuKey = 'feed' | 'search' | 'pet' | 'mypage' | 'undefined';
 
 const ACTIVE = '#6abfb8';
 const INACTIVE = '#A3A3A3';
 
-export default function MenuBar({
-  activeKey = 'feed',
-  onFeedPress,
-  onSearchPress,
-  onPetPress,
-  onMyPagePress,
-  onWrite,
-}: Props) {
+export default function MenuBar() {
   const insets = useSafeAreaInsets();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const route = useRoute();
+
+  // 현재 활성 탭 결정
+  const getActiveKey = (): MenuKey => {
+    const routeName = route.name;
+    if (routeName === 'FeedStack' || routeName === 'Feed') return 'feed';
+    if (routeName === 'PetStack' || routeName === 'Pets') return 'pet';
+    if (routeName === 'FeedWriteStack') return 'undefined'; // write는 FAB이므로 활성 상태 없음
+    if (routeName === 'MyPageStack') return 'mypage';
+    if (routeName === 'SearchStack') return 'search';
+    return 'feed';
+  };
+
+  const activeKey = getActiveKey();
   const color = (k: MenuKey) => (activeKey === k ? ACTIVE : INACTIVE);
+
+  // 동물관리 → PetNavigator로 이동
+  const handlePetPress = () => {
+    if (route.name === 'PetStack') return;
+    navigation.navigate('PetStack');
+  };
+
+  // + 버튼 → FeedWriteNavigator의 SelectCategory로 이동
+  const handleWritePress = () => {
+    if (route.name === 'FeedWriteStack') return;
+    navigation.navigate('FeedWriteStack', { screen: 'SelectCategory' });
+  };
+
+  // 피드 → 추후 웹뷰 구현 예정
+  const handleFeedPress = () => {
+    navigation.navigate('FeedStack', { screen: 'Feed' });
+  };
+
+  // 검색 → 추후 웹뷰 구현 예정
+  const handleSearchPress = () => {
+    // TODO: 웹뷰 구현 예정
+    console.log('검색 - 웹뷰 구현 예정');
+  };
+
+  // 내 공간 → 추후 웹뷰 구현 예정
+  const handleMyPagePress = () => {
+    // TODO: 웹뷰 구현 예정
+    console.log('내 공간 - 웹뷰 구현 예정');
+  };
 
   return (
     <View style={[S.wrap, { paddingBottom: insets.bottom }]}>
       <View style={S.inner}>
         {/* 피드 */}
         <TouchableOpacity
-          onPress={onFeedPress}
+          onPress={handleFeedPress}
           style={S.menuItem}
           activeOpacity={0.7}
         >
@@ -52,7 +85,7 @@ export default function MenuBar({
 
         {/* 검색 */}
         <TouchableOpacity
-          onPress={onSearchPress}
+          onPress={handleSearchPress}
           style={S.menuItem}
           activeOpacity={0.7}
         >
@@ -67,7 +100,7 @@ export default function MenuBar({
 
         {/* + (FAB) */}
         <TouchableOpacity
-          onPress={onWrite}
+          onPress={handleWritePress}
           style={S.fabContainer}
           activeOpacity={0.7}
         >
@@ -78,7 +111,7 @@ export default function MenuBar({
 
         {/* 동물관리 */}
         <TouchableOpacity
-          onPress={onPetPress}
+          onPress={handlePetPress}
           style={S.menuItem}
           activeOpacity={0.7}
         >
@@ -90,7 +123,7 @@ export default function MenuBar({
 
         {/* 내 공간 */}
         <TouchableOpacity
-          onPress={onMyPagePress}
+          onPress={handleMyPagePress}
           style={S.menuItem}
           activeOpacity={0.7}
         >
