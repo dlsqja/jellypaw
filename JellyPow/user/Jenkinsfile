@@ -7,20 +7,21 @@ pipeline {
     COMPOSE_DIR = 'JellyPow'
     SERVICE_DIR = 'user'
   }
+  
+  stages {
 
-  stage('Prepare Common Config') {
-      steps {
-        script {
-          withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
-            sh '''
-              cp $COMMON_CONFIG ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
-            '''
+    stage('Prepare Common Config') {
+        steps {
+          script {
+            withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
+              sh '''
+                cp $COMMON_CONFIG ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+              '''
+            }
           }
         }
       }
-    }
 
-  stages {
     stage('Build Application') {
       agent {
         docker {
