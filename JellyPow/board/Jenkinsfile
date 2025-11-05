@@ -8,17 +8,7 @@ pipeline {
     SERVICE_DIR = 'board'
   }
 
-  stage('Prepare Common Config') {
-      steps {
-        script {
-          withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
-            sh '''
-              cp $COMMON_CONFIG ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
-            '''
-          }
-        }
-      }
-    }
+
 
   stages {
     stage('Build Application') {
