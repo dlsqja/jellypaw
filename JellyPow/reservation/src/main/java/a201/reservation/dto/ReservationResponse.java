@@ -1,13 +1,17 @@
 package a201.reservation.dto;
 
 import a201.reservation.entity.Reservation;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ReservationResponse {
 

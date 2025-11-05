@@ -28,5 +28,20 @@ services:
     #networks:
     # - jellypaw-network
 
+
+  mongo:
+    image: mongo:8
+    container_name: reservation-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "127.0.0.1:27017:27017"   # 필요하면 127.0.0.1:27017:27017 로 바꿔도 됨
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - msa-net
+
+
 volumes:
   mysql_data:

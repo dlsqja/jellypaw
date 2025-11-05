@@ -1,16 +1,15 @@
 package a201.reservation.dto;
 
 import a201.reservation.entity.Reservation;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Builder
-@RequiredArgsConstructor
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ReservationListResponse {
 
     private List<ReservationResponse> reservations;
