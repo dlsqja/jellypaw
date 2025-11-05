@@ -212,8 +212,8 @@ export default function PlaceSearchModal({
                     initialRegion={{
                       latitude: selectedPlaceDetails.latitude!,
                       longitude: selectedPlaceDetails.longitude!,
-                      latitudeDelta: 0.00001,
-                      longitudeDelta: 0.00001,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
                     }}
                     scrollEnabled={false}
                     zoomEnabled={true}
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mapContainer: {
-    height: 400,
+    height: 350,
     width: '100%',
     marginTop: 16,
 
