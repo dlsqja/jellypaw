@@ -139,7 +139,6 @@ public class BoardService {
             }
         }
 
-
         boardRepository.deleteById(postId);
 
         //TODO:: 삭제 이벤트 발생

@@ -2,6 +2,7 @@ rootProject.name = 'JellyPow'
 
 include 'user'
 include 'board'
+include 'board-view'
 include 'reservation'
 include 'common'
 include 'gateway'
