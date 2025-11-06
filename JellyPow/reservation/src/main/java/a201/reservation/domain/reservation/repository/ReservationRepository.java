@@ -1,6 +1,6 @@
-package a201.reservation.repository;
+package a201.reservation.domain.reservation.repository;
 
-import a201.reservation.entity.Reservation;
+import a201.reservation.domain.reservation.entity.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

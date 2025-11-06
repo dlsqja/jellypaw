@@ -1,7 +1,7 @@
-package a201.reservation.entity;
+package a201.reservation.domain.reservation.entity;
 
 
-import a201.reservation.enums.ReservationStatus;
+import a201.reservation.global.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

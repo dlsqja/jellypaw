@@ -1,4 +1,4 @@
-package a201.reservation.event;
+package a201.reservation.global.event;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

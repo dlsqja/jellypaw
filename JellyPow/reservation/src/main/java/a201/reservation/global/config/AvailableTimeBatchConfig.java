@@ -1,6 +1,6 @@
-package a201.reservation.config;
+package a201.reservation.global.config;
 
-import a201.reservation.service.AvailableTimeService;
+import a201.reservation.domain.availableTime.service.AvailableTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;

@@ -1,4 +1,4 @@
-package a201.reservation.enums;
+package a201.reservation.global.enums;
 
 public enum TimeStatus {
     AVAILABLE,

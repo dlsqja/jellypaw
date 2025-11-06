@@ -1,4 +1,4 @@
-package a201.reservation.dto;
+package a201.reservation.domain.reservation.dto;
 
 import lombok.Builder;
 import lombok.Getter;

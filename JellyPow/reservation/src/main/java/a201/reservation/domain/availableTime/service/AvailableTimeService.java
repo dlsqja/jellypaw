@@ -1,8 +1,8 @@
-package a201.reservation.service;
+package a201.reservation.domain.availableTime.service;
 
-import a201.reservation.entity.AvailableTime;
-import a201.reservation.enums.TimeStatus;
-import a201.reservation.repository.AvailableTimeRepository;
+import a201.reservation.domain.availableTime.entity.AvailableTime;
+import a201.reservation.global.enums.TimeStatus;
+import a201.reservation.domain.availableTime.repository.AvailableTimeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

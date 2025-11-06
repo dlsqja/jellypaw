@@ -1,6 +1,6 @@
-package a201.reservation.controller;
+package a201.reservation.domain.reservation.controller;
 
-import a201.reservation.service.AvailableTimeService;
+import a201.reservation.domain.availableTime.service.AvailableTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

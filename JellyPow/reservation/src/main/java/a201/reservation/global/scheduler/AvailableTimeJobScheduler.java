@@ -1,4 +1,4 @@
-package a201.reservation.scheduler;
+package a201.reservation.global.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;

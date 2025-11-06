@@ -1,8 +1,8 @@
-package a201.reservation.service;
+package a201.reservation.domain.reservation.service;
 
-import a201.reservation.dto.ReservationRequest;
-import a201.reservation.entity.Reservation;
-import a201.reservation.repository.ReservationRepository;
+import a201.reservation.domain.reservation.dto.ReservationRequest;
+import a201.reservation.domain.reservation.entity.Reservation;
+import a201.reservation.domain.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

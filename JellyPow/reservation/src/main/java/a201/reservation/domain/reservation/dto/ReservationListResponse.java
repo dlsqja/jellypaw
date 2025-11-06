@@ -1,10 +1,9 @@
-package a201.reservation.dto;
+package a201.reservation.domain.reservation.dto;
 
-import a201.reservation.entity.Reservation;
+import a201.reservation.domain.reservation.entity.Reservation;
 import lombok.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @NoArgsConstructor

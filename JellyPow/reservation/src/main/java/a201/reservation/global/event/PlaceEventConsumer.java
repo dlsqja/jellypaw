@@ -1,9 +1,8 @@
-package a201.reservation.event;
+package a201.reservation.global.event;
 
 import a201.common.event.PlaceEvent;
-import a201.common.event.UserEvent;
 import a201.common.util.JsonUtil;
-import a201.reservation.service.AvailableTimeService;
+import a201.reservation.domain.availableTime.service.AvailableTimeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

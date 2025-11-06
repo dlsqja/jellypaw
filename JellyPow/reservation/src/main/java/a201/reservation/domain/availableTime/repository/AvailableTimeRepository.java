@@ -1,6 +1,6 @@
-package a201.reservation.repository;
+package a201.reservation.domain.availableTime.repository;
 
-import a201.reservation.entity.AvailableTime;
+import a201.reservation.domain.availableTime.entity.AvailableTime;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

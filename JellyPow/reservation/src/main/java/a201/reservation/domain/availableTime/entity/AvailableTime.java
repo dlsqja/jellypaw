@@ -1,6 +1,6 @@
-package a201.reservation.entity;
+package a201.reservation.domain.availableTime.entity;
 
-import a201.reservation.enums.TimeStatus;
+import a201.reservation.global.enums.TimeStatus;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;

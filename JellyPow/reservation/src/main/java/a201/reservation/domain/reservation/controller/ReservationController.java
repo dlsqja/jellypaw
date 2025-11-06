@@ -1,14 +1,12 @@
-package a201.reservation.controller;
+package a201.reservation.domain.reservation.controller;
 
-import a201.common.exception.CustomException;
 import a201.common.response.ApiResponse;
-import a201.reservation.dto.ReservationListResponse;
-import a201.reservation.dto.ReservationRequest;
-import a201.reservation.dto.ReservationResponse;
-import a201.reservation.entity.Reservation;
-import a201.reservation.service.ReservationService;
+import a201.reservation.domain.reservation.dto.ReservationListResponse;
+import a201.reservation.domain.reservation.dto.ReservationRequest;
+import a201.reservation.domain.reservation.dto.ReservationResponse;
+import a201.reservation.domain.reservation.entity.Reservation;
+import a201.reservation.domain.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,4 +47,15 @@ public class ReservationController {
 
         return ApiResponse.success(ReservationListResponse.from(reservationList));
     }
+
+    @GetMapping("/places/{placeId}/available-times")
+    public ApiResponse<?> getAvailableTime(@PathVariable Long placeId) {
+
+
+
+        return null;
+    }
 }
+
+
+
