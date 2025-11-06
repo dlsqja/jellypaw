@@ -1,7 +1,7 @@
 package a201.board.data.entity;
 
-import a201.board.enums.Category;
-import a201.board.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,10 +39,6 @@ public class Board {
 
     @Column(name = "place_id")
     private Long placeId;
-
-    @Builder.Default
-    @Column
-    private Long views = 0L;
 
     @Column(name = "star_rating", precision = 2, scale = 1)
     private BigDecimal starRating;

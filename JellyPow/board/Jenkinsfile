@@ -8,27 +8,54 @@ pipeline {
     SERVICE_DIR = 'board'
   }
 
-  stage('Build and Push Docker Image') {
-        steps {
 
-          unstash 'built-jar'
 
-          withCredentials([
-            usernamePassword(
-              credentialsId: 'dockerhub-creds',
-              usernameVariable: 'DOCKERHUB_USERNAME',
-              passwordVariable: 'DOCKERHUB_PASSWORD'
-            )
-          ]) {
-            sh '''
-              cd ./${COMPOSE_DIR}/${SERVICE_DIR}/
-              echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-              docker build --no-cache -t ${DOCKER_IMAGE} .
-              docker push ${DOCKER_IMAGE}
-            '''
-          }
+  stages {
+    stage('Build Application') {
+      agent {
+        docker {
+          image 'gradle:7.6-jdk17'
+          args '-u root'
         }
       }
+      steps {
+            script {
+              withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
+                sh '''
+                  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+                  cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+
+                  cd ./${COMPOSE_DIR}
+                  chmod +x ./gradlew
+                  ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
+                '''
+              }
+            }
+            stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
+          }
+       }
+
+    stage('Build and Push Docker Image') {
+      steps {
+
+        unstash 'built-jar'
+
+        withCredentials([
+          usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKERHUB_USERNAME',
+            passwordVariable: 'DOCKERHUB_PASSWORD'
+          )
+        ]) {
+          sh '''
+            cd ./${COMPOSE_DIR}/${SERVICE_DIR}/
+            echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker build --no-cache -t ${DOCKER_IMAGE} .
+            docker push ${DOCKER_IMAGE}
+          '''
+        }
+      }
+    }
 
     stage('Deploy with Docker Compose to EC2') {
       steps {

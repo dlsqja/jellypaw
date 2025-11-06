@@ -8,7 +8,11 @@ import a201.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Tag(name = "Board", description = "게시판 API")
 @RestController
@@ -27,21 +31,26 @@ public class BoardController {
         return ApiResponse.success(boardResponse);
     }
 
-    @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다.")
-    @PostMapping
-    public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId, @RequestBody BoardRequest boardRequest) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId,
+                                    @RequestPart("boardRequest") BoardRequest boardRequest,
+                                    @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
+        boardRequest.setNewImages(newImages);
         boardService.createPost(userId, boardRequest);
 
         return ApiResponse.success(null);
 
     }
 
-    @Operation(summary = "게시글 수정", description = "기존 게시글을 수정합니다.")
-    @PutMapping("/{boardId}")
-    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId, @PathVariable Long boardId, @RequestBody BoardUpdateRequest postRequest) {
+    @PutMapping(value = "/{boardId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId,
+                                    @PathVariable Long boardId,
+                                    @RequestPart("boardUpdateRequest") BoardUpdateRequest boardUpdateRequest,
+                                    @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
-        boardService.updatePost(userId,boardId,postRequest);
+        boardUpdateRequest.setNewImages(newImages);
+        boardService.updatePost(userId,boardId,boardUpdateRequest);
 
         return ApiResponse.success(null);
     }
