@@ -1,17 +1,17 @@
-package a201.reservation.domain.reservation.dto;
+package a201.common.event;
 
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-
 
 @Getter
-@NoArgsConstructor
+@Setter
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
-public class ReservationRequest {
+public class ReservationEvent {
+
+    private Long placeId;
 
     private Long userId;
     private LocalDate date;
