@@ -55,5 +55,11 @@ public class PublicUserController {
         boolean isDuplicate = userService.isNicknameDuplicate(nickname);
         return ApiResponse.success(isDuplicate);
     }
+
+	@GetMapping("/get-email/{authId}")
+	public ApiResponse<String> getEmail(@PathVariable Long authId) {
+		String email = userService.getEmailByAuthId(authId);
+		return ApiResponse.success(email);
+	}
 }
 

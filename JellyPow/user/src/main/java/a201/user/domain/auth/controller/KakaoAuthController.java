@@ -51,9 +51,9 @@ public class KakaoAuthController {
 		HttpServletResponse response
 		) throws Exception {
 			KakaoLoginResponse res = processKakaoLogin(code);
-		if (res.isNeedSignup()) {
-			response.sendRedirect(SignupUrl);
-		}
+		// if (res.isNeedSignup()) {
+		// 	response.sendRedirect(SignupUrl);
+		// }
 		
 		return ApiResponse.success(res);
 	}
