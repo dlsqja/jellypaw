@@ -9,13 +9,13 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "board")
+@Table(name = "board_view")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Board {
+public class BoardView {
 
     @Id
     private Long id;
@@ -41,7 +41,6 @@ public class Board {
     @Column(name = "star_rating", precision = 2, scale = 1)
     private BigDecimal starRating;
 
-    @Builder.Default
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

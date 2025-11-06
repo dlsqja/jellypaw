@@ -114,8 +114,12 @@ public class BoardService {
 
         Board board = boardRepository.getBoardById(postId);
 
+        board.setCategory(postRequest.getCategory());
         board.setTitle(postRequest.getTitle());
         board.setContent(postRequest.getContent());
+        board.setPlaceId(postRequest.getPlaceId());
+        board.setStarRating(postRequest.getStarRating());
+        board.setVisibility(postRequest.getVisibility());
 
 
         List<Image> images = board.getImages();
@@ -153,13 +157,12 @@ public class BoardService {
 
         //TODO:: 업데이트 이벤트 발생
         BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.builder()
-                .id(postId)
+                .id(board.getId())
                 .category(board.getCategory())
-                .title(postRequest.getTitle())
-                .content(postRequest.getContent())
-                .placeId(postRequest.getPlaceId())
-                .starRating(postRequest.getStarRating())
-                .createdAt(board.getCreatedAt())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .placeId(board.getPlaceId())
+                .starRating(board.getStarRating())
                 .visibility(board.getVisibility())
                 .build();
 

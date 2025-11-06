@@ -1,7 +1,7 @@
 package a201.board.data.request;
 
-import a201.board.enums.Category;
-import a201.board.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
