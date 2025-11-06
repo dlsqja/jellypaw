@@ -1,6 +1,7 @@
 package a201.boardview.service;
 
 import a201.boardview.data.entity.*;
+import a201.boardview.data.response.BoardResponse;
 import a201.boardview.repository.*;
 import a201.common.event.BoardCreateEvent;
 import a201.common.event.BoardUpdateEvent;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -24,7 +26,12 @@ public class BoardViewService {
     private final ViewRepository viewRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
-    @Transactional
+
+    public List<BoardResponse> getFeeds(Long userId) {
+
+        return null;
+    }
+
     public void createBoard(BoardCreateEvent boardCreateEvent) {
 
         if (boardViewRepository.existsById(boardCreateEvent.getId())) {

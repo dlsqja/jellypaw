@@ -53,7 +53,7 @@ public class BoardView {
 
     @JsonIgnore
     @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
-    private CommentCount comment;
+    private CommentCount commentCount;
 
     @JsonIgnore
     @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
@@ -64,7 +64,7 @@ public class BoardView {
     private ViewCount viewCount;
 
     public void initializeCounts() {
-        this.comment = CommentCount.builder().boardId(this).build();
+        this.commentCount = CommentCount.builder().boardId(this).build();
         this.likeCount = LikeCount.builder().boardId(this).build();
         this.viewCount = ViewCount.builder().boardId(this).build();
     }
