@@ -1,17 +1,17 @@
-package a201.board.service;
+package a201.boardview.service;
 
-import a201.board.data.entity.Image;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
+import a201.board.data.entity.Image;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
 import a201.board.data.response.BoardResponse;
 import a201.board.enums.Visibility;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
-import a201.common.s3.S3Service;
-import a201.common.exception.CustomException;
 import a201.common.enums.ErrorCode;
+import a201.common.exception.CustomException;
+import a201.common.s3.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
