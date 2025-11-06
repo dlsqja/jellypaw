@@ -1,0 +1,303 @@
+pipeline {
+  agent any
+
+  environment {
+    DOCKER_IMAGE = 'dlsqja3436/frontend'
+    TAG = 'latest'
+    CONTAINER_NAME = 'frontend'
+    EC2_HOST = 'k13a201.p.ssafy.io'
+  }
+
+  stages {
+    stage('Check Changes') {
+      steps {
+        script {
+          env.HAS_FRONTEND_CHANGES = 'false'
+          
+          try {
+            // Git 변경사항 확인 (전체 저장소 기준)
+            def changes = sh(
+              script: 'git diff --name-only $GIT_PREVIOUS_SUCCESSFUL_COMMIT $GIT_COMMIT 2>/dev/null || git diff --name-only HEAD~1 HEAD 2>/dev/null || echo ""',
+              returnStdout: true
+            ).trim()
+            
+            if (changes && changes != '') {
+              echo "변경된 파일 목록:\n${changes}"
+              def changedFiles = changes.split('\n')
+              def hasFrontendChanges = changedFiles.any { file ->
+                file.trim().startsWith('frontend/jellypaw-web/')
+              }
+              
+              if (hasFrontendChanges) {
+                env.HAS_FRONTEND_CHANGES = 'true'
+                echo "✅ frontend/jellypaw-web 폴더에 변경사항이 있습니다. 배포를 진행합니다."
+              } else {
+                echo "❌ frontend/jellypaw-web 폴더에 변경사항이 없습니다. 배포를 건너뜁니다."
+                env.HAS_FRONTEND_CHANGES = 'false'
+              }
+            } else {
+              // 첫 빌드이거나 변경사항을 확인할 수 없는 경우
+              echo "⚠️ 변경사항을 확인할 수 없습니다. 배포를 진행합니다."
+              env.HAS_FRONTEND_CHANGES = 'true'
+            }
+          } catch (Exception e) {
+            echo "변경사항 확인 중 오류 발생: ${e.message}"
+            echo "배포를 진행합니다."
+            env.HAS_FRONTEND_CHANGES = 'true'
+          }
+          
+          echo "🔍 최종 HAS_FRONTEND_CHANGES 값: ${env.HAS_FRONTEND_CHANGES}"
+          echo "🔍 값 비교 (== 'true'): ${env.HAS_FRONTEND_CHANGES == 'true'}"
+          echo "🔍 값 비교 (equals 'true'): ${env.HAS_FRONTEND_CHANGES.equals('true')}"
+          
+          // 값이 'true'인지 확인하고, 아니면 에러 발생
+          if (env.HAS_FRONTEND_CHANGES != 'true' && !env.HAS_FRONTEND_CHANGES.equals('true')) {
+            echo "❌ HAS_FRONTEND_CHANGES가 true가 아닙니다. 현재 값: '${env.HAS_FRONTEND_CHANGES}'"
+            currentBuild.result = 'ABORTED'
+            error("HAS_FRONTEND_CHANGES is not true")
+          }
+          
+          echo "✅ HAS_FRONTEND_CHANGES 검증 완료. 배포를 진행합니다."
+        }
+      }
+    }
+
+    stage('Build Frontend') {
+      when {
+        expression { 
+          def shouldRun = env.HAS_FRONTEND_CHANGES == 'true'
+          return shouldRun
+        }
+      }
+      agent {
+        docker {
+          image 'node:20.19.1'
+          args '-u root:root'
+        }
+      }
+      steps {
+        script {
+          echo "🚀 Build Frontend 스테이지 시작!"
+          echo "🔍 HAS_FRONTEND_CHANGES: ${env.HAS_FRONTEND_CHANGES}"
+          echo "📂 현재 작업 디렉토리: ${pwd()}"
+          echo "📂 파일 목록:"
+          sh 'ls -la'
+          
+          // frontend/jellypaw-web 디렉토리로 이동 (Jenkins가 전체 저장소를 체크아웃한 경우)
+          def buildDir = 'frontend/jellypaw-web'
+          if (fileExists("${buildDir}/package.json")) {
+            echo "✅ ${buildDir}/package.json 발견. 해당 디렉토리로 이동합니다."
+            dir(buildDir) {
+              // .env 내용 주입
+              withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV_FILE')]) {
+                sh '''
+                  echo "📂 현재 디렉토리: $(pwd)"
+                  echo "📂 디렉토리 권한 확인:"
+                  ls -la .
+                  echo "📋 .env 파일 복사 시도..."
+                  cp "$FRONT_ENV_FILE" .env || {
+                    echo "⚠️ cp 명령 실패, cat으로 시도..."
+                    cat "$FRONT_ENV_FILE" > .env || {
+                      echo "❌ .env 파일 생성 실패. 권한 확인..."
+                      ls -la "$FRONT_ENV_FILE" || echo "원본 파일 확인 실패"
+                      whoami
+                      pwd
+                      ls -la
+                      exit 1
+                    }
+                  }
+                  chmod 644 .env || echo "⚠️ chmod 실패 (무시)"
+                  echo "✅ .env 파일 복사 완료"
+                  echo "📦 의존성 설치 중..."
+                  npm install
+                  echo "🔨 빌드 시작..."
+                  npm run build
+                  echo "📂 빌드 결과 확인:"
+                  ls -la dist/ || echo "⚠️ dist 폴더가 생성되지 않았습니다!"
+                '''
+              }
+              archiveArtifacts artifacts: 'dist/**', fingerprint: true
+            }
+          } else if (fileExists('package.json')) {
+            echo "✅ 현재 디렉토리에 package.json 발견. 현재 디렉토리에서 빌드합니다."
+            // .env 내용 주입
+            withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV_FILE')]) {
+              sh '''
+                echo "📂 현재 디렉토리: $(pwd)"
+                echo "📂 디렉토리 권한 확인:"
+                ls -la .
+                echo "📋 .env 파일 복사 시도..."
+                cp "$FRONT_ENV_FILE" .env || {
+                  echo "⚠️ cp 명령 실패, cat으로 시도..."
+                  cat "$FRONT_ENV_FILE" > .env || {
+                    echo "❌ .env 파일 생성 실패. 권한 확인..."
+                    ls -la "$FRONT_ENV_FILE" || echo "원본 파일 확인 실패"
+                    whoami
+                    pwd
+                    ls -la
+                    exit 1
+                  }
+                }
+                chmod 644 .env || echo "⚠️ chmod 실패 (무시)"
+                echo "✅ .env 파일 복사 완료"
+                echo "📦 의존성 설치 중..."
+                npm install
+                echo "🔨 빌드 시작..."
+                npm run build
+                echo "📂 빌드 결과 확인:"
+                ls -la dist/ || echo "⚠️ dist 폴더가 생성되지 않았습니다!"
+              '''
+            }
+            archiveArtifacts artifacts: 'dist/**', fingerprint: true
+          } else {
+            error("❌ package.json을 찾을 수 없습니다. 현재 디렉토리: ${pwd()}")
+          }
+        }
+      }
+    }
+
+    stage('Build and Push Docker Image') {
+      when {
+        expression { env.HAS_FRONTEND_CHANGES == 'true' }
+      }
+      agent any
+      steps {
+        script {
+          // 현재 디렉토리와 파일 확인
+          def buildDir = 'frontend/jellypaw-web'
+          
+          sh '''
+            echo "📂 현재 디렉토리: $(pwd)"
+            echo "📂 파일 목록:"
+            ls -la
+          '''
+          
+          // frontend/jellypaw-web 디렉토리로 이동 (필요한 경우)
+          if (fileExists("${buildDir}/package.json")) {
+            echo "✅ ${buildDir}/package.json 발견. 해당 디렉토리로 이동합니다."
+            dir(buildDir) {
+              sh '''
+                echo "📂 dist 폴더 확인:"
+                if [ -d "dist" ]; then
+                  echo "✅ dist 폴더 존재"
+                  ls -la dist/
+                else
+                  echo "❌ dist 폴더가 없습니다!"
+                  exit 1
+                fi
+                echo "📂 Dockerfile 확인:"
+                if [ -f "Dockerfile" ]; then
+                  echo "✅ Dockerfile 존재"
+                else
+                  echo "❌ Dockerfile이 없습니다!"
+                  exit 1
+                fi
+                echo "📂 nginx.conf 확인:"
+                if [ -f "nginx.conf" ]; then
+                  echo "✅ nginx.conf 존재"
+                else
+                  echo "❌ nginx.conf가 없습니다!"
+                  exit 1
+                fi
+              '''
+              
+              withCredentials([
+                usernamePassword(
+                  credentialsId: 'dockerhub-creds',
+                  usernameVariable: 'DOCKERHUB_USERNAME',
+                  passwordVariable: 'DOCKERHUB_PASSWORD'
+                )
+              ]) {
+                sh '''
+                  echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+                  echo "🐳 Docker 이미지 빌드 시작..."
+                  docker build -t ${DOCKER_IMAGE}:${TAG} .
+                  echo "📤 Docker 이미지 푸시 시작..."
+                  docker push ${DOCKER_IMAGE}:${TAG}
+                  echo "✅ Docker 이미지 빌드 및 푸시 완료"
+                '''
+              }
+            }
+          } else if (fileExists('package.json')) {
+            echo "✅ 현재 디렉토리에 package.json 발견. 현재 디렉토리에서 빌드합니다."
+            sh '''
+              echo "📂 dist 폴더 확인:"
+              if [ -d "dist" ]; then
+                echo "✅ dist 폴더 존재"
+                ls -la dist/
+              else
+                echo "❌ dist 폴더가 없습니다!"
+                exit 1
+              fi
+              echo "📂 Dockerfile 확인:"
+              if [ -f "Dockerfile" ]; then
+                echo "✅ Dockerfile 존재"
+              else
+                echo "❌ Dockerfile이 없습니다!"
+                exit 1
+              fi
+              echo "📂 nginx.conf 확인:"
+              if [ -f "nginx.conf" ]; then
+                echo "✅ nginx.conf 존재"
+              else
+                echo "❌ nginx.conf가 없습니다!"
+                exit 1
+              fi
+            '''
+            
+            withCredentials([
+              usernamePassword(
+                credentialsId: 'dockerhub-creds',
+                usernameVariable: 'DOCKERHUB_USERNAME',
+                passwordVariable: 'DOCKERHUB_PASSWORD'
+              )
+            ]) {
+              sh '''
+                echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+                echo "🐳 Docker 이미지 빌드 시작..."
+                docker build -t ${DOCKER_IMAGE}:${TAG} .
+                echo "📤 Docker 이미지 푸시 시작..."
+                docker push ${DOCKER_IMAGE}:${TAG}
+                echo "✅ Docker 이미지 빌드 및 푸시 완료"
+              '''
+            }
+          } else {
+            error("❌ package.json을 찾을 수 없습니다.")
+          }
+        }
+      }
+    }
+
+    stage('Deploy to EC2') {
+      when {
+        expression { env.HAS_FRONTEND_CHANGES == 'true' }
+      }
+      agent any
+      steps {
+        withCredentials([
+          sshUserPrivateKey(
+            credentialsId: 'ec2-ssh-key',
+            keyFileVariable: 'KEYFILE',
+            usernameVariable: 'EC2_USERNAME'
+          ),
+          usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKERHUB_USERNAME',
+            passwordVariable: 'DOCKERHUB_PASSWORD'
+          )
+        ]) {
+          sh '''
+            chmod 600 "$KEYFILE"
+            ssh -o StrictHostKeyChecking=no -i "$KEYFILE" $EC2_USERNAME@$EC2_HOST '
+              echo "'${DOCKERHUB_PASSWORD}'" | docker login -u "'${DOCKERHUB_USERNAME}'" --password-stdin
+              docker stop "'${CONTAINER_NAME}'" || true
+              docker rm "'${CONTAINER_NAME}'" || true
+              docker pull "'${DOCKER_IMAGE}:${TAG}'"
+              docker run --name "'${CONTAINER_NAME}'" -d -p 3000:80 "'${DOCKER_IMAGE}:${TAG}'"
+            '
+          '''
+        }
+      }
+    }
+  }
+}
