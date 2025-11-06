@@ -1,12 +1,12 @@
 // Google Maps API 유틸리티
-import { GOOGLE_MAPS_API_KEY } from '@env';
 // types
 import { SearchResult, PlaceDetails } from '../../types/GoogleMapType';
-
+import { GOOGLE_MAPS_API_KEY } from '@env';
 //  장소 검색
 export async function searchPlaces(query: string): Promise<SearchResult[]> {
   try {
-    const apiKey = 'AIzaSyBVltSOmrZH4xqRuymez9FO4qsCD-Ihsx0';
+    const apiKey = GOOGLE_MAPS_API_KEY;
+
     if (!apiKey) {
       console.warn('GOOGLE_MAPS_API_KEY가 설정되지 않았습니다.');
       return [];
