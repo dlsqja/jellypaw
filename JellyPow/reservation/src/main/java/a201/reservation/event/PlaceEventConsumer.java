@@ -22,7 +22,7 @@ public class PlaceEventConsumer {
             PlaceEvent event = JsonUtil.fromJsonString(message, PlaceEvent.class);
             availableTimeService.createInitialAvailableTimes(event.getPlaceId());
         } catch (Exception e) {
-            log.error("User 생성 이벤트 처리 실패: {}", message, e);
+            log.error("reservation 생성 이벤트 처리 실패: {}", message, e);
         }
 
     }

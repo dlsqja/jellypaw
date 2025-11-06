@@ -48,7 +48,7 @@ public class AvailableTimeService {
         return timeTable;
     }
 
-    //하루마다 30일 전 날짜 삭제, 30일 날짜 후 생성으로 오늘부터 총 30일만 DB에 있도록 함.
+    //하루마다 30일 전 날짜 삭제, 30일 후 날짜 생성으로 오늘부터 총 30일만 DB에 있도록 함.
     public void slideOneDay() {
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);

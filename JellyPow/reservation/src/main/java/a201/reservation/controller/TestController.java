@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/test")
+@RequestMapping("/reservations/test")
 public class TestController {
 
     private final AvailableTimeService availableTimeService;
@@ -20,4 +20,9 @@ public class TestController {
         return "ok";
     }
 
+    @PostMapping("/slide")
+    public String slide() {
+        availableTimeService.slideOneDay();
+        return "ok";
+    }
 }
