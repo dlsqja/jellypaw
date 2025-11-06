@@ -3,6 +3,7 @@ package a201.board.controller;
 import org.springframework.web.bind.annotation.*;
 
 import a201.board.data.request.PlaceCreateRequest;
+import a201.board.data.request.PlaceUpdateRequest;
 import a201.board.data.response.PlaceResponse;
 import a201.board.service.PlaceService;
 import a201.common.response.ApiResponse;
@@ -26,5 +27,11 @@ public class PlaceController {
     public ApiResponse<PlaceResponse> getPlaceById(@PathVariable String placeId) {
         return ApiResponse.success(PlaceResponse.from(placeService.getPlaceById(placeId)));
     }
+
+	// Place 수정
+	@PutMapping("/{placeId}")
+	public ApiResponse<PlaceResponse> updatePlace(@PathVariable String placeId, @RequestBody PlaceUpdateRequest placeUpdateRequest) {
+		return ApiResponse.success(PlaceResponse.from(placeService.updatePlace(placeId, placeUpdateRequest)));
+	}
 
 }
