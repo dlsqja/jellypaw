@@ -1,5 +1,5 @@
 // src/screens/pet/EditPetScreen.tsx
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import { Text } from '../../../ui/components/Text';
@@ -8,22 +8,103 @@ import Dropdown from '../../../ui/components/Dropdown';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
+import { useRoute, useNavigation } from '@react-navigation/native';
+
+import { getPetDetail, updatePetInfo, updatePetImage, deletePet } from '../../../services/api/pet';
+import type { PetSpecies, PetGender, getPetDetailResponse } from '../../../types/main/pet';
+import { API_BASE_URL } from '@env';
+
+// 상대→절대 변환(상세의 photoUrl이 상대경로일 수 있음)
+const toAbsolute = (u?: string | null) => {
+  if (!u || !u.trim()) return null;
+  if (/^(https?:)?\/\//i.test(u)) return u;
+  const base = (API_BASE_URL || '').replace(/\/+$/, '');
+  const path = u.replace(/^\/+/, '');
+  return `${base}/${path}`;
+};
+
+type RouteParams = {
+  petId: number;
+  initial?: getPetDetailResponse; // 선택: 프리필용
+};
+
+const toSpecies = (label: '강아지' | '고양이' | '기타' | ''): PetSpecies | undefined =>
+  label === '강아지' ? 'DOG' : label === '고양이' ? 'CAT' : undefined;
+
+const fromSpecies = (sp?: PetSpecies): '강아지' | '고양이' | '기타' | '' =>
+  sp === 'DOG' ? '강아지' : sp === 'CAT' ? '고양이' : '기타';
+
+const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '' ): PetGender | undefined => {
+  switch (label) {
+    case '남자': return 'MALE';
+    case '여자': return 'FEMALE';
+    case '남자(중성화)': return 'MALE_NEUTERING';
+    case '여자(중성화)': return 'FEMALE_NEUTERING';
+    default: return 'NON';
+  }
+};
+
+const fromGender = (g?: PetGender): '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '' => {
+  switch (g) {
+    case 'MALE': return '남자';
+    case 'FEMALE': return '여자';
+    case 'MALE_NEUTERING': return '남자(중성화)';
+    case 'FEMALE_NEUTERING': return '여자(중성화)';
+    default: return '';
+  }
+};
 
 export default function EditPetScreen() {
-  // 기존 값(예시) – 필요하면 props/route로 주입해서 초기화하세요.
-  const [photoUri, setPhotoUri] = useState<string | null>(
-    'https://placehold.co/200x200',
-  ); // 기존 사진
-  const [name, setName] = useState('초코');
-  const [animalType, setAnimalType] = useState<
-    '강아지' | '고양이' | '기타' | ''
-  >('강아지');
-  const [breed, setBreed] = useState('골든 리트리버');
-  const [age, setAge] = useState('3살');
-  const [weight, setWeight] = useState('28kg');
-  const [gender, setGender] = useState<
-    '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''
-  >('남자');
+  const route = useRoute<any>();
+  const nav = useNavigation<any>();
+  const { petId, initial } = (route.params || {}) as RouteParams;
+
+  // 필수 파라미터 보장
+  useEffect(() => {
+    if (!petId) {
+      Alert.alert('오류', '잘못된 접근입니다. (petId 없음)');
+      nav.goBack();
+    }
+  }, [petId, nav]);
+
+  // 폼 상태
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('');
+  const [breed, setBreed] = useState(''); // 서버 전송 안함
+  const [age, setAge] = useState('');
+  const [weight, setWeight] = useState('');
+  const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('');
+
+  // 1) 초기값 프리필 (route.params.initial)
+  useEffect(() => {
+    if (!initial) return;
+    setName(initial.name ?? '');
+    setAnimalType(fromSpecies(initial.species));
+    setGender(fromGender(initial.gender as PetGender));
+    setAge(initial.age != null ? String(initial.age) : '');
+    setWeight(initial.weight != null ? String(initial.weight) : '');
+    setPhotoUri(toAbsolute(initial.photoUrl) || null);
+  }, [initial]);
+
+  // 2) API 최신값으로 한 번 더 동기화
+  useEffect(() => {
+    if (!petId) return;
+    (async () => {
+      try {
+        const d = await getPetDetail(petId);
+        setName(d.name ?? '');
+        setAnimalType(fromSpecies(d.species));
+        setGender(fromGender(d.gender as PetGender));
+        setAge(d.age != null ? String(d.age) : '');
+        setWeight(d.weight != null ? String(d.weight) : '');
+        setPhotoUri(toAbsolute(d.photoUrl) || null);
+      } catch (e) {
+        // initial로 프리필 되어있으면 UI는 유지
+        console.log('[EditPet] getPetDetail 실패', e);
+      }
+    })();
+  }, [petId]);
 
   const breedPlaceholder = useMemo(() => {
     if (animalType === '강아지') return '예: 골든 리트리버';
@@ -31,9 +112,32 @@ export default function EditPetScreen() {
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
-  const onSave = () => {
-    // TODO: 저장 API
-    Alert.alert('저장', '수정된 정보를 저장했어요.');
+  const onSave = async () => {
+    try {
+      const speciesEnum = toSpecies(animalType);
+      const genderEnum = toGender(gender);
+      const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
+      const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
+
+      await updatePetInfo(petId, {
+        name: name.trim(),
+        species: speciesEnum,
+        gender: genderEnum,
+        age: Number.isFinite(ageNum as number) ? ageNum : undefined,
+        weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
+      });
+
+      // 로컬/갤러리 경로만 업로드(이미 원격 URL은 스킵)
+      if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
+        await updatePetImage(petId, photoUri);
+      }
+
+      Alert.alert('완료', '수정되었습니다.');
+      nav.goBack();
+    } catch (e: any) {
+      console.log(e);
+      Alert.alert('실패', e?.message || '수정 중 오류가 발생했어요.');
+    }
   };
 
   const onDelete = () => {
@@ -42,8 +146,14 @@ export default function EditPetScreen() {
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => {
-          // TODO: 삭제 API
+        onPress: async () => {
+          try {
+            await deletePet(petId);
+            Alert.alert('삭제됨', '반려동물이 삭제되었어요.');
+            nav.goBack();
+          } catch (e: any) {
+            Alert.alert('실패', e?.message || '삭제 중 오류가 발생했어요.');
+          }
         },
       },
     ]);
@@ -55,17 +165,11 @@ export default function EditPetScreen() {
 
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
         {/* 프로필 사진 */}
-        <View
-          style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}
-        >
+        <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}>
           <PhotoPicker
             uri={photoUri || undefined}
-            onTakePhoto={() => {
-              // launchCamera(...) 후 setPhotoUri(uri)
-            }}
-            onPickFromLibrary={() => {
-              // launchImageLibrary(...) 후 setPhotoUri(uri)
-            }}
+            onTakePhoto={() => { /* launchCamera → setPhotoUri(uri) */ }}
+            onPickFromLibrary={() => { /* launchImageLibrary → setPhotoUri(uri) */ }}
           />
           <Pressable
             onPress={() => setPhotoUri(null)}
@@ -73,10 +177,7 @@ export default function EditPetScreen() {
             style={{ paddingTop: 16 }}
             accessibilityRole="button"
           >
-            <Text
-              weight="semiBold"
-              style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}
-            >
+            <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
               프로필 사진 제거
             </Text>
           </Pressable>
@@ -84,16 +185,9 @@ export default function EditPetScreen() {
 
         {/* 기본 정보 */}
         <View style={{ paddingTop: 24 }}>
-          <Text weight="bold" style={S.sectionTitle}>
-            기본 정보
-          </Text>
+          <Text weight="bold" style={S.sectionTitle}>기본 정보</Text>
 
-          <Input
-            label="이름"
-            placeholder="동물 이름을 입력하세요"
-            value={name}
-            onChangeText={setName}
-          />
+          <Input label="이름" placeholder="동물 이름을 입력하세요" value={name} onChangeText={setName} />
 
           <Dropdown
             label="동물 종류"
@@ -107,28 +201,11 @@ export default function EditPetScreen() {
             onChange={setAnimalType}
           />
 
-          <Input
-            label="품종"
-            placeholder={breedPlaceholder}
-            value={breed}
-            onChangeText={setBreed}
-          />
+          {/* 품종은 서버 전송 X – UI만 유지
+          <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
 
-          <Input
-            label="나이"
-            placeholder="예: 3살"
-            value={age}
-            onChangeText={setAge}
-            keyboardType="default"
-          />
-
-          <Input
-            label="체중"
-            placeholder="예: 28kg"
-            value={weight}
-            onChangeText={setWeight}
-            keyboardType="default"
-          />
+          <Input label="나이" placeholder="예: 3" value={age} onChangeText={setAge} keyboardType="number-pad" />
+          <Input label="체중" placeholder="예: 4.2" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
 
           <Dropdown
             label="성별"
@@ -143,26 +220,15 @@ export default function EditPetScreen() {
             onChange={setGender}
           />
 
-          {/* 액션 버튼 */}
           <View style={{ paddingTop: 8, gap: 16, paddingBottom: 32 }}>
-            {/* 수정 완료 */}
-            <Button
-              title="수정 완료"
-              shape="pillSolid"
-              tone="aqua"
-              onPress={onSave}
-              titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-            />
-
-            {/* 삭제 – 스샷처럼 연분홍 배경 + 빨간 아웃라인/텍스트 */}
+            <Button title="수정 완료" shape="pillSolid" tone="aqua" onPress={onSave} />
             <Button
               title="동물 정보 삭제"
               shape="pillOutline"
-              titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-              tone="red" // 텍스트 핑크톤
-              borderTone="pink" // 보더 핑크
+              tone="red"
+              borderTone="pink"
               onPress={onDelete}
-              style={{ backgroundColor: palette.pink100 }} // 연분홍 배경
+              style={{ backgroundColor: palette.pink100 }}
             />
           </View>
         </View>

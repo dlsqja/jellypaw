@@ -115,3 +115,106 @@ export const createPet = async (
     throw err;
   }
 };
+
+
+// ────────────────────────────────────────────────────────────
+// 추가 ①: 정보 수정 (PATCH /pets/{petId}) – JSON
+// 백엔드 스웨거: /pets/{petId} PATCH, body: PetRequest (JSON)
+// ────────────────────────────────────────────────────────────
+export const updatePetInfo = async (
+  petId: number,
+  params: CreatePetRequest, // PetRequest와 동일 스키마: name, species, gender, age, weight
+): Promise<CreatePetResponse> => {
+  // 필수값 방어 (BE는 nullable=false)
+  if (!params.name?.trim())        throw new Error('[updatePetInfo] name required');
+  if (!params.species)             throw new Error('[updatePetInfo] species required');
+  if (!params.gender)              throw new Error('[updatePetInfo] gender required');
+  if (typeof params.age !== 'number')    throw new Error('[updatePetInfo] age required');
+  if (typeof params.weight !== 'number') throw new Error('[updatePetInfo] weight required');
+
+  const body = {
+    name: params.name.trim(),
+    species: params.species,
+    gender: params.gender,
+    age: params.age,
+    weight: params.weight,
+  };
+
+  try {
+    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(`/pets/${petId}`, body, {
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    });
+    if (res.data?.code && res.data.code !== 200) {
+      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+    }
+    return res.data.data;
+  } catch (err: any) {
+    console.log('[updatePetInfo] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
+};
+
+// ────────────────────────────────────────────────────────────
+// 추가 ②: 이미지 수정 (PATCH /pets/img/{petId})
+// 스웨거에선 requestBody가 application/json로 표기돼 있지만
+// 실제 파일 업로드이므로 FormData 전송 (필드명: petProfileImg)
+// ────────────────────────────────────────────────────────────
+export const updatePetImage = async (
+  petId: number,
+  photoUri: string,
+): Promise<CreatePetResponse> => {
+  if (!photoUri) throw new Error('[updatePetImage] photoUri required');
+
+  const form = new FormData();
+  const filename = (photoUri.split('/').pop() || 'pet.jpg').trim().toLowerCase();
+  const type =
+    filename.endsWith('.png')  ? 'image/png'  :
+    filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+
+  // ⚠️ 필드명: petProfileImg (대문자 P) – 생성과 다름!
+  form.append('petProfileImg', { uri: photoUri, name: filename, type } as any);
+
+  try {
+    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(`/pets/img/${petId}`, form, {
+      headers: { Accept: 'application/json' },
+      transformRequest: v => v,
+    });
+    if (res.data?.code && res.data.code !== 200) {
+      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+    }
+    return res.data.data;
+  } catch (err: any) {
+    console.log('[updatePetImage] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
+};
+
+// (선택) 서버가 “이미지 삭제”를 별도로 지원하면 그 엔드포인트 사용.
+// 없다면 백엔드에 ‘delete=true’ 같은 플래그 추가 요청이 안전.
+
+// ────────────────────────────────────────────────────────────
+// 추가 ③: 삭제 (DELETE /pets/{petId})
+// ────────────────────────────────────────────────────────────
+export const deletePet = async (petId: number): Promise<void> => {
+  try {
+    const res = await apiClient.delete<ApiResponse<object>>(`/pets/${petId}`);
+    if (res.data?.code && res.data.code !== 200) {
+      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+    }
+  } catch (err: any) {
+    console.log('[deletePet] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
+};

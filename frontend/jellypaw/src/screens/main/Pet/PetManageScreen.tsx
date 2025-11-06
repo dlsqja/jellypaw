@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { theme } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
@@ -70,6 +71,7 @@ export default function PetManageScreen({ navigation }: any) {
   const [selectedPet, setSelectedPet] = useState<getPetDetailResponse | null>(
     null,
   );
+  const isFocused = useIsFocused();
   // 펫 목록 불러오기
   useEffect(() => {
     getPetList().then(data => {
@@ -80,7 +82,7 @@ export default function PetManageScreen({ navigation }: any) {
         setSelectedPetId(data[0].petId ?? 0);
       }
     });
-  }, []);
+  }, [isFocused]);
 
   // 선택한 동물의 상세 정보 불러오기
   useEffect(() => {
@@ -145,8 +147,13 @@ export default function PetManageScreen({ navigation }: any) {
   age={selectedPet?.age ?? 0}
   weight={selectedPet?.weight ?? 0}
   sex={formatGender(selectedPet?.gender ?? 'NON')}
-  onEdit={() => navigation.navigate('EditPet')}
-/>
+  onEdit={() =>
+    navigation.navigate('EditPet', {
+      petId: selectedPetId,
+      // 선택: 첫 렌더링 빠르게 하기 위한 초기값 전달(프리필용)
+      initial: selectedPet,
+    })
+  }/>
 
               {/* <View style={{ paddingTop: 16 }}>
                 <VaccinationSection
