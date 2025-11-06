@@ -212,7 +212,7 @@ export default function PlaceSearchModal({
                     initialRegion={{
                       latitude: selectedPlaceDetails.latitude!,
                       longitude: selectedPlaceDetails.longitude!,
-                      latitudeDelta: 0.005,
+                      latitudeDelta: 0.0005,
                       longitudeDelta: 0.005,
                     }}
                     scrollEnabled={false}
