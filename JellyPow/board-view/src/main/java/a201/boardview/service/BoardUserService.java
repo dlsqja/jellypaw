@@ -1,6 +1,7 @@
 package a201.boardview.service;
 
 import a201.boardview.data.entity.BoardUser;
+import a201.boardview.data.entity.CommentCount;
 import a201.boardview.repository.BoardUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

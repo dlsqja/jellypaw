@@ -1,9 +1,7 @@
 package a201.boardview.service;
 
-import a201.boardview.data.entity.BoardUser;
-import a201.boardview.data.entity.BoardView;
-import a201.boardview.repository.BoardUserRepository;
-import a201.boardview.repository.BoardViewRepository;
+import a201.boardview.data.entity.*;
+import a201.boardview.repository.*;
 import a201.common.event.BoardCreateEvent;
 import a201.common.event.BoardUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,6 +19,10 @@ public class BoardViewService {
 
     private final BoardViewRepository boardViewRepository;
     private final BoardUserRepository boardUserRepository;
+
+    private final ViewRepository viewRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     @Transactional
     public void createBoard(BoardCreateEvent boardCreateEvent) {
@@ -46,6 +48,14 @@ public class BoardViewService {
                 .build();
 
         boardViewRepository.save(boardView);
+
+        CommentCount commentCount = CommentCount.builder().boardId(boardView).build();
+        LikeCount likeCount = LikeCount.builder().boardId(boardView).build();
+        ViewCount viewCount = ViewCount.builder().boardId(boardView).build();
+
+        viewRepository.save(viewCount);
+        likeRepository.save(likeCount);
+        commentRepository.save(commentCount);
 
         log.info("Board 생성: boardId={}", boardView.getId());
     }
