@@ -6,6 +6,7 @@ import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
 import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
 import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
+import { API_BASE_URL } from '@env';
 
 // api import
 import { getPetList, getPetDetail } from '../../../services/api/pet';
@@ -14,6 +15,17 @@ import type {
   getPetListResponse,
   getPetDetailResponse,
 } from '../../../types/main/pet';
+
+// 상대경로 -> 절대경로, 없으면 null
+const toAbsolute = (u?: string | null) => {
+  if (!u || !u.trim()) return null;
+  // 이미 절대경로(https:// or http:// or //)면 그대로
+  if (/^(https?:)?\/\//i.test(u)) return u;
+
+  const base = (API_BASE_URL || '').replace(/\/+$/, ''); // 뒤 슬래시 제거
+  const path = u.replace(/^\/+/, '');                    // 앞 슬래시 제거
+  return `${base}/${path}`;
+};
 
 // 성별 변환 함수
 const formatGender = (
@@ -98,15 +110,15 @@ export default function PetManageScreen({ navigation }: any) {
         <View style={{ paddingTop: 16 }}>
           <View style={S.petRow}>
             {pets.map(pet => (
-              <PetMiniCard
-                key={pet.petId}
-                name={pet.name ?? ''}
-                kind="강아지"
-                avatarUri={pet.photoUrl ?? undefined}
-                selected={selectedPetId === pet.petId}
-                onPress={() => setSelectedPetId(pet.petId ?? 0)}
-              />
-            ))}
+  <PetMiniCard
+    key={pet.petId}
+    name={pet.name ?? ''}
+    species="강아지"
+    avatarUri={toAbsolute(pet.photoUrl)}           // ✅ 상대 -> 절대, 없으면 null
+    selected={selectedPetId === pet.petId}
+    onPress={() => setSelectedPetId(pet.petId ?? 0)}
+  />
+))}
 
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
           </View>
@@ -125,16 +137,16 @@ export default function PetManageScreen({ navigation }: any) {
         <View style={{ paddingTop: 16, gap: 16 }}>
           {activeTab === 'info' && (
             <>
-              <PetSummaryCard
-                name={selectedPet?.name ?? ''}
-                kind={formatSpecies(selectedPet?.species)}
-                // registeredAt={selectedPet?.registeredAt ?? ''}
-                avatarUri={selectedPet?.photoUrl ?? undefined}
-                age={selectedPet?.age ?? 0}
-                weight={selectedPet?.weight ?? 0}
-                sex={formatGender(selectedPet?.gender ?? 'NON')}
-                onEdit={() => navigation.navigate('EditPet')}
-              />
+              
+<PetSummaryCard
+  name={selectedPet?.name ?? ''}
+  kind={formatSpecies(selectedPet?.species)}
+  avatarUri={toAbsolute(selectedPet?.photoUrl) ?? null} // ✅ 동일
+  age={selectedPet?.age ?? 0}
+  weight={selectedPet?.weight ?? 0}
+  sex={formatGender(selectedPet?.gender ?? 'NON')}
+  onEdit={() => navigation.navigate('EditPet')}
+/>
 
               {/* <View style={{ paddingTop: 16 }}>
                 <VaccinationSection
