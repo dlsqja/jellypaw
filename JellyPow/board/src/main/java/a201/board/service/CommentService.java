@@ -8,8 +8,11 @@ import a201.board.data.response.CommentResponse;
 import a201.board.repository.CommentRepository;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
+import a201.common.event.CommentEvent;
+import a201.common.util.JsonUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final BoardRepository boardRepository;
     private final BoardUserRepository boardUserRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
@@ -41,7 +45,13 @@ public class CommentService {
         }
         commentRepository.save(comment);
 
+
         //TODO::댓글 추가 이벤트 발생
+        CommentEvent commentEvent = CommentEvent.builder()
+                .id(postId)
+                .type("add")
+                .build();
+        kafkaTemplate.send("board-comment-topic", JsonUtil.toJsonString(commentEvent));
     }
 
     public List<CommentResponse> getCommentsByPost(Long postId,Long userId) {
@@ -53,17 +63,22 @@ public class CommentService {
                 .toList();
     }
 
-    public void deleteComment(Long commentId,Long userId) {
+    public void deleteComment(Long commentId,Long userId,Long boardId) {
 
         Comment comment =  commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException("Comment Not Found"));
-        Comment parent = comment.getParent();
 
+        int cnt=1;
         //대댓글 삭제
-        if(parent == null) commentRepository.deleteAllByParent(comment);
-
+        cnt += comment.getChildren().size();
         commentRepository.delete(comment);
 
         //TODO::댓글 삭제 이벤트 발생
+        CommentEvent commentEvent = CommentEvent.builder()
+                .id(boardId)
+                .count(cnt)
+                .type("minus")
+                .build();
+        kafkaTemplate.send("board-comment-topic", JsonUtil.toJsonString(commentEvent));
     }
 }
 

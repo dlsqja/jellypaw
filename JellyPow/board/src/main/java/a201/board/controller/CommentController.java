@@ -27,8 +27,8 @@ public class CommentController {
     }
 
     @DeleteMapping("/{boardId}/{parentId}")
-    public ApiResponse<?> delete(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
-        commentService.deleteComment(parentId,userId);
+    public ApiResponse<?> delete(@PathVariable Long parentId,@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId) {
+        commentService.deleteComment(parentId,userId,boardId);
         return ApiResponse.success(null);
     }
 }

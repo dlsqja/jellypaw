@@ -53,5 +53,7 @@ public class BoardUserService {
 
         log.info("Board 서비스 사용자 정보 업데이트: userId={}, nickname={}", userId, nickname);
     }
+
+
 }
 
