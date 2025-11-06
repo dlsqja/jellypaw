@@ -3,11 +3,11 @@ import { FiUsers } from 'react-icons/fi';
 import Header from '@/components/headers/Header';
 import Followers from '@/pages/Feed/Components/Followers';
 import Article from '@/pages/Feed/Components/Article';
-import { getFeeds } from '@/services/api/feed';
+import { getFollowers } from '@/services/api/followers';
 
 export default function Feed() {
   useEffect(() => {
-    getFeeds().then((data) => {
+    getFollowers().then((data) => {
       console.log(data);
     });
   }, []);

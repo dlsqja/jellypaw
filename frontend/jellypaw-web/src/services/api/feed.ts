@@ -1,10 +1,10 @@
-import apiClient from '@/plugins/axios';
+import apiClient from '@/lib/axios';
 
 // 게시글 전체 목록 조회
-export const getFeeds = async (): Promise<any[]> => {
-  const response = await apiClient.get<any[]>('/pets');
-  return response.data;
-};
+// export const getFeeds = async (): Promise<any[]> => {
+//   const response = await apiClient.get<any[]>('/boards');
+//   return response.data;
+// };
 
 // 게시글 상세 조회
 // export const getFeedDetail = async (user_id: number): Promise<any> => {
