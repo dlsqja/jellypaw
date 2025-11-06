@@ -1,38 +1,89 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from '../../../ui/components/Text';
-import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
-import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
-import PetSummaryCard from '../../../ui/components/PetSummaryCard';
-import VaccinationSection from '../../../ui/components/VaccinationSection';
 import { theme } from '../../../ui/system/variants';
+import { Text } from '../../../ui/components/Text';
+import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
+import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
+import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
 
+// api import
+import { getPetList, getPetDetail } from '../../../services/api/pet';
+// type import
+import type {
+  getPetListResponse,
+  getPetDetailResponse,
+} from '../../../types/main/pet';
+
+// 성별 변환 함수
+const formatGender = (
+  gender: 'FEMALE' | 'FEMALE_NEUTERING' | 'MALE' | 'MALE_NEUTERING' | 'NON',
+): string => {
+  switch (gender) {
+    case 'FEMALE':
+      return '여자';
+    case 'MALE':
+      return '남자';
+    case 'FEMALE_NEUTERING':
+      return '여자(중성)';
+    case 'MALE_NEUTERING':
+      return '남자(중성)';
+    default:
+      return '없음';
+  }
+};
+
+// 종 변환 함수
+const formatSpecies = (species: 'CAT' | 'DOG' | undefined): string => {
+  switch (species) {
+    case 'CAT':
+      return '고양이';
+    case 'DOG':
+      return '강아지';
+    default:
+      return '기타';
+  }
+};
+
+// 기본 이미지 (로컬 리소스)
+const defaultImage = require('../../../assets/images/pets/반려동물1.png');
+
 export default function PetManageScreen({ navigation }: any) {
-  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'info' | 'health'>('info');
+  // 펫 전체 목록 저장
+  const [pets, setPets] = useState<getPetListResponse[]>([]);
+  // 선택한 펫 ID 저장
+  const [selectedPetId, setSelectedPetId] = useState<number>(0);
+  // 위 ID값으로 조회한 펫 상세 정보 저장
+  const [selectedPet, setSelectedPet] = useState<getPetDetailResponse | null>(
+    null,
+  );
+  // 펫 목록 불러오기
+  useEffect(() => {
+    getPetList().then(data => {
+      console.log('펫 목록', data);
+      setPets(data);
+      // 펫 목록이 있고 선택된 펫이 없으면 첫 번째 펫을 선택
+      if (data.length > 0 && selectedPetId === 0) {
+        setSelectedPetId(data[0].petId ?? 0);
+      }
+    });
+  }, []);
+
+  // 선택한 동물의 상세 정보 불러오기
+  useEffect(() => {
+    if (selectedPetId !== 0) {
+      getPetDetail(selectedPetId).then(data => {
+        console.log('펫 상세 정보', data);
+        setSelectedPet(data);
+      });
+    }
+  }, [selectedPetId]);
 
   const tabs: TabItem[] = [
     { id: 'info', label: '동물 정보' },
     { id: 'health', label: '건강 체크' },
   ];
-
-  const pets = [
-    {
-      id: '1',
-      name: '초코',
-      kind: '강아지',
-      avatar: 'https://placehold.co/64x64',
-    },
-    {
-      id: '2',
-      name: '루비',
-      kind: '강아지',
-      avatar: 'https://placehold.co/64x64',
-    },
-  ];
-  const [selectedPetId, setSelectedPetId] = useState('1');
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
@@ -40,27 +91,22 @@ export default function PetManageScreen({ navigation }: any) {
       <Header title="동물관리" />
 
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
           <View style={S.petRow}>
-            <PetMiniCard
-              name="초코"
-              kind="강아지"
-              avatarUri={pets[0].avatar}
-              selected={selectedPetId === pets[0].id}
-              onPress={() => setSelectedPetId(pets[0].id)}
-            />
-
-            <PetMiniCard
-              name="루비"
-              kind="강아지"
-              avatarUri={pets[1].avatar}
-              selected={selectedPetId === pets[1].id}
-              onPress={() => setSelectedPetId(pets[1].id)}
-            />
+            {pets.map(pet => (
+              <PetMiniCard
+                key={pet.petId}
+                name={pet.name ?? ''}
+                kind="강아지"
+                avatarUri={pet.photoUrl ?? undefined}
+                selected={selectedPetId === pet.petId}
+                onPress={() => setSelectedPetId(pet.petId ?? 0)}
+              />
+            ))}
 
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
           </View>
@@ -75,18 +121,18 @@ export default function PetManageScreen({ navigation }: any) {
           />
         </View>
 
-        {/* 콘텐츠 */}
+        {/* 상세 정보 */}
         <View style={{ paddingTop: 16, gap: 16 }}>
           {activeTab === 'info' && (
             <>
               <PetSummaryCard
-                name="초코"
-                kind="강아지"
-                registeredAt="2021.03.15"
-                avatarUri="https://placehold.co/80x80"
-                age="3살"
-                weight="28kg"
-                sex="수컷"
+                name={selectedPet?.name ?? ''}
+                kind={formatSpecies(selectedPet?.species)}
+                // registeredAt={selectedPet?.registeredAt ?? ''}
+                avatarUri={selectedPet?.photoUrl ?? undefined}
+                age={selectedPet?.age ?? 0}
+                weight={selectedPet?.weight ?? 0}
+                sex={formatGender(selectedPet?.gender ?? 'NON')}
                 onEdit={() => navigation.navigate('EditPet')}
               />
 

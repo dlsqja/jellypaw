@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from '../../../ui/components/Text';
+import { getPetList } from '../../../services/api/pet';
 
 export default function FeedScreen() {
   return (

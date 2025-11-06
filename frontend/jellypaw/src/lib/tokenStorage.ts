@@ -11,7 +11,10 @@ export async function getAccessToken() {
 export async function getRefreshToken() {
   return AsyncStorage.getItem(REFRESH);
 }
-export async function setTokens(accessToken: string, refreshToken?: string | null) {
+export async function setTokens(
+  accessToken: string,
+  refreshToken?: string | null,
+) {
   await AsyncStorage.setItem(ACCESS, accessToken);
   if (refreshToken !== undefined) {
     if (refreshToken) await AsyncStorage.setItem(REFRESH, refreshToken);
