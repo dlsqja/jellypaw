@@ -8,6 +8,8 @@ pipeline {
     SERVICE_DIR = 'board'
   }
 
+
+
   stages {
     stage('Build Application') {
       agent {
