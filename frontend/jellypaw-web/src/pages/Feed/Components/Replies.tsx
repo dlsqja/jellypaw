@@ -22,8 +22,8 @@ export default function Replies({ profileImageUrl, name, content, createdAt, lik
             {/* 댓글 작성 시간, 더보기 버튼 */}
             <div className="flex justify-start items-center gap-2">
               <div className="text-gray-300 caption1">{createdAt}</div>
-              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer ">
-                <MoreHorizontal className="h-4 w-4 text-gray-300" />
+              <button type="button" className="h-5 w-5 flex justify-center items-center cursor-pointer ">
+                <MoreHorizontal className="w-4 h-4 text-gray-300" />
               </button>
             </div>
           </div>
@@ -34,8 +34,8 @@ export default function Replies({ profileImageUrl, name, content, createdAt, lik
           <div className="w-full flex justify-start items-center gap-4">
             <div className="flex items-center">
               <button type="button" className="flex items-center gap-1 ml-3 cursor-pointer">
-                <Heart className="h-4 w-4  text-gray-300" />
-                <span className="text-gray-300 p3-b">{likeCount}</span>
+                <Heart className="h-3 w-3 text-gray-300" />
+                {likeCount > 0 && <span className="text-gray-300 caption1-b">{likeCount}</span>}
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import BackHeader from '@/components/headers/BackHeader';
+import Header from '@/components/headers/Header';
 import { Input } from '@/components/ui/input';
 import IconText from '@/components/texts/IconText';
 import { IoClose } from 'react-icons/io5';
@@ -46,7 +46,7 @@ export default function Search() {
   const results = allResults.filter((r) => r.name.toLowerCase().includes(searchValue.toLowerCase()));
   return (
     <>
-      <BackHeader title="" />
+      <Header title="검색" />
       <div className="flex flex-col gap-3 pb-3">
         <Input
           type="search"
@@ -55,7 +55,7 @@ export default function Search() {
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
         />
-        <p className="text-gray-500 p2-b">{searchValue ? '검색 결과' : '최근 검색'}</p>
+        {!searchValue && <p className="text-gray-500 p2-b">최근 검색</p>}
         {!searchValue &&
           recentSearch.map((item) => (
             <div key={item.id} className="flex flex-col mb-2">
@@ -68,21 +68,31 @@ export default function Search() {
 
         {searchValue && (
           <div className="flex flex-col gap-3">
-            {results.map((result) => (
-              <div key={result.id} className="w-full h-23 bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                <div className="p-4 w-full h-full flex justify-between items-center cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <img className="w-12 h-12 max-w-12 rounded-full" src={result.image} />
-                    <div className="flex flex-col">
-                      <div className="text-aqua-500 h6-b">{result.name}</div>
-                      <div className="text-aqua-500 p2">{result.description}</div>
-                      <div className="text-gray-300 caption1">팔로워 {result.follower.toLocaleString()}명</div>
+            {results.length > 0 ? (
+              <>
+                <p className="text-gray-500 p2-b">검색 결과</p>
+                {results.map((result) => (
+                  <div key={result.id} className="w-full h-23 bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                    <div className="p-4 w-full h-full flex justify-between items-center cursor-pointer">
+                      <div className="flex items-center gap-4">
+                        <img className="w-12 h-12 max-w-12 rounded-full" src={result.image} />
+                        <div className="flex flex-col">
+                          <div className="text-aqua-500 h6-b">{result.name}</div>
+                          <div className="text-aqua-500 p2">{result.description}</div>
+                          <div className="text-gray-300 caption1">팔로워 {result.follower.toLocaleString()}명</div>
+                        </div>
+                      </div>
+                      <IoIosArrowForward className="text-gray-300 w-3 h-3" />
                     </div>
                   </div>
-                  <IoIosArrowForward className="text-gray-300 w-3 h-3" />
-                </div>
+                ))}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-start h-full pt-10">
+                <p className="text-aqua-500 p2-b">검색 결과가 없습니다</p>
+                <p className="text-gray-300 caption1 mt-2">다른 검색어를 입력해보세요</p>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>

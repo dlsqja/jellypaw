@@ -34,8 +34,8 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             {/* 댓글 작성 시간, 더보기 버튼 */}
             <div className="flex justify-start items-center gap-2">
               <div className="text-gray-300 p3">{createdAt}</div>
-              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer ">
-                <MoreHorizontal className="h-5 w-5 text-gray-300" />
+              <button type="button" className="h-5 w-5 flex justify-center items-center cursor-pointer ">
+                <MoreHorizontal className=" text-gray-300" />
               </button>
             </div>
           </div>
@@ -47,7 +47,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             <div className="flex items-center">
               <button type="button" className="flex items-center gap-1 ml-3 cursor-pointer">
                 <Heart className="h-4 w-4  text-gray-300" />
-                <span className="text-gray-300 p3-b">{likeCount}</span>
+                {likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>}
               </button>
               <button type="button" className="flex items-center gap-1 ml-4 cursor-pointer">
                 <MessageCircle className="h-4 w-4 text-gray-300" />

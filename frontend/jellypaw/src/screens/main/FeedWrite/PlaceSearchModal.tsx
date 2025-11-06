@@ -212,8 +212,8 @@ export default function PlaceSearchModal({
                     initialRegion={{
                       latitude: selectedPlaceDetails.latitude!,
                       longitude: selectedPlaceDetails.longitude!,
-                      latitudeDelta: 0.00001,
-                      longitudeDelta: 0.00001,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
                     }}
                     scrollEnabled={false}
                     zoomEnabled={true}
@@ -315,6 +315,9 @@ export default function PlaceSearchModal({
             query.trim().length > 0 && !loading ? (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>검색 결과가 없습니다</Text>
+                <Text style={styles.noResultsText2}>
+                  다른 검색어를 입력해보세요
+                </Text>
               </View>
             ) : null}
           </>
@@ -340,8 +343,10 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E5E5E5',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 9999,
     paddingHorizontal: 12,
     height: 48,
   },
@@ -377,11 +382,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 32,
+    padding: 40,
   },
   noResultsText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Pretendard-Bold',
+    color: '#284542',
+  },
+  noResultsText2: {
+    fontSize: 11,
+    paddingTop: 8,
     color: '#A3A3A3',
   },
   // 상세 정보 컨테이너 스타일
@@ -422,7 +432,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mapContainer: {
-    height: 400,
+    height: 350,
     width: '100%',
     marginTop: 16,
 
