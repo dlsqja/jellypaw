@@ -22,4 +22,6 @@ public interface AvailableTimeRepository extends MongoRepository<AvailableTime, 
 
     void deleteByPlaceIdAndDateLessThan(Long placeId, LocalDate date);
 
+    Optional<AvailableTime> findAvailableTimeByPlaceIdAndDate(Long placeId, LocalDate date);
+
 }

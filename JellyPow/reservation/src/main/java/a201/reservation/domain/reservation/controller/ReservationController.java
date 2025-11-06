@@ -1,6 +1,9 @@
 package a201.reservation.domain.reservation.controller;
 
 import a201.common.response.ApiResponse;
+import a201.reservation.domain.availableTime.dto.AvailableTimeResponse;
+import a201.reservation.domain.availableTime.entity.AvailableTime;
+import a201.reservation.domain.availableTime.service.AvailableTimeService;
 import a201.reservation.domain.reservation.dto.ReservationListResponse;
 import a201.reservation.domain.reservation.dto.ReservationRequest;
 import a201.reservation.domain.reservation.dto.ReservationResponse;
@@ -9,6 +12,7 @@ import a201.reservation.domain.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,6 +21,7 @@ import java.util.List;
 public class ReservationController {
 
     private final ReservationService reservationService;
+    private final AvailableTimeService availableTimeService;
 
 
     //Todo : 예약은 api 말고 카프카 이벤트 기반으로 할 예정 (동시성 제어를 위해서)
@@ -48,12 +53,13 @@ public class ReservationController {
         return ApiResponse.success(ReservationListResponse.from(reservationList));
     }
 
-    @GetMapping("/places/{placeId}/available-times")
-    public ApiResponse<?> getAvailableTime(@PathVariable Long placeId) {
+    @GetMapping("/places/{placeId}/timeTable")
+    public ApiResponse<AvailableTimeResponse> getAvailableTime(@PathVariable Long placeId,
+                                           @RequestParam LocalDate date) {
 
+        AvailableTime availableTime = availableTimeService.getAvailableTimeByPlaceIdAndDate(placeId, date);
 
-
-        return null;
+        return ApiResponse.success(AvailableTimeResponse.from(availableTime));
     }
 }
 

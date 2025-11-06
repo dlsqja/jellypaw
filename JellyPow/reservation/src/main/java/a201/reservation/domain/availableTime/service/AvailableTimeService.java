@@ -1,5 +1,7 @@
 package a201.reservation.domain.availableTime.service;
 
+import a201.common.enums.ErrorCode;
+import a201.common.exception.CustomException;
 import a201.reservation.domain.availableTime.entity.AvailableTime;
 import a201.reservation.global.enums.TimeStatus;
 import a201.reservation.domain.availableTime.repository.AvailableTimeRepository;
@@ -78,5 +80,11 @@ public class AvailableTimeService {
         if(!timeToInsert.isEmpty()) {
             availableTimeRepository.saveAll(timeToInsert);
         }
+    }
+
+    public AvailableTime getAvailableTimeByPlaceIdAndDate(Long placeId, LocalDate date) {
+
+        return availableTimeRepository.findAvailableTimeByPlaceIdAndDate(placeId, date)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
     }
 }
