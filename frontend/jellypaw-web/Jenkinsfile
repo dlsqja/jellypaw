@@ -72,6 +72,7 @@ pipeline {
       agent {
         docker {
           image 'node:20.19.1'
+          args '-u root:root'
         }
       }
       steps {
@@ -90,7 +91,22 @@ pipeline {
               // .env 내용 주입
               withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV_FILE')]) {
                 sh '''
-                  cp "$FRONT_ENV_FILE" .env
+                  echo "📂 현재 디렉토리: $(pwd)"
+                  echo "📂 디렉토리 권한 확인:"
+                  ls -la .
+                  echo "📋 .env 파일 복사 시도..."
+                  cp "$FRONT_ENV_FILE" .env || {
+                    echo "⚠️ cp 명령 실패, cat으로 시도..."
+                    cat "$FRONT_ENV_FILE" > .env || {
+                      echo "❌ .env 파일 생성 실패. 권한 확인..."
+                      ls -la "$FRONT_ENV_FILE" || echo "원본 파일 확인 실패"
+                      whoami
+                      pwd
+                      ls -la
+                      exit 1
+                    }
+                  }
+                  chmod 644 .env || echo "⚠️ chmod 실패 (무시)"
                   echo "✅ .env 파일 복사 완료"
                   echo "📦 의존성 설치 중..."
                   npm install
@@ -107,7 +123,22 @@ pipeline {
             // .env 내용 주입
             withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV_FILE')]) {
               sh '''
-                cp "$FRONT_ENV_FILE" .env
+                echo "📂 현재 디렉토리: $(pwd)"
+                echo "📂 디렉토리 권한 확인:"
+                ls -la .
+                echo "📋 .env 파일 복사 시도..."
+                cp "$FRONT_ENV_FILE" .env || {
+                  echo "⚠️ cp 명령 실패, cat으로 시도..."
+                  cat "$FRONT_ENV_FILE" > .env || {
+                    echo "❌ .env 파일 생성 실패. 권한 확인..."
+                    ls -la "$FRONT_ENV_FILE" || echo "원본 파일 확인 실패"
+                    whoami
+                    pwd
+                    ls -la
+                    exit 1
+                  }
+                }
+                chmod 644 .env || echo "⚠️ chmod 실패 (무시)"
                 echo "✅ .env 파일 복사 완료"
                 echo "📦 의존성 설치 중..."
                 npm install
