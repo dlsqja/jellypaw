@@ -31,6 +31,8 @@ public class BoardUserService {
                 .build();
 
         boardUserRepository.save(boardUser);
+
+
         log.info("Board 서비스에 사용자 생성: userId={}, nickname={}", userId, nickname);
     }
 
