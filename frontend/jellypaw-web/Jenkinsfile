@@ -30,6 +30,7 @@ pipeline {
               if (hasFrontendChanges) {
                 env.HAS_FRONTEND_CHANGES = 'true'
                 echo "✅ frontend/jellypaw-web 폴더에 변경사항이 있습니다. 배포를 진행합니다."
+                echo "🔍 HAS_FRONTEND_CHANGES 설정 확인: ${env.HAS_FRONTEND_CHANGES}"
               } else {
                 echo "❌ frontend/jellypaw-web 폴더에 변경사항이 없습니다. 배포를 건너뜁니다."
                 currentBuild.result = 'ABORTED'
@@ -39,11 +40,13 @@ pipeline {
               // 첫 빌드이거나 변경사항을 확인할 수 없는 경우
               echo "⚠️ 변경사항을 확인할 수 없습니다. 배포를 진행합니다."
               env.HAS_FRONTEND_CHANGES = 'true'
+              echo "🔍 HAS_FRONTEND_CHANGES 설정 확인: ${env.HAS_FRONTEND_CHANGES}"
             }
           } catch (Exception e) {
             echo "변경사항 확인 중 오류 발생: ${e.message}"
             echo "배포를 진행합니다."
             env.HAS_FRONTEND_CHANGES = 'true'
+            echo "🔍 HAS_FRONTEND_CHANGES 설정 확인: ${env.HAS_FRONTEND_CHANGES}"
           }
         }
       }
@@ -51,7 +54,10 @@ pipeline {
 
     stage('Build Frontend') {
       when {
-        expression { env.HAS_FRONTEND_CHANGES == 'true' }
+        expression { 
+          def shouldRun = env.HAS_FRONTEND_CHANGES == 'true'
+          return shouldRun
+        }
       }
       agent {
         docker {
@@ -59,6 +65,13 @@ pipeline {
         }
       }
       steps {
+        script {
+          echo "🚀 Build Frontend 스테이지 시작!"
+          echo "🔍 HAS_FRONTEND_CHANGES: ${env.HAS_FRONTEND_CHANGES}"
+          echo "📂 현재 작업 디렉토리: ${pwd()}"
+          echo "📂 파일 목록:"
+          sh 'ls -la'
+        }
         // .env 내용 주입
         withCredentials([file(credentialsId: 'frontend-env', variable: 'FRONT_ENV_FILE')]) {
           sh '''
