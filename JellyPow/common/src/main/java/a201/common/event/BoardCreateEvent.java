@@ -1,8 +1,7 @@
-package a201.board.data.event;
+package a201.common.event;
 
-import a201.board.data.entity.Board;
-import a201.board.enums.Category;
-import a201.board.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
@@ -36,19 +35,4 @@ public class BoardCreateEvent {
     private LocalDateTime createdAt;
 
     private Visibility visibility;
-
-
-
-    public static BoardCreateEvent fromEntity(Board board) {
-        return BoardCreateEvent.builder()
-                .id(board.getId())
-                .category(board.getCategory())
-                .title(board.getTitle())
-                .content(board.getContent())
-                .placeId(board.getPlaceId())
-                .starRating(board.getStarRating())
-                .createdAt(board.getCreatedAt())
-                .visibility(board.getVisibility())
-                .build();
-    }
 }

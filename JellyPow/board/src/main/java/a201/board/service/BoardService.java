@@ -3,14 +3,14 @@ package a201.board.service;
 import a201.board.data.entity.Image;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
-import a201.board.data.event.BoardCreateEvent;
-import a201.board.data.event.BoardUpdateEvent;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
 import a201.board.data.response.BoardResponse;
-import a201.board.enums.Visibility;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
+import a201.common.enums.Visibility;
+import a201.common.event.BoardCreateEvent;
+import a201.common.event.BoardUpdateEvent;
 import a201.common.s3.S3Service;
 import a201.common.exception.CustomException;
 import a201.common.enums.ErrorCode;
@@ -92,7 +92,18 @@ public class BoardService {
         boardRepository.save(newBoard);
 
         //TODO:: 생성 이벤트 발생
-        BoardCreateEvent boardCreateEvent = BoardCreateEvent.fromEntity(newBoard);
+        BoardCreateEvent boardCreateEvent = BoardCreateEvent.builder()
+                .id(newBoard.getId())
+                .userId(boardUser.getId())
+                .category(boardRequest.getCategory())
+                .title(boardRequest.getTitle())
+                .content(boardRequest.getContent())
+                .placeId(boardRequest.getPlaceId())
+                .starRating(boardRequest.getStarRating())
+                .createdAt(newBoard.getCreatedAt())
+                .visibility(boardRequest.getVisibility())
+                .build();
+
         boardCreateEvent.setUserId(boardUser.getId());
 
         kafkaTemplate.send("board-create-topic", JsonUtil.toJsonString(boardCreateEvent));
@@ -141,7 +152,17 @@ public class BoardService {
         boardRepository.save(board);
 
         //TODO:: 업데이트 이벤트 발생
-        BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.fromEntity(board);
+        BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.builder()
+                .id(postId)
+                .category(board.getCategory())
+                .title(postRequest.getTitle())
+                .content(postRequest.getContent())
+                .placeId(postRequest.getPlaceId())
+                .starRating(postRequest.getStarRating())
+                .createdAt(board.getCreatedAt())
+                .visibility(board.getVisibility())
+                .build();
+
         kafkaTemplate.send("board-update-topic", JsonUtil.toJsonString(boardUpdateEvent));
     }
 

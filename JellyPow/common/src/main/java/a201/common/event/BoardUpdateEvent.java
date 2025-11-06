@@ -1,9 +1,7 @@
-package a201.boardview.data.event;
+package a201.common.event;
 
-
-import a201.boardview.data.entity.Board;
-import a201.boardview.enums.Category;
-import a201.boardview.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
@@ -16,12 +14,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardCreateEvent {
+public class BoardUpdateEvent {
 
     private Long id;
-
-    //따로 주입 필요
-    private Long userId;
 
     private Category category;
 
@@ -37,15 +32,4 @@ public class BoardCreateEvent {
     private LocalDateTime createdAt;
 
     private Visibility visibility;
-    public Board toEntity() {
-        return Board.builder()
-                .id(id)
-                .title(title)
-                .content(content)
-                .category(category)
-                .starRating(starRating)
-                .createdAt(createdAt)
-                .visibility(visibility)
-                .build();
-    }
 }

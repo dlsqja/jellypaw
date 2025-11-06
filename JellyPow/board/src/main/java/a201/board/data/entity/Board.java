@@ -1,7 +1,7 @@
 package a201.board.data.entity;
 
-import a201.board.enums.Category;
-import a201.board.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
 

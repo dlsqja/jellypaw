@@ -1,13 +1,12 @@
 package a201.boardview.data.entity;
 
-import a201.boardview.enums.Category;
-import a201.boardview.enums.Visibility;
+import a201.common.enums.Category;
+import a201.common.enums.Visibility;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "board")

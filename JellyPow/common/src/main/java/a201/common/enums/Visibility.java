@@ -1,4 +1,4 @@
-package a201.boardview.enums;
+package a201.common.enums;
 
 public enum Visibility {
     PRIVATE,
