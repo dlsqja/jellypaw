@@ -90,7 +90,7 @@ export default function PetManageScreen({ navigation }: any) {
                 onEdit={() => navigation.navigate('EditPet')}
               />
 
-              <View style={{ paddingTop: 16 }}>
+              {/* <View style={{ paddingTop: 16 }}>
                 <VaccinationSection
                   items={[
                     {
@@ -110,7 +110,7 @@ export default function PetManageScreen({ navigation }: any) {
                     },
                   ]}
                 />
-              </View>
+              </View> */}
             </>
           )}
 

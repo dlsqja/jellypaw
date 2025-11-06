@@ -36,7 +36,7 @@ export default function Header({
 const S = StyleSheet.create({
   wrap: {
     height: 60,
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
