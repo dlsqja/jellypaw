@@ -6,7 +6,11 @@ import a201.board.data.response.BoardResponse;
 import a201.board.service.BoardService;
 import a201.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/boards")
@@ -24,19 +28,26 @@ public class BoardController {
         return ApiResponse.success(boardResponse);
     }
 
-    @PostMapping
-    public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId, @RequestBody BoardRequest boardRequest) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId,
+                                    @RequestPart("boardRequest") BoardRequest boardRequest,
+                                    @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
+        boardRequest.setNewImages(newImages);
         boardService.createPost(userId, boardRequest);
 
         return ApiResponse.success(null);
 
     }
 
-    @PutMapping("/{boardId}")
-    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId, @PathVariable Long boardId, @RequestBody BoardUpdateRequest postRequest) {
+    @PutMapping(value = "/{boardId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId,
+                                    @PathVariable Long boardId,
+                                    @RequestPart("boardUpdateRequest") BoardUpdateRequest boardUpdateRequest,
+                                    @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
-        boardService.updatePost(userId,boardId,postRequest);
+        boardUpdateRequest.setNewImages(newImages);
+        boardService.updatePost(userId,boardId,boardUpdateRequest);
 
         return ApiResponse.success(null);
     }

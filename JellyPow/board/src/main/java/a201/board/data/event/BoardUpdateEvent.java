@@ -15,12 +15,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardCreateEvent {
+public class BoardUpdateEvent {
 
     private Long id;
-
-    //따로 주입 필요
-    private Long userId;
 
     private Category category;
 
@@ -37,10 +34,8 @@ public class BoardCreateEvent {
 
     private Visibility visibility;
 
-
-
-    public static BoardCreateEvent fromEntity(Board board) {
-        return BoardCreateEvent.builder()
+    public static BoardUpdateEvent fromEntity(Board board) {
+        return BoardUpdateEvent.builder()
                 .id(board.getId())
                 .category(board.getCategory())
                 .title(board.getTitle())

@@ -4,6 +4,7 @@ import a201.board.data.entity.Image;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
 import a201.board.data.event.BoardCreateEvent;
+import a201.board.data.event.BoardUpdateEvent;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
 import a201.board.data.response.BoardResponse;
@@ -51,7 +52,9 @@ public class BoardService {
                 .map(Image::getImageLink)
                 .toList();
         boardResponse.setImages(imageLinks);
+
         //TODO:: 조회수 추가 이벤트 발생
+        kafkaTemplate.send("board-view-topic", String.valueOf(postId));
 
         return boardResponse;
     }
@@ -91,7 +94,6 @@ public class BoardService {
         //TODO:: 생성 이벤트 발생
         BoardCreateEvent boardCreateEvent = BoardCreateEvent.fromEntity(newBoard);
         boardCreateEvent.setUserId(boardUser.getId());
-        boardCreateEvent.setImages(eventImages);
 
         kafkaTemplate.send("board-create-topic", JsonUtil.toJsonString(boardCreateEvent));
 
@@ -136,7 +138,11 @@ public class BoardService {
             }
         }
 
+        boardRepository.save(board);
+
         //TODO:: 업데이트 이벤트 발생
+        BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.fromEntity(board);
+        kafkaTemplate.send("board-update-topic", JsonUtil.toJsonString(boardUpdateEvent));
     }
 
     public void deletePost(Long userId, Long postId) {
@@ -150,10 +156,12 @@ public class BoardService {
             }
         }
 
+        Long deleteId = board.getId();
+
         boardRepository.deleteById(postId);
 
         //TODO:: 삭제 이벤트 발생
-
+        kafkaTemplate.send("board-delete-topic", String.valueOf(deleteId));
     }
 }
 
