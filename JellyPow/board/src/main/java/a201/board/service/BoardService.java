@@ -3,6 +3,7 @@ package a201.board.service;
 import a201.board.data.entity.Image;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
+import a201.board.data.event.BoardCreateEvent;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
 import a201.board.data.response.BoardResponse;
@@ -12,7 +13,9 @@ import a201.board.repository.BoardUserRepository;
 import a201.common.s3.S3Service;
 import a201.common.exception.CustomException;
 import a201.common.enums.ErrorCode;
+import a201.common.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +33,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardUserRepository boardUserRepository;
     private final S3Service s3Service;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     public BoardResponse getPost(Long userId, Long postId) {
 
@@ -64,11 +68,12 @@ public class BoardService {
         List<MultipartFile> newImages = boardRequest.getNewImages();
         String categoryString = boardRequest.getCategory().name();
         List<Image> images = new ArrayList<>();
+        List<String> eventImages = new ArrayList<>();
 
         if(newImages!=null){
             for(MultipartFile file : newImages) {
                 String keyPath = s3Service.uploadPostImage(file,categoryString);
-
+                eventImages.add(keyPath);
                 Image image = Image.builder()
                         .board(newBoard)
                         .imageLink(keyPath)
@@ -84,6 +89,12 @@ public class BoardService {
         boardRepository.save(newBoard);
 
         //TODO:: 생성 이벤트 발생
+        BoardCreateEvent boardCreateEvent = BoardCreateEvent.fromEntity(newBoard);
+        boardCreateEvent.setUserId(boardUser.getId());
+        boardCreateEvent.setImages(eventImages);
+
+        kafkaTemplate.send("board-create-topic", JsonUtil.toJsonString(boardCreateEvent));
+
     }
 
     public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest) {

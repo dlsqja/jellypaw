@@ -40,10 +40,6 @@ public class Board {
     @Column(name = "place_id")
     private Long placeId;
 
-    @Builder.Default
-    @Column
-    private Long views = 0L;
-
     @Column(name = "star_rating", precision = 2, scale = 1)
     private BigDecimal starRating;
 
