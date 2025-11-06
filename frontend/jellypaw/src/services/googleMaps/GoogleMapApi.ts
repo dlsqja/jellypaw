@@ -6,7 +6,7 @@ import { GOOGLE_MAPS_API_KEY } from '@env';
 export async function searchPlaces(query: string): Promise<SearchResult[]> {
   try {
     const apiKey = GOOGLE_MAPS_API_KEY;
-
+    // console.log('apiKey:', apiKey);
     if (!apiKey) {
       console.warn('GOOGLE_MAPS_API_KEY가 설정되지 않았습니다.');
       return [];
