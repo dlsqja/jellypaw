@@ -13,17 +13,25 @@ pipeline {
       agent {
         docker {
           image 'gradle:7.6-jdk17'
+          args '-u root'
         }
       }
       steps {
-        sh '''
-          cd ./${COMPOSE_DIR}
-          chmod +x ./gradlew
-          ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
-        '''
-        stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
-      }
-    }
+            script {
+              withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
+                sh '''
+                  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+                  cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+
+                  cd ./${COMPOSE_DIR}
+                  chmod +x ./gradlew
+                  ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
+                '''
+              }
+            }
+            stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
+          }
+       }
 
     stage('Build and Push Docker Image') {
       steps {

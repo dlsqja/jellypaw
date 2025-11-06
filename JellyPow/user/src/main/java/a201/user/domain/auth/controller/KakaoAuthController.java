@@ -10,6 +10,8 @@ import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import a201.user.global.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Tag(name = "Kakao Auth", description = "카카오 OAuth 인증 API")
 @Slf4j
 @RestController
 @RequestMapping("/auth")
@@ -31,7 +34,7 @@ public class KakaoAuthController {
     private final JwtUtil jwtUtil;
 	private final String SignupUrl = "http://localhost:8888/api/public/signup";
 
-    // 카카오 로그인 처리 (POST)
+    @Operation(summary = "카카오 로그인", description = "카카오 인증 코드로 로그인을 처리합니다.")
     @PostMapping("/kakao")
     public ApiResponse<KakaoLoginResponse> kakaoLoginPost(
 		@RequestParam String code,
@@ -44,16 +47,16 @@ public class KakaoAuthController {
         return ApiResponse.success(res);
     }
 
-    // 카카오 콜백 처리 (GET) - 카카오가 직접 호출
+    @Operation(summary = "카카오 로그인 콜백", description = "카카오 OAuth 인증 콜백을 처리합니다.")
     @GetMapping("/kakao/callback")
     	public ApiResponse<KakaoLoginResponse> kakaoLoginCallback(
 		@RequestParam String code,
 		HttpServletResponse response
 		) throws Exception {
 			KakaoLoginResponse res = processKakaoLogin(code);
-		if (res.isNeedSignup()) {
-			response.sendRedirect(SignupUrl);
-		}
+		// if (res.isNeedSignup()) {
+		// 	response.sendRedirect(SignupUrl);
+		// }
 		
 		return ApiResponse.success(res);
 	}

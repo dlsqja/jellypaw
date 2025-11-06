@@ -6,13 +6,17 @@ import a201.board.data.entity.BoardUser;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
 import a201.board.data.response.BoardResponse;
-import a201.board.enums.Visibility;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
+import a201.common.enums.Visibility;
+import a201.common.event.BoardCreateEvent;
+import a201.common.event.BoardUpdateEvent;
 import a201.common.s3.S3Service;
 import a201.common.exception.CustomException;
 import a201.common.enums.ErrorCode;
+import a201.common.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +34,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardUserRepository boardUserRepository;
     private final S3Service s3Service;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     public BoardResponse getPost(Long userId, Long postId) {
 
@@ -47,7 +52,9 @@ public class BoardService {
                 .map(Image::getImageLink)
                 .toList();
         boardResponse.setImages(imageLinks);
+
         //TODO:: 조회수 추가 이벤트 발생
+        kafkaTemplate.send("board-view-topic", String.valueOf(postId));
 
         return boardResponse;
     }
@@ -64,11 +71,12 @@ public class BoardService {
         List<MultipartFile> newImages = boardRequest.getNewImages();
         String categoryString = boardRequest.getCategory().name();
         List<Image> images = new ArrayList<>();
+        List<String> eventImages = new ArrayList<>();
 
         if(newImages!=null){
             for(MultipartFile file : newImages) {
                 String keyPath = s3Service.uploadPostImage(file,categoryString);
-
+                eventImages.add(keyPath);
                 Image image = Image.builder()
                         .board(newBoard)
                         .imageLink(keyPath)
@@ -84,14 +92,34 @@ public class BoardService {
         boardRepository.save(newBoard);
 
         //TODO:: 생성 이벤트 발생
+        BoardCreateEvent boardCreateEvent = BoardCreateEvent.builder()
+                .id(newBoard.getId())
+                .userId(boardUser.getId())
+                .category(boardRequest.getCategory())
+                .title(boardRequest.getTitle())
+                .content(boardRequest.getContent())
+                .placeId(boardRequest.getPlaceId())
+                .starRating(boardRequest.getStarRating())
+                .createdAt(newBoard.getCreatedAt())
+                .visibility(boardRequest.getVisibility())
+                .build();
+
+        boardCreateEvent.setUserId(boardUser.getId());
+
+        kafkaTemplate.send("board-create-topic", JsonUtil.toJsonString(boardCreateEvent));
+
     }
 
     public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest) {
 
         Board board = boardRepository.getBoardById(postId);
 
+        board.setCategory(postRequest.getCategory());
         board.setTitle(postRequest.getTitle());
         board.setContent(postRequest.getContent());
+        board.setPlaceId(postRequest.getPlaceId());
+        board.setStarRating(postRequest.getStarRating());
+        board.setVisibility(postRequest.getVisibility());
 
 
         List<Image> images = board.getImages();
@@ -125,7 +153,20 @@ public class BoardService {
             }
         }
 
+        boardRepository.save(board);
+
         //TODO:: 업데이트 이벤트 발생
+        BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.builder()
+                .id(board.getId())
+                .category(board.getCategory())
+                .title(board.getTitle())
+                .content(board.getContent())
+                .placeId(board.getPlaceId())
+                .starRating(board.getStarRating())
+                .visibility(board.getVisibility())
+                .build();
+
+        kafkaTemplate.send("board-update-topic", JsonUtil.toJsonString(boardUpdateEvent));
     }
 
     public void deletePost(Long userId, Long postId) {
@@ -139,11 +180,12 @@ public class BoardService {
             }
         }
 
+        Long deleteId = board.getId();
 
         boardRepository.deleteById(postId);
 
         //TODO:: 삭제 이벤트 발생
-
+        kafkaTemplate.send("board-delete-topic", String.valueOf(deleteId));
     }
 }
 
