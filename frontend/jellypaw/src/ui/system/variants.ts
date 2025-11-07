@@ -33,7 +33,7 @@ export const theme = {
 
   // 텍스트 톤
   text: {
-    primary: palette.gray800,
+    primary: palette.aqua500,
     secondary: '#6B7280',
     muted: palette.gray700,
     onBrand: palette.white,
