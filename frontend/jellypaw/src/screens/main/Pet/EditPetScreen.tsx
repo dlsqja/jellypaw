@@ -9,6 +9,7 @@ import PhotoPicker from '../../../ui/components/PhotoPicker';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { useUpdatePetInfo, useUpdatePetImage } from '../../../services/queries/petHooks';
 
 import { getPetDetail, updatePetInfo, updatePetImage, deletePet } from '../../../services/api/pet';
 import type { PetSpecies, PetGender, getPetDetailResponse } from '../../../types/main/pet';
@@ -76,6 +77,7 @@ export default function EditPetScreen() {
   const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('');
 
+  
   // 1) 초기값 프리필 (route.params.initial)
   useEffect(() => {
     if (!initial) return;
@@ -112,14 +114,18 @@ export default function EditPetScreen() {
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
+  const infoMut = useUpdatePetInfo(petId);
+  const imgMut  = useUpdatePetImage(petId);
+
   const onSave = async () => {
     try {
       const speciesEnum = toSpecies(animalType);
-      const genderEnum = toGender(gender);
-      const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
-      const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
+      const genderEnum  = toGender(gender);
+      const ageNum      = age.trim() ? parseInt(age.trim(), 10) : undefined;
+      const weightNum   = weight.trim() ? parseFloat(weight.trim()) : undefined;
 
-      await updatePetInfo(petId, {
+      // 1) 정보 업데이트
+      const updated = await infoMut.mutateAsync({
         name: name.trim(),
         species: speciesEnum,
         gender: genderEnum,
@@ -127,18 +133,18 @@ export default function EditPetScreen() {
         weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
       });
 
-      // 로컬/갤러리 경로만 업로드(이미 원격 URL은 스킵)
+      // 2) 이미지가 로컬/갤러리 경로면 업로드
       if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
-        await updatePetImage(petId, photoUri);
+        await imgMut.mutateAsync(photoUri);
       }
 
       Alert.alert('완료', '수정되었습니다.');
-      nav.goBack();
+      nav.goBack(); // 돌아가면 Manage는 **캐시된 최신값**으로 즉시 렌더링
     } catch (e: any) {
-      console.log(e);
       Alert.alert('실패', e?.message || '수정 중 오류가 발생했어요.');
     }
   };
+
 
   const onDelete = () => {
     Alert.alert('삭제', '동물 정보를 삭제할까요?', [
