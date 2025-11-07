@@ -22,18 +22,9 @@ const toAbsolute = (u?: string | null) => {
 };
 
 const formatGender = (g: any) =>
-  g === 'FEMALE'
-    ? '여자'
-    : g === 'MALE'
-    ? '남자'
-    : g === 'FEMALE_NEUTERING'
-    ? '여자(중성)'
-    : g === 'MALE_NEUTERING'
-    ? '남자(중성)'
-    : '없음';
+  g === 'FEMALE' ? '여자' : g === 'MALE' ? '남자' : g === 'FEMALE_NEUTERING' ? '여자(중성)' : g === 'MALE_NEUTERING' ? '남자(중성)' : '없음';
 
-const formatSpecies = (s: any) =>
-  s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타';
+const formatSpecies = (s: any) => (s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타');
 
 export default function PetManageScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState<'info' | 'health'>('info');
@@ -59,17 +50,10 @@ export default function PetManageScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <Header title="동물관리" />
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={S.petRow}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.petRow}>
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
                 key={pet.petId}
@@ -87,11 +71,7 @@ export default function PetManageScreen({ navigation }: any) {
 
         {/* 탭 */}
         <View style={{ paddingTop: 24 }}>
-          <SegmentedTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={(id: any) => setActiveTab(id)}
-          />
+          <SegmentedTabs tabs={tabs} activeTab={activeTab} onTabChange={(id: any) => setActiveTab(id)} />
         </View>
 
         {/* 상세 정보 */}
