@@ -33,8 +33,8 @@ public class CommentController {
 
     @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     @DeleteMapping("/{boardId}/{parentId}")
-    public ApiResponse<?> delete(@PathVariable Long parentId,@RequestHeader("X-User-Id") Long userId) {
-        commentService.deleteComment(parentId,userId);
+    public ApiResponse<?> delete(@PathVariable Long parentId,@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId) {
+        commentService.deleteComment(parentId,userId,boardId);
         return ApiResponse.success(null);
     }
 }
