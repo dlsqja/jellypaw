@@ -6,7 +6,6 @@ export type PetGender =
   | 'MALE_NEUTERING'
   | 'NON';
 
-
 // 펫 전체 목록
 export interface getPetListResponse {
   name?: string;
@@ -29,7 +28,7 @@ export interface CreatePetRequest {
   name: string;
   species?: PetSpecies;
   gender?: PetGender;
-  age?: number;    // int
+  age?: number; // int
   weight?: number; // float
 }
 

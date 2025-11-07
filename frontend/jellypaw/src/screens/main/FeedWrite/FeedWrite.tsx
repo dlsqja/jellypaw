@@ -23,6 +23,8 @@ import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
+import { createFeed } from '../../../services/api/feedWrite';
+import type { FeedWriteRequest } from '../../../types/main/feedWrite';
 
 type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
@@ -39,6 +41,8 @@ export default function FeedWrite({ route, navigation }: Props) {
     require('../../../../assets/images/pets/반려동물3.png'),
   ]);
   const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
 
   // 이미지 선택 핸들러
@@ -94,6 +98,7 @@ export default function FeedWrite({ route, navigation }: Props) {
     pendingLocationRef.current = place.name || '';
     // 즉시 상태 업데이트 시도
     setLocation(place.name || '');
+    setSelectedPlace(place);
   };
 
   // 모달이 닫힌 후 location을 다시 업데이트
@@ -103,7 +108,7 @@ export default function FeedWrite({ route, navigation }: Props) {
     const pendingLocation = pendingLocationRef.current;
     if (pendingLocation) {
       setTimeout(() => {
-        console.log('모달 닫힌 후 location 업데이트:', pendingLocation);
+        // console.log('모달 닫힌 후 location 업데이트:', pendingLocation);
         setLocation(pendingLocation);
         pendingLocationRef.current = null;
       }, 100);
@@ -124,9 +129,48 @@ export default function FeedWrite({ route, navigation }: Props) {
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: 게시물 작성 API 호출
-    console.log('제출:', { title, content, location, rating, images });
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // 이미지 URI 배열 필터링 (string 타입만)
+      const imageUris = images.filter(
+        (uri): uri is string => typeof uri === 'string',
+      );
+
+      // boardRequest 객체 생성
+      const boardRequest: FeedWriteRequest = {
+        category: categoryName,
+        title: title.trim(),
+        content: content.trim(),
+        placeId: selectedPlace?.place_id || '',
+        starRating: rating,
+        visibility: 'PRIVATE', // 기본값, 필요시 수정
+      };
+      console.log('boardRequest', boardRequest);
+
+      // API 호출
+      const result = await createFeed({
+        boardRequest: boardRequest,
+        newImages: imageUris,
+      });
+      console.log('result', result);
+      Alert.alert('성공', '게시글이 작성되었습니다.', [
+        {
+          text: '확인',
+          onPress: () => {
+            navigation.goBack();
+          },
+        },
+      ]);
+    } catch (error: any) {
+      console.error('게시글 작성 실패:', error);
+      Alert.alert('오류', error?.message || '게시글 작성에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -292,7 +336,9 @@ export default function FeedWrite({ route, navigation }: Props) {
             shape="pillSolid"
             tone="aqua"
             titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-            disabled={title.length === 0 || content.length === 0}
+            disabled={
+              title.length === 0 || content.length === 0 || isSubmitting
+            }
           />
         </View>
       </View>

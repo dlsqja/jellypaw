@@ -11,7 +11,6 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-
 // 안전장치: 메서드 기본 CT 제거(혹시 남아있으면 끼어듦)
 try {
   // @ts-ignore
@@ -27,19 +26,38 @@ try {
 const isFormData = (data: any) =>
   typeof FormData !== 'undefined' && data instanceof FormData;
 
+// React Native용 base64 디코딩 함수 (atob 대체)
+function base64Decode(str: string): string {
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  let i = 0;
+  str = str.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+  while (i < str.length) {
+    const enc1 = chars.indexOf(str.charAt(i++));
+    const enc2 = chars.indexOf(str.charAt(i++));
+    const enc3 = chars.indexOf(str.charAt(i++));
+    const enc4 = chars.indexOf(str.charAt(i++));
+    const bitmap = (enc1 << 18) | (enc2 << 12) | (enc3 << 6) | enc4;
+    if (enc3 !== 64) output += String.fromCharCode((bitmap >> 16) & 255);
+    if (enc4 !== 64) output += String.fromCharCode((bitmap >> 8) & 255);
+    if (enc4 !== 64) output += String.fromCharCode(bitmap & 255);
+  }
+  return output;
+}
+
 // JWT payload base64url decode → user_id 추출
 function getUserIdFromToken(token?: string): string | undefined {
   if (!token) return;
   try {
     const [, payload] = token.split('.');
-    const json = JSON.parse(
-      decodeURIComponent(
-        atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      )
-    );
+    // base64url을 일반 base64로 변환 (padding 추가)
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+
+    // React Native에서 base64 디코딩 (atob 대신)
+    const decoded = base64Decode(base64Padded);
+    const json = JSON.parse(decoded);
     return json?.user_id || json?.sub || undefined;
   } catch {
     return;
@@ -47,7 +65,7 @@ function getUserIdFromToken(token?: string): string | undefined {
 }
 
 apiClient.interceptors.request.use(
-  async (config) => {
+  async config => {
     const token = ACCESS_TOKEN;
     config.headers = config.headers ?? {};
 
@@ -92,11 +110,11 @@ apiClient.interceptors.request.use(
 
     return config;
   },
-  (e) => Promise.reject(e)
+  e => Promise.reject(e),
 );
 
 apiClient.interceptors.response.use(
-  (res) => {
+  res => {
     console.log('[api:res]', {
       url: res.config?.url,
       status: res.status,
@@ -105,14 +123,14 @@ apiClient.interceptors.response.use(
     });
     return res;
   },
-  (err) => {
+  err => {
     console.log('[api:err]', {
       url: err?.config?.url,
       status: err?.response?.status,
       data: err?.response?.data,
     });
     return Promise.reject(err);
-  }
+  },
 );
 
 // ⚠️ 필요해질 때까지 그대로 주석 유지해도 OK
