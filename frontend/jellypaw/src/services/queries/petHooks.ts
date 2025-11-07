@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getPetList, getPetDetail, updatePetInfo, updatePetImage, deletePet } from '../api/pet';
+import { getPetList, getPetDetail, updatePetInfo, updatePetImage, deletePet, deletePetImage } from '../api/pet';
 import type { CreatePetResponse, CreatePetRequest, getPetDetailResponse } from '../../types/main/pet';
 import { petKeys } from './petKeys';
 
@@ -54,6 +54,19 @@ export function useDeletePet(petId: number) {
     onSuccess: () => {
       // 상세/리스트 캐시 정리
       qc.removeQueries({ queryKey: petKeys.detail(petId) });
+      qc.invalidateQueries({ queryKey: petKeys.list() });
+    },
+  });
+}
+
+export function useDeletePetImage(petId: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => deletePetImage(petId),
+    onSuccess: (serverData) => {
+      // 상세 캐시 갱신(photoUrl null 반영)
+      qc.setQueryData<CreatePetResponse>(petKeys.detail(petId), serverData);
+      // 목록 썸네일도 바뀔 수 있으니 무효화
       qc.invalidateQueries({ queryKey: petKeys.list() });
     },
   });

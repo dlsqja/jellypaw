@@ -54,10 +54,17 @@ export default function PetManageScreen({ navigation }: any) {
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <Header title="동물관리" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
-          <View style={S.petRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={S.petRow}
+          >
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
                 key={pet.petId}
@@ -68,8 +75,9 @@ export default function PetManageScreen({ navigation }: any) {
                 onPress={() => setSelectedPetId(pet.petId ?? 0)}
               />
             ))}
+
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
-          </View>
+          </ScrollView>
         </View>
 
         {/* 탭 */}
@@ -109,16 +117,38 @@ export default function PetManageScreen({ navigation }: any) {
 }
 
 const S = StyleSheet.create({
+  // 가로 스크롤 컨테이너
+  petRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+
   header: {
-    height: 64, paddingHorizontal: 16, backgroundColor: 'rgba(255,255,255,0.95)',
-    borderBottomWidth: 1, borderBottomColor: theme.border.gray, flexDirection: 'row',
-    alignItems: 'center', justifyContent: 'space-between',
+    height: 64,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border.gray,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: { fontSize: 20, lineHeight: 28, color: theme.text.primary },
-  headerIcon: { width: 24, height: 24, backgroundColor: theme.text.primary, borderRadius: 2 },
-  petRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerIcon: {
+    width: 24,
+    height: 24,
+    backgroundColor: theme.text.primary,
+    borderRadius: 2,
+  },
   healthPlaceholder: {
-    width: '100%', height: 200, borderRadius: 12, borderWidth: 1, borderColor: theme.border.gray,
-    backgroundColor: theme.bg.surface, alignItems: 'center', justifyContent: 'center',
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.border.gray,
+    backgroundColor: theme.bg.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
