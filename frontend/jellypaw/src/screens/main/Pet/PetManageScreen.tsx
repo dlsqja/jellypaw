@@ -9,7 +9,7 @@ import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
 import { API_BASE_URL } from '@env';
 
-// ✅ React Query 훅 사용
+//  React Query 훅 사용
 import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
 import type { getPetListResponse } from '../../../types/main/pet';
 

@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
       gcTime: 5 * 60 * 1000,        // 5분 후 가비지컬렉션
       refetchOnReconnect: true,
       refetchOnMount: false,
-      refetchOnWindowFocus: true,   // RN에서도 focusManager로 동작
+      refetchOnWindowFocus: false,   
       retry: 1,
     },
   },
