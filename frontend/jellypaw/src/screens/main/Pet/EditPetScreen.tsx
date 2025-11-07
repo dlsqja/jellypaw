@@ -9,9 +9,12 @@ import PhotoPicker from '../../../ui/components/PhotoPicker';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
+import { useUpdatePetInfo, useUpdatePetImage, useDeletePet, useDeletePetImage } from '../../../services/queries/petHooks';
 
 import { getPetDetail, updatePetInfo, updatePetImage, deletePet } from '../../../services/api/pet';
 import type { PetSpecies, PetGender, getPetDetailResponse } from '../../../types/main/pet';
+
 import { API_BASE_URL } from '@env';
 
 // 상대→절대 변환(상세의 photoUrl이 상대경로일 수 있음)
@@ -31,26 +34,35 @@ type RouteParams = {
 const toSpecies = (label: '강아지' | '고양이' | '기타' | ''): PetSpecies | undefined =>
   label === '강아지' ? 'DOG' : label === '고양이' ? 'CAT' : undefined;
 
-const fromSpecies = (sp?: PetSpecies): '강아지' | '고양이' | '기타' | '' =>
-  sp === 'DOG' ? '강아지' : sp === 'CAT' ? '고양이' : '기타';
+const fromSpecies = (sp?: PetSpecies): '강아지' | '고양이' | '기타' | '' => (sp === 'DOG' ? '강아지' : sp === 'CAT' ? '고양이' : '기타');
 
-const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '' ): PetGender | undefined => {
+const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''): PetGender | undefined => {
   switch (label) {
-    case '남자': return 'MALE';
-    case '여자': return 'FEMALE';
-    case '남자(중성화)': return 'MALE_NEUTERING';
-    case '여자(중성화)': return 'FEMALE_NEUTERING';
-    default: return 'NON';
+    case '남자':
+      return 'MALE';
+    case '여자':
+      return 'FEMALE';
+    case '남자(중성화)':
+      return 'MALE_NEUTERING';
+    case '여자(중성화)':
+      return 'FEMALE_NEUTERING';
+    default:
+      return 'NON';
   }
 };
 
 const fromGender = (g?: PetGender): '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '' => {
   switch (g) {
-    case 'MALE': return '남자';
-    case 'FEMALE': return '여자';
-    case 'MALE_NEUTERING': return '남자(중성화)';
-    case 'FEMALE_NEUTERING': return '여자(중성화)';
-    default: return '';
+    case 'MALE':
+      return '남자';
+    case 'FEMALE':
+      return '여자';
+    case 'MALE_NEUTERING':
+      return '남자(중성화)';
+    case 'FEMALE_NEUTERING':
+      return '여자(중성화)';
+    default:
+      return '';
   }
 };
 
@@ -59,7 +71,6 @@ export default function EditPetScreen() {
   const nav = useNavigation<any>();
   const { petId, initial } = (route.params || {}) as RouteParams;
 
-  // 필수 파라미터 보장
   useEffect(() => {
     if (!petId) {
       Alert.alert('오류', '잘못된 접근입니다. (petId 없음)');
@@ -67,16 +78,17 @@ export default function EditPetScreen() {
     }
   }, [petId, nav]);
 
-  // 폼 상태
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [deletePhoto, setDeletePhoto] = useState(false); // ✅ 추가: 삭제 의도 플래그
+
   const [name, setName] = useState('');
   const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('');
-  const [breed, setBreed] = useState(''); // 서버 전송 안함
+  const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('');
 
-  // 1) 초기값 프리필 (route.params.initial)
+  // 초기 프리필
   useEffect(() => {
     if (!initial) return;
     setName(initial.name ?? '');
@@ -85,9 +97,10 @@ export default function EditPetScreen() {
     setAge(initial.age != null ? String(initial.age) : '');
     setWeight(initial.weight != null ? String(initial.weight) : '');
     setPhotoUri(toAbsolute(initial.photoUrl) || null);
+    setDeletePhoto(false);
   }, [initial]);
 
-  // 2) API 최신값으로 한 번 더 동기화
+  // 최신값 동기화(선택)
   useEffect(() => {
     if (!petId) return;
     (async () => {
@@ -99,8 +112,8 @@ export default function EditPetScreen() {
         setAge(d.age != null ? String(d.age) : '');
         setWeight(d.weight != null ? String(d.weight) : '');
         setPhotoUri(toAbsolute(d.photoUrl) || null);
+        setDeletePhoto(false);
       } catch (e) {
-        // initial로 프리필 되어있으면 UI는 유지
         console.log('[EditPet] getPetDetail 실패', e);
       }
     })();
@@ -112,6 +125,11 @@ export default function EditPetScreen() {
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
+  const infoMut = useUpdatePetInfo(petId);
+  const imgMut = useUpdatePetImage(petId);
+  const imgDelMut = useDeletePetImage(petId); // ✅ 추가
+  const delPetMut = useDeletePet(petId); // ✅ React Query 삭제 훅 사용
+
   const onSave = async () => {
     try {
       const speciesEnum = toSpecies(animalType);
@@ -119,7 +137,8 @@ export default function EditPetScreen() {
       const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
       const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
 
-      await updatePetInfo(petId, {
+      // 1) 정보 업데이트
+      await infoMut.mutateAsync({
         name: name.trim(),
         species: speciesEnum,
         gender: genderEnum,
@@ -127,15 +146,18 @@ export default function EditPetScreen() {
         weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
       });
 
-      // 로컬/갤러리 경로만 업로드(이미 원격 URL은 스킵)
-      if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
-        await updatePetImage(petId, photoUri);
-      }
+      // 2) 이미지 처리 분기
+      if (deletePhoto) {
+        // 프로필 사진 제거 → 서버에서도 삭제
+        await imgDelMut.mutateAsync();
+      } else if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
+        // 새 로컬/갤러리 이미지 업로드
+        await imgMut.mutateAsync(photoUri);
+      } // 원격 URL 유지면 스킵
 
       Alert.alert('완료', '수정되었습니다.');
-      nav.goBack();
+      nav.goBack(); // Manage는 캐시 최신값으로 즉시 반영됨
     } catch (e: any) {
-      console.log(e);
       Alert.alert('실패', e?.message || '수정 중 오류가 발생했어요.');
     }
   };
@@ -148,7 +170,7 @@ export default function EditPetScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await deletePet(petId);
+            await delPetMut.mutateAsync(); // ✅ 캐시 정리+목록 무효화 처리됨
             Alert.alert('삭제됨', '반려동물이 삭제되었어요.');
             nav.goBack();
           } catch (e: any) {
@@ -168,11 +190,60 @@ export default function EditPetScreen() {
         <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}>
           <PhotoPicker
             uri={photoUri || undefined}
-            onTakePhoto={() => { /* launchCamera → setPhotoUri(uri) */ }}
-            onPickFromLibrary={() => { /* launchImageLibrary → setPhotoUri(uri) */ }}
+            // 카메라 촬영
+            onTakePhoto={() => {
+              launchCamera(
+                {
+                  mediaType: 'photo',
+                  quality: 0.8,
+                  maxWidth: 1024,
+                  maxHeight: 1024,
+                },
+                (response: ImagePickerResponse) => {
+                  if (response.didCancel) return;
+                  if (response.errorMessage) {
+                    Alert.alert('오류', response.errorMessage);
+                    return;
+                  }
+                  const captured = response.assets?.[0]?.uri ?? null;
+                  if (captured) {
+                    setPhotoUri(captured);
+                    setDeletePhoto(false);
+                  }
+                },
+              );
+            }}
+            // 갤러리에서 이미지 선택
+            onPickFromLibrary={() => {
+              launchImageLibrary(
+                {
+                  mediaType: 'photo',
+                  quality: 0.8,
+                  maxWidth: 1024,
+                  maxHeight: 1024,
+                  selectionLimit: 1,
+                },
+                (response: ImagePickerResponse) => {
+                  if (response.didCancel) return;
+                  if (response.errorMessage) {
+                    Alert.alert('오류', response.errorMessage);
+                    return;
+                  }
+                  const picked = response.assets?.[0]?.uri ?? null;
+                  if (picked) {
+                    setPhotoUri(picked);
+                    setDeletePhoto(false);
+                  }
+                },
+              );
+            }}
           />
           <Pressable
-            onPress={() => setPhotoUri(null)}
+            onPress={() => {
+              // ✅ 기본이미지로 즉시 전환 + 삭제 의도 표기
+              setPhotoUri(null);
+              setDeletePhoto(true);
+            }}
             hitSlop={6}
             style={{ paddingTop: 16 }}
             accessibilityRole="button"
@@ -185,7 +256,9 @@ export default function EditPetScreen() {
 
         {/* 기본 정보 */}
         <View style={{ paddingTop: 24 }}>
-          <Text weight="bold" style={S.sectionTitle}>기본 정보</Text>
+          <Text weight="bold" style={S.sectionTitle}>
+            기본 정보
+          </Text>
 
           <Input label="이름" placeholder="동물 이름을 입력하세요" value={name} onChangeText={setName} />
 
@@ -201,8 +274,7 @@ export default function EditPetScreen() {
             onChange={setAnimalType}
           />
 
-          {/* 품종은 서버 전송 X – UI만 유지
-          <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
+          {/* <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
 
           <Input label="나이" placeholder="예: 3" value={age} onChangeText={setAge} keyboardType="number-pad" />
           <Input label="체중" placeholder="예: 4.2" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
