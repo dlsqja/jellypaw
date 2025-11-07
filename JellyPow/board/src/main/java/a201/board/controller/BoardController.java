@@ -2,6 +2,7 @@ package a201.board.controller;
 
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
+import a201.board.data.request.PlaceCreateRequest;
 import a201.board.data.response.BoardResponse;
 import a201.board.service.BoardService;
 import a201.common.response.ApiResponse;
@@ -35,10 +36,11 @@ public class BoardController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId,
                                     @RequestPart("boardRequest") BoardRequest boardRequest,
+									@RequestPart(value = "placeRequest", required = false) PlaceCreateRequest placeRequest,
                                     @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
         boardRequest.setNewImages(newImages);
-        boardService.createPost(userId, boardRequest);
+        boardService.createPost(userId, boardRequest, placeRequest);
 
         return ApiResponse.success(null);
 

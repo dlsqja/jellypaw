@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class PlaceCreateRequest {
-    private String placeId;
+    private String placeCode;
     private String title;
     private String address;
     private String description;
@@ -18,7 +18,7 @@ public class PlaceCreateRequest {
 
     public Place toEntity() {
         return Place.builder()
-                .id(placeId)
+                .code(placeCode)
                 .title(this.title)
                 .address(this.address)
                 .description(this.description)

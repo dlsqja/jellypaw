@@ -7,9 +7,12 @@ import a201.board.data.entity.Place;
 import java.util.Optional;
 
 @Repository
-public interface PlaceRepository extends JpaRepository<Place, String> {
+public interface PlaceRepository extends JpaRepository<Place, Long> {
 
 	// Place 조회
-    Optional<Place> findById(String placeId);
+    Optional<Place> findById(Long placeId);
+
+	Optional<Place> findByCode(String code);
+
 	
 }

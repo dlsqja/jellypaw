@@ -23,18 +23,18 @@ public class PlaceService {
 
 	// Place 생성 (없을 경우에만 생성)
 	public Place createPlace(PlaceCreateRequest placeCreateRequest) {
-		return placeRepository.findById(placeCreateRequest.getPlaceId())
+		return placeRepository.findByCode(placeCreateRequest.getPlaceCode())
 				.orElseGet(() -> placeRepository.save(placeCreateRequest.toEntity()));
 	}
 
 	// Place 조회
-	public Place getPlaceById(String placeId) {
-		return placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+	public Place getPlaceByCode(String code) {
+		return placeRepository.findByCode(code).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 	}
 
 	// Place 수정
-	public Place updatePlace(String placeId, PlaceUpdateRequest placeUpdateRequest) {
-		Place place = getPlaceById(placeId);
+	public Place updatePlace(String code, PlaceUpdateRequest placeUpdateRequest) {
+		Place place = getPlaceByCode(code);
 		place.setTitle(placeUpdateRequest.getTitle());
 		place.setAddress(placeUpdateRequest.getAddress());
 		place.setDescription(placeUpdateRequest.getDescription());

@@ -23,15 +23,15 @@ public class PlaceController {
     }
 
 	// Place 조회
-    @GetMapping("/{placeId}")
-    public ApiResponse<PlaceResponse> getPlaceById(@PathVariable String placeId) {
-        return ApiResponse.success(PlaceResponse.from(placeService.getPlaceById(placeId)));
+    @GetMapping("/{code}")
+    public ApiResponse<PlaceResponse> getPlaceByCode(@PathVariable String code) {
+        return ApiResponse.success(PlaceResponse.from(placeService.getPlaceByCode(code)));
     }
 
 	// Place 수정
-	@PutMapping("/{placeId}")
-	public ApiResponse<PlaceResponse> updatePlace(@PathVariable String placeId, @RequestBody PlaceUpdateRequest placeUpdateRequest) {
-		return ApiResponse.success(PlaceResponse.from(placeService.updatePlace(placeId, placeUpdateRequest)));
+	@PutMapping("/{code}")
+	public ApiResponse<PlaceResponse> updatePlace(@PathVariable String code, @RequestBody PlaceUpdateRequest placeUpdateRequest) {
+		return ApiResponse.success(PlaceResponse.from(placeService.updatePlace(code, placeUpdateRequest)));
 	}
 
 }
