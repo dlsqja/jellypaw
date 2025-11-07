@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MenuBar from '../ui/components/MenuBar';
-// 메인 레이아웃 타입
+// 웹뷰 레이아웃 타입
 interface WebviewLayoutProps {
   children: React.ReactNode;
   style?: ViewStyle;
