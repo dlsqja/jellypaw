@@ -26,8 +26,8 @@ public class Place {
 	@Column(name = "address", nullable = false)
 	private String address;
 
-	@Column(name = "description", nullable = true)
-	private String description;
+	@Column(name = "opening_hours", nullable = true)
+	private String openingHours;
 
 	@Column(name = "phone_number", nullable = true)
 	private String phoneNumber;

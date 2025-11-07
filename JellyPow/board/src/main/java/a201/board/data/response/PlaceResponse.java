@@ -12,7 +12,7 @@ public class PlaceResponse {
     private Long id;
     private String title;
     private String address;
-    private String description;
+    private String openingHours;
     private String phoneNumber;
     private String link;
     private Long userId;
@@ -24,7 +24,7 @@ public class PlaceResponse {
 				.id(place.getUserId())
 				.title(place.getTitle())
 				.address(place.getAddress())
-				.description(place.getDescription())
+				.openingHours(place.getOpeningHours())
 				.phoneNumber(place.getPhoneNumber())
 				.link(place.getLink())
 				.userId(place.getUserId())

@@ -37,7 +37,7 @@ public class PlaceService {
 		Place place = getPlaceByCode(code);
 		place.setTitle(placeUpdateRequest.getTitle());
 		place.setAddress(placeUpdateRequest.getAddress());
-		place.setDescription(placeUpdateRequest.getDescription());
+		place.setOpeningHours(placeUpdateRequest.getOpeningHoursString(placeUpdateRequest.getOpeningHours()));
 		place.setPhoneNumber(placeUpdateRequest.getPhoneNumber());
 		place.setLink(placeUpdateRequest.getLink());
 		place.setUserId(placeUpdateRequest.getUserId());
