@@ -9,8 +9,8 @@ interface ApiResponse<T> {
 
 // 게시글 상세 조회
 export const getFeedDetail = async (boardId: string): Promise<FeedDetailResponse> => {
-  const res = await apiClient.get<ApiResponse<FeedDetailResponse>>(`/boards/${boardId}`);
-  return res.data.data;
+  const response = await apiClient.get<ApiResponse<FeedDetailResponse>>(`/boards/${boardId}`);
+  return response.data.data;
 };
 
 // 게시글 작성
