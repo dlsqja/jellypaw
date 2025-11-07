@@ -4,6 +4,7 @@ import a201.board.data.entity.Comment;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
 import a201.board.data.request.CommentRequest;
+import a201.board.data.response.CommentResponse;
 import a201.board.repository.CommentRepository;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
@@ -26,7 +27,7 @@ public class CommentService {
     public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
         Board board = boardRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
-        BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
+        BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
         Comment comment = Comment.builder()
                 .board(board)
@@ -43,17 +44,13 @@ public class CommentService {
         //TODO::댓글 추가 이벤트 발생
     }
 
-    public List<Comment> getCommentsByPost(Long postId,Long userId) {
-        List<Comment> parents = commentRepository.findAllByBoardId(postId);
+    public List<CommentResponse> getCommentsByPost(Long postId,Long userId) {
+        List<Comment> comments = commentRepository.findAllByBoard_Id(postId);
 
-        return parents;
-    }
 
-    public List<Comment> getCommentsByParent(Long parentId,Long userId) {
-
-        List<Comment> childs = commentRepository.findAllByParentId(parentId);
-
-        return childs;
+        return comments.stream()
+                .map(CommentResponse::of)
+                .toList();
     }
 
     public void deleteComment(Long commentId,Long userId) {
@@ -67,7 +64,6 @@ public class CommentService {
         commentRepository.delete(comment);
 
         //TODO::댓글 삭제 이벤트 발생
-
     }
 }
 

@@ -140,5 +140,12 @@ public class UserService {
         return userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
+
+	// authId로 Email 조회
+	public String getEmailByAuthId(Long authId) {
+		return authRepository.findById(authId)
+				.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND))
+				.getEmail();
+	}
 }
 

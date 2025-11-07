@@ -6,6 +6,7 @@ import a201.board.data.entity.BoardUser;
 import a201.board.repository.LikeRepository;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class LikeService {
 
     public Like addLike(Long postId,Long userId) {
         Board board = boardRepository.getBoardById(postId);
-        BoardUser boardUser = boardUserRepository.getPostUserByUserId(userId);
+        BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
         Like like = Like.builder()
                 .board(board)

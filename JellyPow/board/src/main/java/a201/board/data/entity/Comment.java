@@ -1,5 +1,6 @@
 package a201.board.data.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,7 +20,7 @@ public class Comment {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
 
     @ManyToOne
@@ -28,13 +29,13 @@ public class Comment {
 
     @Builder.Default
     @ManyToOne
-    @JoinColumn(name = "parent_id")
+    @JoinColumn
     private Comment parent=null;
 
     @Column(nullable = false)
     private String content;
 
     @Builder.Default
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 }
