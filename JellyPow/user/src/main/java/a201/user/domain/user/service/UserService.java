@@ -135,10 +135,16 @@ public class UserService {
         return UserSignupResponse.from(user);
     }
 	
-	// 유저 검색
+	// 유저 검색 (prefix: LIKE "nickname%")
 	@TimeTrace  // AOP로 자동으로 실행 시간 측정
 	public List<User> searchUsers(String nickname) {
 		return userRepository.findByNicknameStartingWith(nickname);
+	}
+
+	// 유저 검색 (포함 검색: LIKE "%nickname%")
+	@TimeTrace
+	public List<User> searchUsersLike(String nickname) {
+		return userRepository.findByNicknameContaining(nickname);
 	}
 
     // 닉네임 중복 체크

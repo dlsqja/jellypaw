@@ -24,5 +24,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	// nickname으로 User 검색 (앞부분 일치: LIKE "12%")
 	List<User> findByNicknameStartingWith(String nickname);
+
+	// nickname으로 User 검색 (포함 검색: LIKE "%nickname%")
+	List<User> findByNicknameContaining(String nickname);
 }
 

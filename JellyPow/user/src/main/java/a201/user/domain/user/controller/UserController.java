@@ -50,10 +50,22 @@ public class UserController {
 		}
 	}
 
+	@Operation(summary = "유저 검색 (prefix)", description = "닉네임 접두사 검색 (LIKE 'nickname%')")
 	@GetMapping("/search")
 	public ApiResponse<List<UserSignupResponse>> searchUsers(@RequestParam String nickname) {
 		try {
 			List<User> users = userService.searchUsers(nickname);
+			return ApiResponse.success(users.stream().map(UserSignupResponse::from).collect(Collectors.toList()));
+		} catch (CustomException e) {
+			return ApiResponse.error(e.getErrorCode());
+		}
+	}
+
+	@Operation(summary = "유저 검색 (포함 검색)", description = "닉네임 포함 검색 (LIKE '%nickname%')")
+	@GetMapping("/search/like")
+	public ApiResponse<List<UserSignupResponse>> searchUsersLike(@RequestParam String nickname) {
+		try {
+			List<User> users = userService.searchUsersLike(nickname);
 			return ApiResponse.success(users.stream().map(UserSignupResponse::from).collect(Collectors.toList()));
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());

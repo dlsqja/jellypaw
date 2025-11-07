@@ -1,27 +1,30 @@
 {
+  "index": {
+    "max_ngram_diff": 8
+  },
   "analysis": {
-    "analyzer": {
-      "nori": {
+    "normalizer": {
+      "lower_norm": {
         "type": "custom",
-        "tokenizer": "nori_tokenizer",
-        "filter": ["lowercase", "nori_part_of_speech"]
-      },
-      "ngram_analyzer": {
-        "type": "custom",
-        "tokenizer": "ngram_tokenizer",
-        "filter": ["lowercase"]
+        "filter": ["lowercase", "asciifolding"]
       }
     },
     "tokenizer": {
+      "ngram_tokenizer": {
+        "type": "ngram",
+        "min_gram": 2,
+        "max_gram": 10,
+        "token_chars": ["letter", "digit"]
+      },
+      "edge_tokenizer": {
+        "type": "edge_ngram",
+        "min_gram": 1,
+        "max_gram": 15,
+        "token_chars": ["letter", "digit"]
+      },
       "nori_tokenizer": {
         "type": "nori_tokenizer",
         "decompound_mode": "mixed"
-      },
-      "ngram_tokenizer": {
-        "type": "ngram",
-        "min_gram": 1,
-        "max_gram": 10,
-        "token_chars": ["letter", "digit"]
       }
     },
     "filter": {
@@ -47,6 +50,31 @@
           "NA",
           "VSV"
         ]
+      },
+      "nori_readingform": {
+        "type": "nori_readingform"
+      }
+    },
+    "analyzer": {
+      "ngram_analyzer": {
+        "type": "custom",
+        "tokenizer": "ngram_tokenizer",
+        "filter": ["lowercase", "asciifolding"]
+      },
+      "edge_analyzer": {
+        "type": "custom",
+        "tokenizer": "edge_tokenizer",
+        "filter": ["lowercase", "asciifolding"]
+      },
+      "search_analyzer_std": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": ["lowercase", "asciifolding"]
+      },
+      "korean_nori": {
+        "type": "custom",
+        "tokenizer": "nori_tokenizer",
+        "filter": ["lowercase", "nori_readingform", "nori_part_of_speech"]
       }
     }
   }

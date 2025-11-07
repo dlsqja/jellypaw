@@ -11,8 +11,10 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 import org.springframework.data.elasticsearch.annotations.InnerField;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 @Document(indexName = "users")
+@Setting(settingPath = "elasticsearch/user-settings.json")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,14 +26,18 @@ public class UserDocument {
     private Long id;
 
     // Multi-field 설정: 
-    // - nickname: ngram_analyzer (영어 부분 검색용)
-    // - nickname.nori: nori 분석기 (한글 형태소 분석, 조사 제외)
-    // - nickname.keyword: keyword (정확 일치용)
+    // - nickname: 기본 텍스트 필드
+    // - nickname.ngram: 부분 일치 검색 (포함 검색) - "강남" → "서울강남", "강남역" 모두 매칭
+    // - nickname.edge: 접두사 검색 (prefix) - "강남" → "강남역", "강남구"만 매칭
+    // - nickname.nori: 한국어 형태소 분석 검색 - "강남역" → "강남", "역"으로 분리하여 검색
+    // - nickname.kw: keyword (정확 일치용)
     @MultiField(
-        mainField = @Field(type = FieldType.Text, analyzer = "ngram_analyzer", searchAnalyzer = "ngram_analyzer"),
+        mainField = @Field(type = FieldType.Text),
         otherFields = {
-            @InnerField(suffix = "nori", type = FieldType.Text, analyzer = "nori", searchAnalyzer = "nori"),
-            @InnerField(suffix = "keyword", type = FieldType.Keyword)
+            @InnerField(suffix = "ngram", type = FieldType.Text, analyzer = "ngram_analyzer", searchAnalyzer = "search_analyzer_std"),
+            @InnerField(suffix = "edge", type = FieldType.Text, analyzer = "edge_analyzer", searchAnalyzer = "search_analyzer_std"),
+            @InnerField(suffix = "nori", type = FieldType.Text, analyzer = "korean_nori", searchAnalyzer = "korean_nori"),
+            @InnerField(suffix = "kw", type = FieldType.Keyword, normalizer = "lower_norm")
         }
     )
     private String nickname;

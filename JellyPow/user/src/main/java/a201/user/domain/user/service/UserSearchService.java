@@ -26,24 +26,36 @@ public class UserSearchService {
     private final ElasticsearchOperations elasticsearchOperations;
 
     // Elasticsearch에서 유저 검색
-    // 한글+영어 혼합 닉네임의 부분 검색 지원
-    // 예: "김유성의library" → "유성", "김유성", "김", "lib", "library" 모두 검색 가능
-    // 한글은 형태소 분석으로 조사("의") 제외, 영어는 ngram으로 부분 검색
+    // 검색 방식:
+    // - nickname.ngram^3: 부분 일치 검색 (포함 검색) - "강남" → "서울강남", "강남역" 모두 매칭
+    // - nickname.edge^1.5: 접두사 검색 (prefix) - "강남" → "강남역", "강남구"만 매칭
+    // - nickname.nori^2: 한국어 형태소 분석 검색 - "강남역" → "강남", "역"으로 분리하여 검색
     @TimeTrace
     public List<UserDocument> searchUsers(String nickname) {
-        // multi_match 쿼리 사용: nickname(ngram)과 nickname.nori(nori 분석기) 두 필드를 모두 검색
-        // - nickname: ngram_analyzer로 영어 부분 검색 (lib, library 등)
-        // - nickname.nori: nori 분석기로 한글 형태소 분석, 조사 제외 (김유성, 유성 등)
-        // type: "best_fields" - 여러 필드 중 가장 높은 점수를 가진 필드 기준
-        // operator: "or" - 검색어의 일부 토큰만 일치해도 검색 가능
+        // bool 쿼리로 여러 필드를 should로 묶어 검색
+        // - nickname.ngram^3: 포함 검색 (가장 높은 가중치)
+        // - nickname.nori^2: 한국어 형태소 분석 검색
+        // - nickname.edge^1.5: 접두사 검색
+        // minimum_should_match: 1 - 하나라도 매칭되면 검색
         String queryJson = String.format(
-            "{\"multi_match\": {" +
-                "\"query\": \"%s\"," +
-                "\"fields\": [\"nickname^1.0\", \"nickname.nori^1.5\"]," +
-                "\"type\": \"best_fields\"," +
-                "\"operator\": \"or\"" +
+            "{\"bool\": {" +
+                "\"should\": [" +
+                    "{\"multi_match\": {" +
+                        "\"query\": \"%s\"," +
+                        "\"fields\": [\"nickname.ngram^3\"]" +
+                    "}}," +
+                    "{\"multi_match\": {" +
+                        "\"query\": \"%s\"," +
+                        "\"fields\": [\"nickname.nori^2\"]" +
+                    "}}," +
+                    "{\"multi_match\": {" +
+                        "\"query\": \"%s\"," +
+                        "\"fields\": [\"nickname.edge^1.5\"]" +
+                    "}}" +
+                "]," +
+                "\"minimum_should_match\": 1" +
             "}}",
-            nickname
+            nickname, nickname, nickname
         );
         
         StringQuery query = new StringQuery(queryJson);
