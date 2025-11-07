@@ -1,6 +1,6 @@
 import React from 'react';
 import FeedScreen from '../screens/main/Feed/FeedScreen';
-import MainLayout from '../layouts/MainLayout';
+import WebviewLayout from '../layouts/WebviewLayout';
 
 export type FeedStackParamList = {
   Feed: undefined;
@@ -9,8 +9,8 @@ export type FeedStackParamList = {
 // 피드 네비게이터
 export default function FeedNavigator() {
   return (
-    <MainLayout>
+    <WebviewLayout>
       <FeedScreen />
-    </MainLayout>
+    </WebviewLayout>
   );
 }
