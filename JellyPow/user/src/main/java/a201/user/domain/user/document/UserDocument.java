@@ -9,6 +9,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.MultiField;
+import org.springframework.data.elasticsearch.annotations.InnerField;
 
 @Document(indexName = "users")
 @Getter
@@ -21,7 +23,17 @@ public class UserDocument {
     @Id
     private Long id;
 
-    @Field(type = FieldType.Keyword)
+    // Multi-field 설정: 
+    // - nickname: ngram_analyzer (영어 부분 검색용)
+    // - nickname.nori: nori 분석기 (한글 형태소 분석, 조사 제외)
+    // - nickname.keyword: keyword (정확 일치용)
+    @MultiField(
+        mainField = @Field(type = FieldType.Text, analyzer = "ngram_analyzer", searchAnalyzer = "ngram_analyzer"),
+        otherFields = {
+            @InnerField(suffix = "nori", type = FieldType.Text, analyzer = "nori", searchAnalyzer = "nori"),
+            @InnerField(suffix = "keyword", type = FieldType.Keyword)
+        }
+    )
     private String nickname;
 
     @Field(type = FieldType.Text)

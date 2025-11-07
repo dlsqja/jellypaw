@@ -26,12 +26,23 @@ public class UserSearchService {
     private final ElasticsearchOperations elasticsearchOperations;
 
     // Elasticsearch에서 유저 검색
+    // 한글+영어 혼합 닉네임의 부분 검색 지원
+    // 예: "김유성의library" → "유성", "김유성", "김", "lib", "library" 모두 검색 가능
+    // 한글은 형태소 분석으로 조사("의") 제외, 영어는 ngram으로 부분 검색
     @TimeTrace
     public List<UserDocument> searchUsers(String nickname) {
-        // Prefix 쿼리 사용: 앞부분 일치 검색 (LIKE "12%"와 동일)
-        // 예: "12" 검색 시 "12", "123", "1234" 등 검색됨 (인덱스 활용 가능)
+        // multi_match 쿼리 사용: nickname(ngram)과 nickname.nori(nori 분석기) 두 필드를 모두 검색
+        // - nickname: ngram_analyzer로 영어 부분 검색 (lib, library 등)
+        // - nickname.nori: nori 분석기로 한글 형태소 분석, 조사 제외 (김유성, 유성 등)
+        // type: "best_fields" - 여러 필드 중 가장 높은 점수를 가진 필드 기준
+        // operator: "or" - 검색어의 일부 토큰만 일치해도 검색 가능
         String queryJson = String.format(
-            "{\"prefix\": {\"nickname\": {\"value\": \"%s\"}}}",
+            "{\"multi_match\": {" +
+                "\"query\": \"%s\"," +
+                "\"fields\": [\"nickname^1.0\", \"nickname.nori^1.5\"]," +
+                "\"type\": \"best_fields\"," +
+                "\"operator\": \"or\"" +
+            "}}",
             nickname
         );
         
