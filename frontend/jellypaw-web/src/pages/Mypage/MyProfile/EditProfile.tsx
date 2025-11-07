@@ -8,11 +8,12 @@ import { useState, useRef, useEffect } from 'react';
 import { useProfile, useProfileQueryClient } from '@/hooks/queries/ProfileQuery';
 import { BsPersonCircle } from 'react-icons/bs';
 import type { EditProfileRequest, EditProfileImageRequest } from '@/types/mypage';
+import { useNavigate } from 'react-router-dom';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 export default function EditProfile() {
   const { invalidateProfile } = useProfileQueryClient();
-
+  const navigate = useNavigate();
   // React Query로 캐싱된 프로필 데이터 가져오기
   const { data: profileData } = useProfile();
 
@@ -99,8 +100,8 @@ export default function EditProfile() {
       setDeleteProfileImg(false); // 제거 상태 초기화
       setSelectedImage(null); // 선택된 이미지 초기화
       setPreviewImage(null); // 미리보기 초기화
+      navigate('/mypage');
     } catch (error) {
-      console.error('프로필 수정 실패:', error);
       alert('프로필 수정에 실패했습니다.');
     }
   };
