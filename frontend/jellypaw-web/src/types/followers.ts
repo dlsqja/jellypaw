@@ -1,7 +1,4 @@
-// export interface getfollowers {
-//   id: number;
-//   title: string;
-//   content: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
+export interface GetFollowersResponse {
+  nickname?: string;
+  profileImg?: string;
+}

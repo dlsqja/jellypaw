@@ -6,7 +6,11 @@ import MainLayout from '../layouts/MainLayout';
 
 export type FeedWriteStackParamList = {
   SelectCategory: undefined;
-  FeedWrite: { categoryId: number; categoryName: string };
+  FeedWrite: {
+    categoryId: number;
+    categoryName: string;
+    categoryValue: string;
+  };
 };
 
 const Stack = createNativeStackNavigator<FeedWriteStackParamList>();
