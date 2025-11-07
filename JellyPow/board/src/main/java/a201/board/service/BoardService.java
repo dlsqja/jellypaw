@@ -92,8 +92,11 @@ public class BoardService {
 
         newBoard.setImages(images);
 
-		Place place = placeService.createPlace(placeRequest);
-		newBoard.setPlaceId(place.getId());
+		Place place = null;
+		if (placeRequest != null) {
+			place = placeService.createPlace(placeRequest);
+			newBoard.setPlaceId(place.getId());
+		}
 
         boardRepository.save(newBoard);
 
@@ -105,7 +108,7 @@ public class BoardService {
                 .category(boardRequest.getCategory())
                 .title(boardRequest.getTitle())
                 .content(boardRequest.getContent())
-                .placeId(place.getId())
+                .placeId(placeRequest != null ? place.getId() : null)
                 .starRating(boardRequest.getStarRating())
                 .createdAt(newBoard.getCreatedAt())
                 .visibility(boardRequest.getVisibility())
