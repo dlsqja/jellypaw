@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -38,6 +39,14 @@ public class BoardService {
     private final S3Service s3Service;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final PlaceService placeService;
+
+    public List<BoardResponse> getFeeds() {
+
+        List<Board> boards = boardRepository.findAll();
+
+
+        return boards.stream().map(BoardResponse::fromEntity).collect(Collectors.toList());
+    }
 
     public BoardResponse getPost(Long userId, Long postId) {
 
