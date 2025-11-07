@@ -1,38 +1,27 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-// 프로필 더미데이터
-import { getMyProfile } from '@/services/api/mypage';
-import { useEffect, useState } from 'react';
-import type { MyProfileResponse } from '@/types/mypage';
-const profileData = {
-  username: '멍멍이엄마',
-  description: '초코와 함께하는 일상을 기록하고 있어요',
-  postCount: 12,
-  followingCount: 892,
-  followerCount: 892,
-};
+import { BsPersonCircle } from 'react-icons/bs';
+import { useProfile } from '@/hooks/queries/ProfileQuery';
 
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 export default function MyProfile() {
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState<MyProfileResponse>();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const data = await getMyProfile();
-      console.log(data);
-      setProfileData(data);
-    };
-    fetchProfile();
-  }, []);
+  // React Query로 프로필 데이터 가져오기
+  const { data: profileData } = useProfile();
   return (
     <Card className="p-4">
       <CardHeader className="pb-0">
         <div className="h-18 flex justify-start items-center gap-4">
-          <img className="w-16 h-16 max-w-16" src="/src/assets/search/person1.png" alt="프로필" />
+          {profileData?.profileImg ? (
+            <img className="w-16 h-16 max-w-16" src={`${IMAGE_BASE_URL}${profileData?.profileImg}`} alt="프로필" />
+          ) : (
+            <BsPersonCircle className="w-32 h-16 max-w-16 text-aqua-300" />
+          )}
           <div className="flex flex-col justify-center items-start gap-1">
             <div className="text-aqua-500 h6-b">{profileData?.nickname}</div>
-            <div className="w-52 h-10 text-gray-700 p2">{profileData?.description}</div>
+            <div className="h-max max-h-10 w-full text-gray-700 p2 line-clamp-2">{profileData?.description}</div>
           </div>
         </div>
       </CardHeader>
