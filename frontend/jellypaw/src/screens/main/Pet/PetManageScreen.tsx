@@ -9,7 +9,7 @@ import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
 import { API_BASE_URL } from '@env';
 
-// ✅ React Query 훅 사용
+//  React Query 훅 사용
 import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
 import type { getPetListResponse } from '../../../types/main/pet';
 
@@ -65,7 +65,11 @@ export default function PetManageScreen({ navigation }: any) {
       >
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
-          <View style={S.petRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={S.petRow}
+          >
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
                 key={pet.petId}
@@ -76,8 +80,9 @@ export default function PetManageScreen({ navigation }: any) {
                 onPress={() => setSelectedPetId(pet.petId ?? 0)}
               />
             ))}
+
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
-          </View>
+          </ScrollView>
         </View>
 
         {/* 탭 */}
@@ -121,6 +126,13 @@ export default function PetManageScreen({ navigation }: any) {
 }
 
 const S = StyleSheet.create({
+  // 가로 스크롤 컨테이너
+  petRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+
   header: {
     height: 64,
     paddingHorizontal: 16,
@@ -137,11 +149,6 @@ const S = StyleSheet.create({
     height: 24,
     backgroundColor: theme.text.primary,
     borderRadius: 2,
-  },
-  petRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
   healthPlaceholder: {
     width: '100%',

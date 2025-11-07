@@ -12,6 +12,8 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import {
   useUpdatePetInfo,
   useUpdatePetImage,
+  useDeletePet,
+  useDeletePetImage,
 } from '../../../services/queries/petHooks';
 
 import {
@@ -89,7 +91,6 @@ export default function EditPetScreen() {
   const nav = useNavigation<any>();
   const { petId, initial } = (route.params || {}) as RouteParams;
 
-  // 필수 파라미터 보장
   useEffect(() => {
     if (!petId) {
       Alert.alert('오류', '잘못된 접근입니다. (petId 없음)');
@@ -97,20 +98,21 @@ export default function EditPetScreen() {
     }
   }, [petId, nav]);
 
-  // 폼 상태
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [deletePhoto, setDeletePhoto] = useState(false); // ✅ 추가: 삭제 의도 플래그
+
   const [name, setName] = useState('');
   const [animalType, setAnimalType] = useState<
     '강아지' | '고양이' | '기타' | ''
   >('');
-  const [breed, setBreed] = useState(''); // 서버 전송 안함
+  const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<
     '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''
   >('');
 
-  // 1) 초기값 프리필 (route.params.initial)
+  // 초기 프리필
   useEffect(() => {
     if (!initial) return;
     setName(initial.name ?? '');
@@ -119,9 +121,10 @@ export default function EditPetScreen() {
     setAge(initial.age != null ? String(initial.age) : '');
     setWeight(initial.weight != null ? String(initial.weight) : '');
     setPhotoUri(toAbsolute(initial.photoUrl) || null);
+    setDeletePhoto(false);
   }, [initial]);
 
-  // 2) API 최신값으로 한 번 더 동기화
+  // 최신값 동기화(선택)
   useEffect(() => {
     if (!petId) return;
     (async () => {
@@ -133,8 +136,8 @@ export default function EditPetScreen() {
         setAge(d.age != null ? String(d.age) : '');
         setWeight(d.weight != null ? String(d.weight) : '');
         setPhotoUri(toAbsolute(d.photoUrl) || null);
+        setDeletePhoto(false);
       } catch (e) {
-        // initial로 프리필 되어있으면 UI는 유지
         console.log('[EditPet] getPetDetail 실패', e);
       }
     })();
@@ -148,6 +151,8 @@ export default function EditPetScreen() {
 
   const infoMut = useUpdatePetInfo(petId);
   const imgMut = useUpdatePetImage(petId);
+  const imgDelMut = useDeletePetImage(petId); // ✅ 추가
+  const delPetMut = useDeletePet(petId); // ✅ React Query 삭제 훅 사용
 
   const onSave = async () => {
     try {
@@ -157,7 +162,7 @@ export default function EditPetScreen() {
       const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
 
       // 1) 정보 업데이트
-      const updated = await infoMut.mutateAsync({
+      await infoMut.mutateAsync({
         name: name.trim(),
         species: speciesEnum,
         gender: genderEnum,
@@ -165,13 +170,17 @@ export default function EditPetScreen() {
         weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
       });
 
-      // 2) 이미지가 로컬/갤러리 경로면 업로드
-      if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
+      // 2) 이미지 처리 분기
+      if (deletePhoto) {
+        // 프로필 사진 제거 → 서버에서도 삭제
+        await imgDelMut.mutateAsync();
+      } else if (photoUri && /^file:|^content:|\/storage\//i.test(photoUri)) {
+        // 새 로컬/갤러리 이미지 업로드
         await imgMut.mutateAsync(photoUri);
-      }
+      } // 원격 URL 유지면 스킵
 
       Alert.alert('완료', '수정되었습니다.');
-      nav.goBack(); // 돌아가면 Manage는 **캐시된 최신값**으로 즉시 렌더링
+      nav.goBack(); // Manage는 캐시 최신값으로 즉시 반영됨
     } catch (e: any) {
       Alert.alert('실패', e?.message || '수정 중 오류가 발생했어요.');
     }
@@ -185,7 +194,7 @@ export default function EditPetScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            await deletePet(petId);
+            await delPetMut.mutateAsync(); // ✅ 캐시 정리+목록 무효화 처리됨
             Alert.alert('삭제됨', '반려동물이 삭제되었어요.');
             nav.goBack();
           } catch (e: any) {
@@ -208,14 +217,18 @@ export default function EditPetScreen() {
           <PhotoPicker
             uri={photoUri || undefined}
             onTakePhoto={() => {
-              /* launchCamera → setPhotoUri(uri) */
+              /* launchCamera → setPhotoUri(uri); setDeletePhoto(false); */
             }}
             onPickFromLibrary={() => {
-              /* launchImageLibrary → setPhotoUri(uri) */
+              /* launchImageLibrary → setPhotoUri(uri); setDeletePhoto(false); */
             }}
           />
           <Pressable
-            onPress={() => setPhotoUri(null)}
+            onPress={() => {
+              // ✅ 기본이미지로 즉시 전환 + 삭제 의도 표기
+              setPhotoUri(null);
+              setDeletePhoto(true);
+            }}
             hitSlop={6}
             style={{ paddingTop: 16 }}
             accessibilityRole="button"
@@ -254,8 +267,7 @@ export default function EditPetScreen() {
             onChange={setAnimalType}
           />
 
-          {/* 품종은 서버 전송 X – UI만 유지
-          <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
+          {/* <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
 
           <Input
             label="나이"

@@ -230,8 +230,42 @@ export const updatePetImage = async (
   }
 };
 
-// (선택) 서버가 “이미지 삭제”를 별도로 지원하면 그 엔드포인트 사용.
-// 없다면 백엔드에 ‘delete=true’ 같은 플래그 추가 요청이 안전.
+// ─────────────────────────────────────────────
+// 이미지 삭제 (예시: PATCH /pets/img/{petId} { delete: true })
+// ─────────────────────────────────────────────
+export const deletePetImage = async (
+  petId: number,
+): Promise<CreatePetResponse> => {
+  try {
+    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(
+      `/pets/img/${petId}`,
+      { delete: true }, // ★ BE와 합의한 키로 수정
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    if (res.data?.code && res.data.code !== 200) {
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
+    }
+
+    return res.data.data;
+  } catch (err: any) {
+    console.log('[deletePetImage] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
+};
+
+
 
 // ────────────────────────────────────────────────────────────
 // 추가 ③: 삭제 (DELETE /pets/{petId})

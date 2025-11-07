@@ -39,9 +39,18 @@ export function PetMiniCard({ name, species = '강아지', avatarUri, selected, 
 
 export function AddPetCard({ onPress }: { onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} style={[S.card, S.cardDefault, { height: 118 }]}>
-      <View style={[S.avatar, { backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' }]}>
-        <Feather name='plus' size={20} color={theme.text.muted} ></Feather>
+    <Pressable onPress={onPress} style={[S.card, S.cardDefault]}>
+      <View
+        style={[
+          S.avatar,
+          {
+            backgroundColor: '#F3F4F6',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        ]}
+      >
+        <Feather name="plus" size={20} color={theme.text.muted} />
       </View>
       <Text style={[S.name, { color: theme.text.muted }]}>추가</Text>
     </Pressable>
@@ -49,7 +58,14 @@ export function AddPetCard({ onPress }: { onPress?: () => void }) {
 }
 
 const S = StyleSheet.create({
-  card: { width: 94, padding: 14, borderRadius: 12, alignItems: 'center' },
+  card: {
+    width: 94,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginRight: 16,  
+    height: 136,  
+   },
   cardSelected: {
     backgroundColor: theme.bg.brandSubtle, // '#F0F7F9'
     borderWidth: 2,
