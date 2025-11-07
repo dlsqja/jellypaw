@@ -1,34 +1,41 @@
 import React from 'react';
 import { View, Image, StyleSheet, Pressable } from 'react-native';
 import { Text } from './Text';
-import { palette, theme } from '../system/variants'; // ⬅️ 추가
+import { palette, theme } from '../system/variants';
 import Feather from 'react-native-vector-icons/Feather';
+
+
+const defaultPetImage = require('../../../assets/images/pets/반려동물1.png');
 
 type PetMiniCardProps = {
   name: string;
-  kind?: string;
-  avatarUri?: string;
+  species?: string;
+  avatarUri?: string | null;
   selected?: boolean;
   onPress?: () => void;
 };
 
-export function PetMiniCard({ name, kind = '강아지', avatarUri, selected, onPress }: PetMiniCardProps) {
+export function PetMiniCard({ name, species = '강아지', avatarUri, selected, onPress }: PetMiniCardProps) {
   return (
     <Pressable onPress={onPress} style={[S.card, selected ? S.cardSelected : S.cardDefault]}>
       <View style={{ paddingBottom: 8 }}>
         <View style={S.avatarWrap}>
-          {avatarUri ? (
-            <Image source={{ uri: avatarUri }} style={S.avatar} />
-          ) : (
-            <View style={[S.avatar, { backgroundColor: '#F3F4F6' }]} />
-          )}
+          <Image
+  source={typeof avatarUri === 'string' && avatarUri.trim().length > 0
+    ? { uri: avatarUri }
+    : defaultPetImage}
+  defaultSource={defaultPetImage}
+  style={S.avatar}
+/>
+
         </View>
       </View>
       <Text style={S.name}>{name}</Text>
-      <Text style={S.kind}>{kind}</Text>
+      <Text style={S.species}>{species}</Text>
     </Pressable>
   );
 }
+
 
 export function AddPetCard({ onPress }: { onPress?: () => void }) {
   return (
@@ -57,5 +64,5 @@ const S = StyleSheet.create({
   avatarWrap: {},
   avatar: { width: 64, height: 64, borderRadius: 9999, overflow: 'hidden' },
   name: { fontSize: 14, lineHeight: 20, color: theme.text.primary }, // '#111827'
-  kind: { fontSize: 11, lineHeight: 14, color: theme.text.secondary }, // '#6B7280'
+  species: { fontSize: 11, lineHeight: 14, color: theme.text.secondary }, // '#6B7280'
 });

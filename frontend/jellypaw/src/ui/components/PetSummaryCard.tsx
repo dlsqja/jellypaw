@@ -1,8 +1,10 @@
-import React from 'react';
-import { View, Image, StyleSheet, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, StyleSheet, Pressable, ImageSourcePropType } from 'react-native';
 import { Text } from './Text';
 import Feather from 'react-native-vector-icons/Feather';
-import { palette, theme } from '../system/variants'; // ⬅️ 추가
+import { palette, theme } from '../system/variants';
+
+const defaultPetImage = require('../../../assets/images/pets/반려동물1.png');
 
 function InfoChip({
   title,
@@ -22,7 +24,8 @@ function InfoChip({
 }
 
 type Props = {
-  avatarUri?: string;
+  /** null: 기본이미지로 리셋, undefined: 이전 유지, string: 교체 */
+  avatarUri?: string | null;
   name: string;
   kind: string;
   registeredAt?: string;
@@ -42,37 +45,46 @@ export default function PetSummaryCard({
   sex,
   onEdit,
 }: Props) {
+  const [source, setSource] = useState<ImageSourcePropType>(defaultPetImage);
+
+  useEffect(() => {
+    if (avatarUri === null) {
+      // 부모가 기본 이미지로 리셋을 의도
+      setSource(defaultPetImage);
+    } else if (typeof avatarUri === 'string' && avatarUri.trim().length > 0) {
+      // 유효한 URL이면 교체
+      setSource({ uri: avatarUri });
+    }
+    // avatarUri === undefined 인 경우: 이전 이미지 유지 (깜빡임 방지)
+  }, [avatarUri]);
+
   return (
     <View style={S.card}>
       <View style={{ paddingBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Image
-            source={{ uri: avatarUri ?? 'https://placehold.co/80x80' }}
+            source={source}
+            defaultSource={defaultPetImage}
             style={S.avatar}
+            onError={() => setSource(defaultPetImage)} // 네트워크 실패 시 기본으로
           />
           <View style={{ paddingLeft: 16 }}>
-            <Text weight="bold" style={S.title}>
-              {name}
-            </Text>
+            <Text weight="bold" style={S.title}>{name}</Text>
             <Text style={S.sub}>{kind}</Text>
-            {!!registeredAt && (
-              <Text style={S.meta}>등록일: {registeredAt}</Text>
-            )}
+            {!!registeredAt && <Text style={S.meta}>등록일: {registeredAt}</Text>}
           </View>
         </View>
       </View>
 
       <View style={S.chipsRow}>
-        <InfoChip title={age + '살'} caption="나이" />
-        <InfoChip title={weight + 'kg'} caption="체중" />
+        <InfoChip title={(age ?? 0) + '살'} caption="나이" />
+        <InfoChip title={(weight ?? 0) + 'kg'} caption="체중" />
         <InfoChip title={sex ?? '-'} caption="성별" />
       </View>
 
       <Pressable onPress={onEdit} style={S.editBtn}>
         <Feather name="edit-3" size={18} color={theme.border.default} />
-        <Text weight="medium" style={S.editLabel}>
-          정보 수정
-        </Text>
+        <Text weight="medium" style={S.editLabel}>정보 수정</Text>
       </Pressable>
     </View>
   );
@@ -82,17 +94,16 @@ const S = StyleSheet.create({
   card: {
     width: '100%',
     padding: 25,
-    backgroundColor: theme.bg.surface, // '#FFFFFF' → 토큰
+    backgroundColor: theme.bg.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: theme.border.gray, // '#E5E7EB' → 토큰
+    borderColor: theme.border.gray,
   },
   avatar: { width: 80, height: 80, borderRadius: 9999 },
-  title: { fontSize: 20, lineHeight: 28, color: theme.text.primary }, // '#111827'
-  sub: { fontSize: 14, lineHeight: 20, color: theme.text.muted }, // '#4B5563'
-  meta: { fontSize: 14, lineHeight: 20, color: theme.text.secondary }, // '#6B7280'
+  title: { fontSize: 20, lineHeight: 28, color: theme.text.primary },
+  sub: { fontSize: 14, lineHeight: 20, color: theme.text.muted },
+  meta: { fontSize: 14, lineHeight: 20, color: theme.text.secondary },
 
-  // 3등분 그리드 유지
   chipsRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -103,7 +114,7 @@ const S = StyleSheet.create({
     minWidth: 0,
     height: 61,
     padding: 12,
-    backgroundColor: theme.bg.subtle, // '#FAFAFA'
+    backgroundColor: theme.bg.subtle,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -124,14 +135,14 @@ const S = StyleSheet.create({
   editBtn: {
     height: 38,
     borderRadius: 12,
-    backgroundColor: theme.bg.brandSubtle, // '#F0F7F9'
+    backgroundColor: theme.bg.brandSubtle,
     borderWidth: 1,
-    borderColor: theme.border.default, // '#6ABFB8'
+    borderColor: theme.border.default,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
     gap: 8,
   },
-  editLabel: { fontSize: 14, lineHeight: 21, color: theme.border.default }, // '#6ABFB8'
+  editLabel: { fontSize: 14, lineHeight: 21, color: theme.border.default },
 });
