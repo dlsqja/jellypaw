@@ -4,22 +4,23 @@ import Header from '@/components/headers/Header';
 import Followers from '@/pages/Feed/Components/Followers';
 import Article from '@/pages/Feed/Components/Article';
 import { getFollowers } from '@/services/api/followers';
+import { useProfile } from '@/hooks/queries/ProfileQuery';
+import type { GetFollowersResponse } from '@/types/followers';
+import { BsPersonCircle } from 'react-icons/bs';
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function Feed() {
+  const { data: profileData } = useProfile();
+  const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   useEffect(() => {
-    getFollowers().then((data) => {
-      console.log(data);
-    });
-  }, []);
-  // 팔로워 목록
-  const petProfiles = [
-    { name: '탄산', imageUrl: '/src/assets/pets/반려동물1.png' },
-    { name: '구찌', imageUrl: '/src/assets/pets/반려동물2.png' },
-    { name: '짜장', imageUrl: '/src/assets/pets/반려동물3.png' },
-    { name: '햄찌', imageUrl: '/src/assets/pets/반려동물1.png' },
-    { name: '림보', imageUrl: '/src/assets/pets/반려동물2.png' },
-    { name: '뽕따', imageUrl: '/src/assets/pets/반려동물3.png' },
-  ];
+    // profileData가 로드되고 nickname이 있을 때만 API 호출
+    if (profileData?.nickname) {
+      getFollowers(profileData.nickname).then((data) => {
+        console.log(data);
+        setFollowings(data || []); // null이면 빈 배열로 설정
+      });
+    }
+  }, [profileData?.nickname]); // profileData.nickname이 변경될 때마다 실행
 
   const [activeProfile, setActiveProfile] = useState<string>('전체');
 
@@ -77,27 +78,33 @@ export default function Feed() {
         {/* 전체 */}
         <div className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer" onClick={() => setActiveProfile('전체')}>
           <div
-            className="w-16 h-16 p-1.5 rounded-full outline outline-2 outline-offset-[-2px]
-              outline-aqua-300 flex flex-col justify-center items-center"
+            className={`w-16 h-16 p-1.5 rounded-full outline outline-2 outline-offset-[-2px] ${
+              activeProfile === '전체' ? 'outline-aqua-300' : 'outline-gray-200'
+            } flex flex-col justify-center items-center`}
           >
-            <div className="w-[52px] h-[52px] bg-aqua-300 rounded-full inline-flex justify-center items-center">
-              <FiUsers size={24} color="#ffffff" />
+            <div
+              className={`w-[52px] h-[52px] ${
+                activeProfile === '전체' ? 'bg-aqua-300' : 'bg-gray-200'
+              } rounded-full inline-flex justify-center items-center`}
+            >
+              <FiUsers size={24} color={activeProfile === '전체' ? '#ffffff' : '#ffffff'} />
             </div>
           </div>
           <div className={`text-center p3-b ${activeProfile === '전체' ? 'text-aqua-300' : 'text-gray-300'}`}>전체</div>
         </div>
-        {petProfiles.map((petProfile) => (
-          <Followers
-            key={petProfile.name}
-            imageUrl={petProfile.imageUrl || ''}
-            name={petProfile.name}
-            isActive={activeProfile === petProfile.name}
-            onClick={() => {
-              setActiveProfile(petProfile.name);
-              handleProfileClick(petProfile.name);
-            }}
-          />
-        ))}
+        {followings.length > 0 &&
+          followings.map((following) => (
+            <Followers
+              key={following.nickname || ''}
+              imageUrl={following.profileImg ? `${IMAGE_BASE_URL}${following.profileImg}` : null}
+              name={following.nickname || ''}
+              isActive={activeProfile === following.nickname}
+              onClick={() => {
+                setActiveProfile(following.nickname || '');
+                handleProfileClick(following.nickname || '');
+              }}
+            />
+          ))}
       </div>
 
       {/* 게시글 목록 */}

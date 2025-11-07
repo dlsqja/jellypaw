@@ -28,7 +28,7 @@ export default function MenuBar() {
     if (routeName === 'FeedStack' || routeName === 'Feed') return 'feed';
     if (routeName === 'PetStack' || routeName === 'Pets') return 'pet';
     if (routeName === 'FeedWriteStack') return 'undefined'; // write는 FAB이므로 활성 상태 없음
-    if (routeName === 'MyPageStack') return 'mypage';
+    if (routeName === 'MypageStack') return 'mypage';
     if (routeName === 'SearchStack') return 'search';
     return 'feed';
   };
@@ -48,21 +48,19 @@ export default function MenuBar() {
     navigation.navigate('FeedWriteStack', { screen: 'SelectCategory' });
   };
 
-  // 피드 → 추후 웹뷰 구현 예정
+  // 피드
   const handleFeedPress = () => {
     navigation.navigate('FeedStack', { screen: 'Feed' });
   };
 
   // 검색 → 추후 웹뷰 구현 예정
   const handleSearchPress = () => {
-    // TODO: 웹뷰 구현 예정
-    console.log('검색 - 웹뷰 구현 예정');
+    navigation.navigate('SearchStack', { screen: 'Search' });
   };
 
   // 내 공간 → 추후 웹뷰 구현 예정
   const handleMyPagePress = () => {
-    // TODO: 웹뷰 구현 예정
-    console.log('내 공간 - 웹뷰 구현 예정');
+    navigation.navigate('MypageStack', { screen: 'Mypage' });
   };
 
   return (

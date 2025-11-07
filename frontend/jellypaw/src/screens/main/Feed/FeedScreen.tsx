@@ -1,25 +1,12 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Text } from '../../../ui/components/Text';
-import { getPetList } from '../../../services/api/pet';
+import WebView from 'react-native-webview';
+import MainLayout from '../../../layouts/MainLayout';
+const os = Platform.OS;
+os == 'android';
 
 export default function FeedScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>피드 화면</Text>
-    </View>
-  );
+  // 웹뷰 표시
+  return <WebView source={{ uri: 'http://k13a201.p.ssafy.io:3000/feed' }} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FAFAFA',
-  },
-  text: {
-    fontSize: 18,
-    color: '#284542',
-  },
-});

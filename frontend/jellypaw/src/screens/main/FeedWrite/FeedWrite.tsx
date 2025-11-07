@@ -1,33 +1,26 @@
 // FeedWrite.tsx
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  Platform,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Platform, Alert, Modal, Pressable } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  launchImageLibrary,
-  ImagePickerResponse,
-} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
+import { createFeed } from '../../../services/api/feedWrite';
+import type { FeedWriteRequest, FeedWritePlaceRequest } from '../../../types/main/feedWrite';
+import { theme } from '../../../ui/system/variants';
+import Feather from 'react-native-vector-icons/Feather';
 
 type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
 export default function FeedWrite({ route, navigation }: Props) {
-  const { categoryId, categoryName } = route.params;
+  const { categoryName, categoryValue = '' } = route.params;
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -39,11 +32,41 @@ export default function FeedWrite({ route, navigation }: Props) {
     require('../../../../assets/images/pets/반려동물3.png'),
   ]);
   const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
+  const insets = useSafeAreaInsets();
 
-  // 이미지 선택 핸들러
-  const handleImagePicker = () => {
-    // 이미지 선택 옵션
+  // 이미지 선택 핸들러 - 카메라 촬영
+  const handleTakePhoto = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        quality: 0.8,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) return;
+        if (response.errorMessage) {
+          Alert.alert('오류', response.errorMessage);
+          return;
+        }
+        if (response.assets && response.assets.length > 0) {
+          const captured = response.assets[0]?.uri;
+          if (captured && images.length < 3) {
+            setImages([...images, captured] as (string | number)[]);
+          } else if (images.length >= 3) {
+            Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
+          }
+        }
+      },
+    );
+  };
+
+  // 이미지 선택 핸들러 - 갤러리에서 선택
+  const handlePickFromLibrary = () => {
     const options = {
       mediaType: 'photo' as const,
       quality: 0.8 as const,
@@ -53,36 +76,33 @@ export default function FeedWrite({ route, navigation }: Props) {
     };
 
     launchImageLibrary(options, (response: ImagePickerResponse) => {
-      if (response.didCancel) {
-        // 사용자가 취소한 경우
-        return;
-      }
-
+      if (response.didCancel) return;
       if (response.errorMessage) {
         Alert.alert('오류', response.errorMessage);
         return;
       }
-
       if (response.assets && response.assets.length > 0) {
-        const newImageUris = response.assets
-          .map(asset => asset.uri)
-          .filter((uri): uri is string => uri !== undefined);
-
-        // 이미지 3장 이상 선택 경고
+        const newImageUris = response.assets.map((asset) => asset.uri).filter((uri): uri is string => uri !== undefined);
         if (newImageUris.length > 0) {
           const totalImages = images.length + newImageUris.length;
           if (totalImages > 3) {
             Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
-            setImages([
-              ...images,
-              ...newImageUris.slice(0, 3 - images.length),
-            ] as (string | number)[]);
+            setImages([...images, ...newImageUris.slice(0, 3 - images.length)] as (string | number)[]);
           } else {
             setImages([...images, ...newImageUris] as (string | number)[]);
           }
         }
       }
     });
+  };
+
+  // 이미지 선택 핸들러 - 커스텀 모달 표시
+  const handleImagePicker = () => {
+    setSheetOpen(true);
+  };
+
+  const closeMenu = () => {
+    setSheetOpen(false);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -94,6 +114,7 @@ export default function FeedWrite({ route, navigation }: Props) {
     pendingLocationRef.current = place.name || '';
     // 즉시 상태 업데이트 시도
     setLocation(place.name || '');
+    setSelectedPlace(place);
   };
 
   // 모달이 닫힌 후 location을 다시 업데이트
@@ -103,7 +124,7 @@ export default function FeedWrite({ route, navigation }: Props) {
     const pendingLocation = pendingLocationRef.current;
     if (pendingLocation) {
       setTimeout(() => {
-        console.log('모달 닫힌 후 location 업데이트:', pendingLocation);
+        // console.log('모달 닫힌 후 location 업데이트:', pendingLocation);
         setLocation(pendingLocation);
         pendingLocationRef.current = null;
       }, 100);
@@ -124,9 +145,57 @@ export default function FeedWrite({ route, navigation }: Props) {
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: 게시물 작성 API 호출
-    console.log('제출:', { title, content, location, rating, images });
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // 이미지 URI 배열 필터링 (string 타입만)
+      const imageUris = images.filter((uri): uri is string => typeof uri === 'string');
+
+      // boardRequest 객체 생성
+      const boardRequest: FeedWriteRequest = {
+        category: categoryValue || '',
+        title: title.trim(),
+        content: content.trim(),
+        placeId: selectedPlace?.place_id || '',
+        starRating: rating,
+        visibility: 'PRIVATE', // 기본값, 필요시 수정
+      };
+
+      const placeRequest: FeedWritePlaceRequest = {
+        placeCode: selectedPlace?.place_id || '',
+        title: selectedPlace?.name || '',
+        address: selectedPlace?.address || '',
+        phoneNumber: selectedPlace?.phone_number || '',
+        openingHours: selectedPlace?.opening_hours?.weekday_text || [],
+        link: selectedPlace?.website || '',
+      };
+      console.log('boardRequest', boardRequest);
+      console.log('placeRequest', placeRequest);
+
+      // API 호출
+      const result = await createFeed({
+        ...boardRequest,
+        newImages: imageUris,
+        placeRequest: placeRequest,
+      });
+      // console.log('result', result);
+      Alert.alert('성공', '게시글이 작성되었습니다.', [
+        {
+          text: '확인',
+          onPress: () => {
+            navigation.goBack();
+          },
+        },
+      ]);
+    } catch (error: any) {
+      console.error('게시글 작성 실패:', error);
+      Alert.alert('오류', error?.message || '게시글 작성에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -134,10 +203,7 @@ export default function FeedWrite({ route, navigation }: Props) {
       <View style={styles.container}>
         <BackHeader title={categoryName} />
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {/* 제목 입력 */}
           <View style={styles.section}>
             <View style={styles.labelContainer}>
@@ -185,26 +251,12 @@ export default function FeedWrite({ route, navigation }: Props) {
             <View style={styles.labelContainer}>
               <Text style={styles.label}>위치 (선택사항)</Text>
             </View>
-            <TouchableOpacity
-              style={styles.locationInputContainer}
-              onPress={() => setShowPlaceSearchModal(true)}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.locationInputContainer} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
               <View style={styles.locationIconContainer} pointerEvents="none">
                 <Icon name="location-outline" size={20} color="#A3A3A3" />
               </View>
-              <View
-                style={[styles.inputContainer, styles.locationInputWrapper]}
-                pointerEvents="none"
-              >
-                <Text
-                  style={[
-                    styles.input,
-                    styles.locationInput,
-                    location ? { color: '#284542' } : {},
-                  ]}
-                  numberOfLines={1}
-                >
+              <View style={[styles.inputContainer, styles.locationInputWrapper]} pointerEvents="none">
+                <Text style={[styles.input, styles.locationInput, location ? { color: '#284542' } : {}]} numberOfLines={1}>
                   {location || '위치를 검색하세요'}
                 </Text>
               </View>
@@ -218,33 +270,21 @@ export default function FeedWrite({ route, navigation }: Props) {
             </View>
             <View style={styles.ratingContainer}>
               <View style={styles.starsDisplay}>
-                {[1, 2, 3, 4, 5].map(star => {
+                {[1, 2, 3, 4, 5].map((star) => {
                   const isFullStar = rating >= star;
                   const isHalfStar = rating >= star - 0.5 && rating < star;
-                  const starIconName = isFullStar
-                    ? 'star'
-                    : isHalfStar
-                    ? 'star-half'
-                    : 'star-outline';
-                  const starColor =
-                    isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
+                  const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
+                  const starColor = isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
 
                   return (
-                    <TouchableOpacity
-                      key={star}
-                      style={styles.starButton}
-                      onPress={e => handleStarClick(star, e)}
-                      activeOpacity={0.7}
-                    >
+                    <TouchableOpacity key={star} style={styles.starButton} onPress={(e) => handleStarClick(star, e)} activeOpacity={0.7}>
                       <Icon name={starIconName} size={32} color={starColor} />
                     </TouchableOpacity>
                   );
                 })}
               </View>
               <View style={styles.ratingValueContainer}>
-                <Text style={styles.ratingValue}>
-                  {rating > 0 ? rating.toFixed(1) : '0.0'}
-                </Text>
+                <Text style={styles.ratingValue}>{rating > 0 ? rating.toFixed(1) : '0.0'}</Text>
               </View>
             </View>
           </View>
@@ -256,26 +296,22 @@ export default function FeedWrite({ route, navigation }: Props) {
             </View>
             <View style={styles.imageContainer}>
               {images.length < 3 && (
-                <TouchableOpacity
-                  style={styles.imagePickerButton}
-                  onPress={handleImagePicker}
-                >
-                  <Icon name="camera-outline" size={24} color="#A3A3A3" />
-                  <Text style={styles.imagePickerText}>사진 추가</Text>
-                </TouchableOpacity>
+                <View style={styles.imagePickerWrapper}>
+                  <TouchableOpacity style={styles.imagePickerOuter} onPress={handleImagePicker}>
+                    <View style={styles.imagePickerInner}>
+                      <Feather name="camera" size={32} color={theme.icon.active} />
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.imagePickerFab} onPress={handleImagePicker}>
+                    <Feather name="camera" size={16} color={theme.text.onBrand} />
+                  </TouchableOpacity>
+                </View>
               )}
               {/* 이미지 목록 */}
               {images.map((uri, index) => (
                 <View key={index} style={styles.imageWrapper}>
-                  <Image
-                    source={typeof uri === 'string' ? { uri } : uri}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => handleRemoveImage(index)}
-                  >
+                  <Image source={typeof uri === 'string' ? { uri } : uri} style={styles.image} resizeMode="cover" />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => handleRemoveImage(index)}>
                     <Icon name="close-circle" size={20} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
@@ -292,17 +328,51 @@ export default function FeedWrite({ route, navigation }: Props) {
             shape="pillSolid"
             tone="aqua"
             titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-            disabled={title.length === 0 || content.length === 0}
+            disabled={title.length === 0 || content.length === 0 || isSubmitting}
           />
         </View>
       </View>
 
       {/* 장소 검색 모달 */}
-      <PlaceSearchModal
-        visible={showPlaceSearchModal}
-        onClose={handleModalClose}
-        onPlaceSelect={handlePlaceSelect}
-      />
+      <PlaceSearchModal visible={showPlaceSearchModal} onClose={handleModalClose} onPlaceSelect={handlePlaceSelect} />
+
+      {/* 이미지 선택 커스텀 모달 */}
+      <Modal transparent visible={sheetOpen} animationType="fade" presentationStyle="overFullScreen" statusBarTranslucent onRequestClose={closeMenu}>
+        <View style={styles.modalRoot}>
+          <Pressable style={styles.backdrop} onPress={closeMenu} />
+          <View style={[styles.sheet, { paddingBottom: Math.max(12, insets.bottom + 6) }]}>
+            <Pressable
+              style={[styles.sheetItem, styles.sheetItemDivider]}
+              onPress={() => {
+                closeMenu();
+                handleTakePhoto();
+              }}
+            >
+              <Feather name="camera" size={18} color={theme.text.primary} />
+              <View style={{ width: 8 }} />
+              <Text style={{ color: theme.text.primary, fontSize: 16 }}>카메라로 촬영</Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.sheetItem, styles.sheetItemDivider]}
+              onPress={() => {
+                closeMenu();
+                handlePickFromLibrary();
+              }}
+            >
+              <Feather name="image" size={18} color={theme.text.primary} />
+              <View style={{ width: 8 }} />
+              <Text style={{ color: theme.text.primary, fontSize: 16 }}>갤러리에서 선택</Text>
+            </Pressable>
+
+            <Pressable style={styles.sheetItem} onPress={closeMenu}>
+              <Feather name="x" size={18} color={theme.text.muted} />
+              <View style={{ width: 8 }} />
+              <Text style={{ color: theme.text.muted, fontSize: 16 }}>취소</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -451,29 +521,57 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
   },
-  // 이미지 선택 버튼 스타일
-  imagePickerButton: {
+  // 이미지 선택 래퍼 스타일
+  imagePickerWrapper: {
     width: 80,
     height: 80,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
+    position: 'relative',
+  },
+  // 이미지 선택 외부 원형 스타일 (PhotoPicker와 동일)
+  imagePickerOuter: {
+    width: 80,
+    height: 80,
+    padding: 4,
+    backgroundColor: '#DFF7F2',
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
+    shadowColor: '#FAFAFA',
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
-  // 이미지 선택 텍스트 스타일
-  imagePickerText: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    lineHeight: 16,
+  // 이미지 선택 내부 원형 스타일 (PhotoPicker와 동일)
+  imagePickerInner: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#E7FAF6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
   },
-  // 이미지 랩퍼 스타일
+  // 이미지 선택 FAB 버튼 스타일 (PhotoPicker와 동일)
+  imagePickerFab: {
+    position: 'absolute',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: theme.icon.active,
+    justifyContent: 'center',
+    alignItems: 'center',
+    right: 0,
+    bottom: 0,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  // 이미지 랩퍼 스타일 (원형으로 변경)
   imageWrapper: {
     width: 80,
     height: 80,
-    borderRadius: 12,
+    borderRadius: 40,
     overflow: 'hidden',
     position: 'relative',
   },
@@ -496,17 +594,34 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     marginBottom: 16,
   },
-  // 제출 버튼 스타일
-  // submitButton: {
-  //   width: '100%',
-  //   height: 56,
-  //   backgroundColor: '#111827',
-  //   borderRadius: 12,
-  // },
-  // 제출 버튼 텍스트 스타일
-  // submitButtonText: {
-  //   fontFamily: 'Pretendard-Bold',
-  //   color: '#FFFFFF',
-  //   lineHeight: 20,
-  // },
+  // 커스텀 모달 스타일 (PhotoPicker와 동일)
+  modalRoot: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#00000080',
+  },
+  sheet: {
+    backgroundColor: theme.bg.surface,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 12,
+  },
+  sheetItem: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sheetItemDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.border.gray,
+  },
 });

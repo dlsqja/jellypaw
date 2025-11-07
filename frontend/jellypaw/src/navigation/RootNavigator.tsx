@@ -8,6 +8,10 @@ import PetNavigator from './PetNavigator';
 import type { FeedStackParamList } from './FeedNavigator';
 import type { FeedWriteStackParamList } from './FeedWriteNavigator';
 import type { PetStackParamList } from './PetNavigator';
+import SearchNavigator from './SearchNavigator.tsx';
+import type { SearchStackParamList } from './SearchNavigator';
+import MypageNavigator from './MypageNavigator';
+import type { MypageStackParamList } from './MypageNavigator';
 
 // stack param list
 export type RootStackParamList = {
@@ -17,6 +21,12 @@ export type RootStackParamList = {
     | {
         screen: keyof FeedStackParamList;
         params?: FeedStackParamList[keyof FeedStackParamList];
+      };
+  SearchStack:
+    | undefined
+    | {
+        screen: keyof SearchStackParamList;
+        params?: SearchStackParamList[keyof SearchStackParamList];
       };
   FeedWriteStack:
     | undefined
@@ -29,6 +39,12 @@ export type RootStackParamList = {
     | {
         screen: keyof PetStackParamList;
         params?: PetStackParamList[keyof PetStackParamList];
+      };
+  MypageStack:
+    | undefined
+    | {
+        screen: keyof MypageStackParamList;
+        params?: MypageStackParamList[keyof MypageStackParamList];
       };
 };
 
@@ -44,12 +60,16 @@ export default function RootNavigator() {
       >
         {/* 로그인/회원가입 */}
         <Stack.Screen name="AuthStack" component={AuthStackNavigator} />
-        {/* 피드 */}
+        {/* 피드 메인 - 웹뷰*/}
         <Stack.Screen name="FeedStack" component={FeedNavigator} />
+        {/* 검색  - 웹뷰*/}
+        <Stack.Screen name="SearchStack" component={SearchNavigator} />
         {/* 피드 작성 */}
         <Stack.Screen name="FeedWriteStack" component={FeedWriteNavigator} />
         {/* 동물관리 */}
         <Stack.Screen name="PetStack" component={PetNavigator} />
+        {/* 내 공간  - 웹뷰*/}
+        <Stack.Screen name="MypageStack" component={MypageNavigator} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -58,5 +78,7 @@ export default function RootNavigator() {
 // 각 네비게이션 타입 내보내기
 export type { AuthStackParamList } from './auth/AuthStackNavigator';
 export type { FeedStackParamList } from './FeedNavigator';
+export type { SearchStackParamList } from './SearchNavigator';
 export type { FeedWriteStackParamList } from './FeedWriteNavigator';
 export type { PetStackParamList } from './PetNavigator';
+export type { MypageStackParamList } from './MypageNavigator';

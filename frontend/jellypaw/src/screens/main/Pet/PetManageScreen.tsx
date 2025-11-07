@@ -22,10 +22,15 @@ const toAbsolute = (u?: string | null) => {
 };
 
 const formatGender = (g: any) =>
-  g === 'FEMALE' ? '여자' :
-  g === 'MALE' ? '남자' :
-  g === 'FEMALE_NEUTERING' ? '여자(중성)' :
-  g === 'MALE_NEUTERING' ? '남자(중성)' : '없음';
+  g === 'FEMALE'
+    ? '여자'
+    : g === 'MALE'
+    ? '남자'
+    : g === 'FEMALE_NEUTERING'
+    ? '여자(중성)'
+    : g === 'MALE_NEUTERING'
+    ? '남자(중성)'
+    : '없음';
 
 const formatSpecies = (s: any) =>
   s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타';
@@ -82,7 +87,11 @@ export default function PetManageScreen({ navigation }: any) {
 
         {/* 탭 */}
         <View style={{ paddingTop: 24 }}>
-          <SegmentedTabs tabs={tabs} activeTab={activeTab} onTabChange={(id: any) => setActiveTab(id)} />
+          <SegmentedTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={(id: any) => setActiveTab(id)}
+          />
         </View>
 
         {/* 상세 정보 */}

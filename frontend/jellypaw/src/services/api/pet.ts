@@ -36,7 +36,6 @@ export const getPetDetail = async (
   return response.data.data;
 };
 
-
 // 🔁 Blob 사용 안 함: 항상 typed string part 사용
 function makeJsonPart(jsonString: string): any {
   // RN FormData가 인식하는 "타입이 지정된 문자열 파트"
@@ -44,14 +43,16 @@ function makeJsonPart(jsonString: string): any {
 }
 
 export const createPet = async (
-  params: CreatePetRequest & { photoUri?: string | null }
+  params: CreatePetRequest & { photoUri?: string | null },
 ): Promise<CreatePetResponse> => {
   // 1) 필수값 방어 (BE: nullable=false)
   if (!params.name?.trim()) throw new Error('[createPet] name required');
-  if (!params.species)        throw new Error('[createPet] species required');
-  if (!params.gender)         throw new Error('[createPet] gender required');
-  if (typeof params.age    !== 'number') throw new Error('[createPet] age required');
-  if (typeof params.weight !== 'number') throw new Error('[createPet] weight required');
+  if (!params.species) throw new Error('[createPet] species required');
+  if (!params.gender) throw new Error('[createPet] gender required');
+  if (typeof params.age !== 'number')
+    throw new Error('[createPet] age required');
+  if (typeof params.weight !== 'number')
+    throw new Error('[createPet] weight required');
 
   const payload: CreatePetRequest = {
     name: params.name.trim(),
@@ -70,11 +71,17 @@ export const createPet = async (
   if (params.photoUri) {
     const uri = params.photoUri;
     const filename = (uri.split('/').pop() || 'pet.jpg').trim().toLowerCase();
-    const type =
-      filename.endsWith('.png')  ? 'image/png'  :
-      filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+    const type = filename.endsWith('.png')
+      ? 'image/png'
+      : filename.endsWith('.webp')
+      ? 'image/webp'
+      : 'image/jpeg';
 
-    form.append('petprofileImg', { uri: params.photoUri, name: filename, type } as any);
+    form.append('petprofileImg', {
+      uri: params.photoUri,
+      name: filename,
+      type,
+    } as any);
   }
 
   try {
@@ -83,10 +90,14 @@ export const createPet = async (
   } catch {}
 
   try {
-    const res = await apiClient.post<ApiResponse<CreatePetResponse>>('/pets', form, {
-      headers: { Accept: 'application/json' },
-      transformRequest: v => v,
-    });
+    const res = await apiClient.post<ApiResponse<CreatePetResponse>>(
+      '/pets',
+      form,
+      {
+        headers: { Accept: 'application/json' },
+        transformRequest: v => v,
+      },
+    );
 
     // console.log('[createPet] ◀ 응답', {
     //   httpStatus: res.status,
@@ -99,7 +110,9 @@ export const createPet = async (
     // });
 
     if (res.data?.code && res.data.code !== 200) {
-      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
     }
     return res.data.data;
   } catch (err: any) {
@@ -116,7 +129,6 @@ export const createPet = async (
   }
 };
 
-
 // ────────────────────────────────────────────────────────────
 // 추가 ①: 정보 수정 (PATCH /pets/{petId}) – JSON
 // 백엔드 스웨거: /pets/{petId} PATCH, body: PetRequest (JSON)
@@ -126,11 +138,13 @@ export const updatePetInfo = async (
   params: CreatePetRequest, // PetRequest와 동일 스키마: name, species, gender, age, weight
 ): Promise<CreatePetResponse> => {
   // 필수값 방어 (BE는 nullable=false)
-  if (!params.name?.trim())        throw new Error('[updatePetInfo] name required');
-  if (!params.species)             throw new Error('[updatePetInfo] species required');
-  if (!params.gender)              throw new Error('[updatePetInfo] gender required');
-  if (typeof params.age !== 'number')    throw new Error('[updatePetInfo] age required');
-  if (typeof params.weight !== 'number') throw new Error('[updatePetInfo] weight required');
+  if (!params.name?.trim()) throw new Error('[updatePetInfo] name required');
+  if (!params.species) throw new Error('[updatePetInfo] species required');
+  if (!params.gender) throw new Error('[updatePetInfo] gender required');
+  if (typeof params.age !== 'number')
+    throw new Error('[updatePetInfo] age required');
+  if (typeof params.weight !== 'number')
+    throw new Error('[updatePetInfo] weight required');
 
   const body = {
     name: params.name.trim(),
@@ -141,11 +155,20 @@ export const updatePetInfo = async (
   };
 
   try {
-    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(`/pets/${petId}`, body, {
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    });
+    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(
+      `/pets/${petId}`,
+      body,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      },
+    );
     if (res.data?.code && res.data.code !== 200) {
-      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
     }
     return res.data.data;
   } catch (err: any) {
@@ -170,21 +193,31 @@ export const updatePetImage = async (
   if (!photoUri) throw new Error('[updatePetImage] photoUri required');
 
   const form = new FormData();
-  const filename = (photoUri.split('/').pop() || 'pet.jpg').trim().toLowerCase();
-  const type =
-    filename.endsWith('.png')  ? 'image/png'  :
-    filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+  const filename = (photoUri.split('/').pop() || 'pet.jpg')
+    .trim()
+    .toLowerCase();
+  const type = filename.endsWith('.png')
+    ? 'image/png'
+    : filename.endsWith('.webp')
+    ? 'image/webp'
+    : 'image/jpeg';
 
   // ⚠️ 필드명: petProfileImg (대문자 P) – 생성과 다름!
   form.append('petProfileImg', { uri: photoUri, name: filename, type } as any);
 
   try {
-    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(`/pets/img/${petId}`, form, {
-      headers: { Accept: 'application/json' },
-      transformRequest: v => v,
-    });
+    const res = await apiClient.patch<ApiResponse<CreatePetResponse>>(
+      `/pets/img/${petId}`,
+      form,
+      {
+        headers: { Accept: 'application/json' },
+        transformRequest: v => v,
+      },
+    );
     if (res.data?.code && res.data.code !== 200) {
-      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
     }
     return res.data.data;
   } catch (err: any) {
@@ -241,7 +274,9 @@ export const deletePet = async (petId: number): Promise<void> => {
   try {
     const res = await apiClient.delete<ApiResponse<object>>(`/pets/${petId}`);
     if (res.data?.code && res.data.code !== 200) {
-      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
     }
   } catch (err: any) {
     console.log('[deletePet] ✖ 실패', {

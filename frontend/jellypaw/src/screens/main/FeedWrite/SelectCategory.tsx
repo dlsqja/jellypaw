@@ -15,43 +15,56 @@ const categories = [
   {
     id: 1,
     name: '일상',
+    value: 'DAILY',
     icon: 'calendar-blank-outline',
     iconFamily: 'MaterialCommunityIcons',
   },
   {
     id: 2,
     name: '건강',
+    value: 'HEALTH',
     icon: 'cards-heart-outline',
     iconFamily: 'MaterialCommunityIcons',
   },
   {
     id: 3,
     name: '식당',
+    value: 'DINING',
     icon: 'silverware-variant',
     iconFamily: 'MaterialCommunityIcons',
   },
   {
     id: 4,
     name: '미용',
+    value: 'BEAUTY',
     icon: 'content-cut',
     iconFamily: 'MaterialCommunityIcons',
   },
   {
     id: 5,
     name: '음식',
+    value: 'FOOD',
     icon: 'food',
     iconFamily: 'MaterialCommunityIcons',
   },
   {
     id: 6,
     name: '장난감',
+    value: 'TOY',
     icon: 'game-controller-outline',
     iconFamily: 'Ionicons',
   },
-  { id: 7, name: '장소', icon: 'location-outline', iconFamily: 'Ionicons' },
+  {
+    id: 7,
+    name: '여행',
+    value: 'TRAVEL',
+    icon: 'location-outline',
+    iconFamily: 'Ionicons',
+  },
   {
     id: 8,
     name: '기타',
+    value: 'ETC',
     icon: 'dots-vertical',
     iconFamily: 'MaterialCommunityIcons',
   },
@@ -79,9 +92,17 @@ const bottomNavItems = [
 export default function SelectCategory({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const handleCategorySelect = (categoryId: number, categoryName: string) => {
+  const handleCategorySelect = (
+    categoryId: number,
+    categoryName: string,
+    categoryValue: string,
+  ) => {
     setSelectedCategory(categoryId);
-    navigation.navigate('FeedWrite', { categoryId, categoryName });
+    navigation.navigate('FeedWrite', {
+      categoryId,
+      categoryName,
+      categoryValue,
+    });
   };
 
   const renderIcon = (iconFamily: string, iconName: string) => {
@@ -120,7 +141,9 @@ export default function SelectCategory({ navigation }: Props) {
             <TouchableOpacity
               key={category.id}
               style={styles.categoryCard}
-              onPress={() => handleCategorySelect(category.id, category.name)}
+              onPress={() =>
+                handleCategorySelect(category.id, category.name, category.value)
+              }
             >
               <View
                 style={[
