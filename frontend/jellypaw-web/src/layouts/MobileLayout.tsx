@@ -11,7 +11,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ menuBar }) => (
       <main className="flex-1 overflow-y-auto scrollbar-hide px-4">
         <Outlet />
       </main>
-      <div className="">{menuBar}</div>
+      {/* <div className="">{menuBar}</div> */}
     </div>
   </div>
 );
