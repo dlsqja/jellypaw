@@ -28,8 +28,23 @@ import type { FeedWriteRequest } from '../../../types/main/feedWrite';
 
 type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
+// 카테고리 ID를 영어 값으로 매핑
+const getCategoryEnglishValue = (categoryId: number): string => {
+  const categoryMap: { [key: number]: string } = {
+    1: 'DAILY', // 일상
+    2: 'HEALTH', // 건강
+    3: 'RESTAURANT', // 식당
+    4: 'BEAUTY', // 미용
+    5: 'FOOD', // 음식
+    6: 'TOY', // 장난감
+    7: 'PLACE', // 장소
+    8: 'ETC', // 기타
+  };
+  return categoryMap[categoryId] || 'ETC';
+};
+
 export default function FeedWrite({ route, navigation }: Props) {
-  const { categoryId, categoryName } = route.params;
+  const { categoryId, categoryName, categoryValue = '' } = route.params;
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -142,7 +157,7 @@ export default function FeedWrite({ route, navigation }: Props) {
 
       // boardRequest 객체 생성
       const boardRequest: FeedWriteRequest = {
-        category: categoryName,
+        category: categoryValue || '',
         title: title.trim(),
         content: content.trim(),
         placeId: selectedPlace?.place_id || '',
@@ -153,10 +168,10 @@ export default function FeedWrite({ route, navigation }: Props) {
 
       // API 호출
       const result = await createFeed({
-        boardRequest: boardRequest,
+        ...boardRequest,
         newImages: imageUris,
       });
-      console.log('result', result);
+      // console.log('result', result);
       Alert.alert('성공', '게시글이 작성되었습니다.', [
         {
           text: '확인',

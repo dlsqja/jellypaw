@@ -1,4 +1,12 @@
 import apiClient from '../../lib/apiClient';
+import type { FeedWriteRequest } from '../../types/main/feedWrite';
+
+// API 응답 래퍼 타입
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
 
 // 🔁 Blob 사용 안 함: 항상 typed string part 사용
 function makeJsonPart(jsonString: string): any {
@@ -6,30 +14,37 @@ function makeJsonPart(jsonString: string): any {
   return { string: jsonString, type: 'application/json' };
 }
 
-export const createFeed = async (params: any) => {
-  console.log('[createFeed] ▶ 시작', { params });
+export const createFeed = async (
+  params: FeedWriteRequest & { newImages?: string[] | null },
+): Promise<any> => {
+  // 필수값 방어 - 제목, 내용만
+  if (!params.title?.trim()) throw new Error('[createFeed] title required');
+  if (!params.content?.trim()) throw new Error('[createFeed] content required');
 
-  const { boardRequest, newImages } = params;
-  console.log('[createFeed] 파라미터 분리', {
-    boardRequest,
-    newImages,
-    imageCount: newImages?.length,
-  });
+  const { newImages, ...boardRequest } = params;
 
-  const formData = new FormData();
+  const payload: FeedWriteRequest = {
+    category: boardRequest.category,
+    title: boardRequest.title.trim(),
+    content: boardRequest.content.trim(),
+    placeId: boardRequest.placeId,
+    starRating: boardRequest.starRating,
+    visibility: boardRequest.visibility,
+  };
+
+  const form = new FormData();
 
   // ✅ boardRequest를 **typed string** 으로만 추가
-  const json = JSON.stringify(boardRequest);
-  console.log('[createFeed] boardRequest JSON', { json, length: json.length });
-  formData.append('boardRequest', makeJsonPart(json) as any);
+  const json = JSON.stringify(payload);
+  form.append('boardRequest', makeJsonPart(json) as any);
 
-  // newImages 처리
-  if (newImages && Array.isArray(newImages) && newImages.length > 0) {
-    console.log('[createFeed] 이미지 추가 시작', {
-      imageCount: newImages.length,
-    });
-    // 이미지가 있는 경우: 각 이미지 파일 추가
-    newImages.forEach((uri: string, index: number) => {
+  // ✅ newImages 배열에 이미지 파일 추가
+  // string 타입만 필터링 (number는 require()로 가져온 로컬 이미지이므로 스킵)
+  const validImageUris =
+    newImages?.filter((uri): uri is string => typeof uri === 'string') || [];
+
+  if (validImageUris.length > 0) {
+    validImageUris.forEach(uri => {
       const filename = (uri.split('/').pop() || 'image.jpg')
         .trim()
         .toLowerCase();
@@ -39,70 +54,44 @@ export const createFeed = async (params: any) => {
         ? 'image/webp'
         : 'image/jpeg';
 
-      console.log(`[createFeed] 이미지 ${index + 1} 추가`, {
-        uri,
-        filename,
-        type,
-      });
-      formData.append('newImages', {
-        uri,
-        name: filename,
-        type,
-      } as any);
+      form.append('newImages', { uri, name: filename, type } as any);
     });
-  } else {
-    // 이미지가 없는 경우: 빈 문자열 추가
-    console.log('[createFeed] 이미지 없음 - 빈 문자열 추가');
-    formData.append('newImages', '');
-  }
-
-  // FormData parts 확인
-  try {
-    const parts = (formData as any)?._parts;
-    console.log('[createFeed] ▶ multipart /boards', {
-      parts,
-      imageCount:
-        newImages?.filter((uri: any) => typeof uri === 'string')?.length || 0,
-      hasBoardRequest: !!boardRequest,
-    });
-  } catch (e) {
-    console.log('[createFeed] FormData parts 확인 실패', e);
   }
 
   try {
-    const res = await apiClient.post('/boards', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Accept: 'application/json',
-      },
-      transformRequest: (data, headers) => {
-        console.log('[createFeed] transformRequest', {
-          isFormData: data instanceof FormData,
-          headers: Object.keys(headers || {}),
-        });
-        return data;
-      },
+    const parts = (form as any)?._parts;
+    // console.log('[createFeed] ▶ multipart /boards', {
+    //   parts,
+    //   imageCount: validImageUris.length,
+    // });
+  } catch {}
+
+  try {
+    const res = await apiClient.post<ApiResponse<any>>('/boards', form, {
+      headers: { Accept: 'application/json' },
+      transformRequest: v => v,
     });
 
-    console.log('[createFeed] ◀ 응답', {
-      httpStatus: res.status,
-      code: res.data?.code,
-      message: res.data?.message,
-      hasData: !!res.data?.data,
-      fullResponse: res.data,
-    });
+    // console.log('[createFeed] ◀ 응답', {
+    //   httpStatus: res.status,
+    //   code: res.data?.code,
+    //   message: res.data?.message,
+    //   hasData: !!res.data?.data,
+    // });
 
-    // 응답의 code가 200이 아니면 에러 throw
     if (res.data?.code && res.data.code !== 200) {
-      console.error('[createFeed] ✖ API 오류 응답', {
-        code: res.data.code,
-        message: res.data.message,
-      });
-      throw new Error(res.data.message || `API 오류: code=${res.data.code}`);
+      // axios 에러 객체를 생성하여 throw (response, config 정보 포함)
+      const error: any = new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
+      error.response = {
+        status: res.status,
+        data: res.data,
+      };
+      error.config = res.config;
+      throw error;
     }
-
-    console.log('[createFeed] ✅ 성공', { data: res.data });
-    return res.data;
+    return res.data.data;
   } catch (err: any) {
     console.log('[createFeed] ✖ 실패', {
       message: err?.message,
@@ -112,7 +101,6 @@ export const createFeed = async (params: any) => {
       method: err?.config?.method,
       sentAuth: err?.config?.headers?.Authorization,
       sentCT: err?.config?.headers?.['Content-Type'],
-      stack: err?.stack,
     });
     throw err;
   }
