@@ -103,6 +103,8 @@ apiClient.interceptors.request.use(
       const h = config.headers ?? {};
       // 디버그 로그 출력
       console.log('[api:req]', {
+        // baseURL: config.baseURL,
+        // token: token,
         method: (config.method || 'get').toUpperCase(),
         url: (config.baseURL || '') + (config.url || ''),
         isFormData: isFormData(config.data),

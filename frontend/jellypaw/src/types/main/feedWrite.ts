@@ -23,3 +23,12 @@ export interface FeedWriteRequest {
   visibility: string;
   // newImages: string[]; // multi-part
 }
+
+export interface FeedWritePlaceRequest {
+  placeCode?: string;
+  title?: string;
+  address?: string;
+  phoneNumber?: string;
+  openingHours?: string[];
+  link?: string;
+}

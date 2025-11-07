@@ -1,22 +1,10 @@
 // FeedWrite.tsx
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Image,
-  Platform,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Platform, Alert } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  launchImageLibrary,
-  ImagePickerResponse,
-} from 'react-native-image-picker';
+import { launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
@@ -24,7 +12,7 @@ import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
 import { createFeed } from '../../../services/api/feedWrite';
-import type { FeedWriteRequest } from '../../../types/main/feedWrite';
+import type { FeedWriteRequest, FeedWritePlaceRequest } from '../../../types/main/feedWrite';
 
 type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
@@ -83,19 +71,14 @@ export default function FeedWrite({ route, navigation }: Props) {
       }
 
       if (response.assets && response.assets.length > 0) {
-        const newImageUris = response.assets
-          .map(asset => asset.uri)
-          .filter((uri): uri is string => uri !== undefined);
+        const newImageUris = response.assets.map((asset) => asset.uri).filter((uri): uri is string => uri !== undefined);
 
         // 이미지 3장 이상 선택 경고
         if (newImageUris.length > 0) {
           const totalImages = images.length + newImageUris.length;
           if (totalImages > 3) {
             Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
-            setImages([
-              ...images,
-              ...newImageUris.slice(0, 3 - images.length),
-            ] as (string | number)[]);
+            setImages([...images, ...newImageUris.slice(0, 3 - images.length)] as (string | number)[]);
           } else {
             setImages([...images, ...newImageUris] as (string | number)[]);
           }
@@ -151,9 +134,7 @@ export default function FeedWrite({ route, navigation }: Props) {
       setIsSubmitting(true);
 
       // 이미지 URI 배열 필터링 (string 타입만)
-      const imageUris = images.filter(
-        (uri): uri is string => typeof uri === 'string',
-      );
+      const imageUris = images.filter((uri): uri is string => typeof uri === 'string');
 
       // boardRequest 객체 생성
       const boardRequest: FeedWriteRequest = {
@@ -164,12 +145,23 @@ export default function FeedWrite({ route, navigation }: Props) {
         starRating: rating,
         visibility: 'PRIVATE', // 기본값, 필요시 수정
       };
+
+      const placeRequest: FeedWritePlaceRequest = {
+        placeCode: selectedPlace?.place_id || '',
+        title: selectedPlace?.name || '',
+        address: selectedPlace?.address || '',
+        phoneNumber: selectedPlace?.phone_number || '',
+        openingHours: selectedPlace?.opening_hours?.weekday_text || [],
+        link: selectedPlace?.website || '',
+      };
       console.log('boardRequest', boardRequest);
+      console.log('placeRequest', placeRequest);
 
       // API 호출
       const result = await createFeed({
         ...boardRequest,
         newImages: imageUris,
+        placeRequest: placeRequest,
       });
       // console.log('result', result);
       Alert.alert('성공', '게시글이 작성되었습니다.', [
@@ -193,10 +185,7 @@ export default function FeedWrite({ route, navigation }: Props) {
       <View style={styles.container}>
         <BackHeader title={categoryName} />
 
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {/* 제목 입력 */}
           <View style={styles.section}>
             <View style={styles.labelContainer}>
@@ -244,26 +233,12 @@ export default function FeedWrite({ route, navigation }: Props) {
             <View style={styles.labelContainer}>
               <Text style={styles.label}>위치 (선택사항)</Text>
             </View>
-            <TouchableOpacity
-              style={styles.locationInputContainer}
-              onPress={() => setShowPlaceSearchModal(true)}
-              activeOpacity={0.7}
-            >
+            <TouchableOpacity style={styles.locationInputContainer} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
               <View style={styles.locationIconContainer} pointerEvents="none">
                 <Icon name="location-outline" size={20} color="#A3A3A3" />
               </View>
-              <View
-                style={[styles.inputContainer, styles.locationInputWrapper]}
-                pointerEvents="none"
-              >
-                <Text
-                  style={[
-                    styles.input,
-                    styles.locationInput,
-                    location ? { color: '#284542' } : {},
-                  ]}
-                  numberOfLines={1}
-                >
+              <View style={[styles.inputContainer, styles.locationInputWrapper]} pointerEvents="none">
+                <Text style={[styles.input, styles.locationInput, location ? { color: '#284542' } : {}]} numberOfLines={1}>
                   {location || '위치를 검색하세요'}
                 </Text>
               </View>
@@ -277,33 +252,21 @@ export default function FeedWrite({ route, navigation }: Props) {
             </View>
             <View style={styles.ratingContainer}>
               <View style={styles.starsDisplay}>
-                {[1, 2, 3, 4, 5].map(star => {
+                {[1, 2, 3, 4, 5].map((star) => {
                   const isFullStar = rating >= star;
                   const isHalfStar = rating >= star - 0.5 && rating < star;
-                  const starIconName = isFullStar
-                    ? 'star'
-                    : isHalfStar
-                    ? 'star-half'
-                    : 'star-outline';
-                  const starColor =
-                    isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
+                  const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
+                  const starColor = isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
 
                   return (
-                    <TouchableOpacity
-                      key={star}
-                      style={styles.starButton}
-                      onPress={e => handleStarClick(star, e)}
-                      activeOpacity={0.7}
-                    >
+                    <TouchableOpacity key={star} style={styles.starButton} onPress={(e) => handleStarClick(star, e)} activeOpacity={0.7}>
                       <Icon name={starIconName} size={32} color={starColor} />
                     </TouchableOpacity>
                   );
                 })}
               </View>
               <View style={styles.ratingValueContainer}>
-                <Text style={styles.ratingValue}>
-                  {rating > 0 ? rating.toFixed(1) : '0.0'}
-                </Text>
+                <Text style={styles.ratingValue}>{rating > 0 ? rating.toFixed(1) : '0.0'}</Text>
               </View>
             </View>
           </View>
@@ -315,10 +278,7 @@ export default function FeedWrite({ route, navigation }: Props) {
             </View>
             <View style={styles.imageContainer}>
               {images.length < 3 && (
-                <TouchableOpacity
-                  style={styles.imagePickerButton}
-                  onPress={handleImagePicker}
-                >
+                <TouchableOpacity style={styles.imagePickerButton} onPress={handleImagePicker}>
                   <Icon name="camera-outline" size={24} color="#A3A3A3" />
                   <Text style={styles.imagePickerText}>사진 추가</Text>
                 </TouchableOpacity>
@@ -326,15 +286,8 @@ export default function FeedWrite({ route, navigation }: Props) {
               {/* 이미지 목록 */}
               {images.map((uri, index) => (
                 <View key={index} style={styles.imageWrapper}>
-                  <Image
-                    source={typeof uri === 'string' ? { uri } : uri}
-                    style={styles.image}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => handleRemoveImage(index)}
-                  >
+                  <Image source={typeof uri === 'string' ? { uri } : uri} style={styles.image} resizeMode="cover" />
+                  <TouchableOpacity style={styles.removeImageButton} onPress={() => handleRemoveImage(index)}>
                     <Icon name="close-circle" size={20} color="#FFFFFF" />
                   </TouchableOpacity>
                 </View>
@@ -351,19 +304,13 @@ export default function FeedWrite({ route, navigation }: Props) {
             shape="pillSolid"
             tone="aqua"
             titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-            disabled={
-              title.length === 0 || content.length === 0 || isSubmitting
-            }
+            disabled={title.length === 0 || content.length === 0 || isSubmitting}
           />
         </View>
       </View>
 
       {/* 장소 검색 모달 */}
-      <PlaceSearchModal
-        visible={showPlaceSearchModal}
-        onClose={handleModalClose}
-        onPlaceSelect={handlePlaceSelect}
-      />
+      <PlaceSearchModal visible={showPlaceSearchModal} onClose={handleModalClose} onPlaceSelect={handlePlaceSelect} />
     </>
   );
 }
