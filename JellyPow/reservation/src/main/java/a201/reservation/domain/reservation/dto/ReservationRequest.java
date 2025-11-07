@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
+@Setter
 public class ReservationRequest {
 
-    private Long userId;
     private LocalDate date;
     private Integer time;
     private String content;

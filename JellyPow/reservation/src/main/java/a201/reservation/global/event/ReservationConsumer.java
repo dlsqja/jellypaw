@@ -23,13 +23,12 @@ public class ReservationConsumer {
             ReservationEvent event = JsonUtil.fromJsonString(message, ReservationEvent.class);
 
             ReservationRequest request = ReservationRequest.builder()
-                    .userId(event.getUserId())
                     .date(event.getDate())
                     .time(event.getTime())
                     .content(event.getContent())
                     .build();
 
-            reservationService.reserve(event.getPlaceId(), request);
+            reservationService.reserve(event.getPlaceId(), event.getUserId(), request);
         } catch (Exception e) {
             log.error("reservation 예약 이벤트 처리 실패: {}", message, e);
         }
