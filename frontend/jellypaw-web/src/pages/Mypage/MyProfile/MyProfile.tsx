@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { BsPersonCircle } from 'react-icons/bs';
+import { FaPaw } from 'react-icons/fa';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
@@ -17,7 +17,9 @@ export default function MyProfile() {
           {profileData?.profileImg ? (
             <img className="w-16 h-16 max-w-16" src={`${IMAGE_BASE_URL}${profileData?.profileImg}`} alt="프로필" />
           ) : (
-            <BsPersonCircle className="w-32 h-16 max-w-16 text-aqua-300" />
+            <div className="w-16 h-16 p-3 rounded-full outline outline-2 outline-offset-[-2px] outline-aqua-300 flex flex-col justify-center items-center">
+              <FaPaw className="w-14 h-14 text-aqua-300" />
+            </div>
           )}
           <div className="flex flex-col justify-center items-start gap-1">
             <div className="text-aqua-500 h6-b">{profileData?.nickname}</div>
