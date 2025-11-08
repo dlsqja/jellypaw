@@ -21,7 +21,17 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
 # ======================================================================
-
+# 이 코드는 파일 경로를 기준으로 reference_data.json 파일을 찾아 로드합니다.
+def load_reference_data():
+    script_dir = os.path.dirname(__file__)
+    ref_path = os.path.join(script_dir, 'reference_data.json')
+    
+    if not os.path.exists(ref_path):
+        raise FileNotFoundError(f"기준표 파일이 없습니다: {ref_path}")
+    
+    with open(ref_path, 'r', encoding='utf-8') as f:
+        print("--- [Load] 기준표 데이터 로드 성공. ---", file=sys.stderr)
+        return json.load(f)
 # ----------------------------------------------------------------------
 # 💡 [핵심] YOLO-OpenCV 좌표 변환 함수
 # ----------------------------------------------------------------------
@@ -129,15 +139,73 @@ def extract_lab_color(image_warped, box_pixel):
     lab_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2LAB)
 
     # 3. 평균 LAB 값 계산 [L, A, B]
-    mean_lab = np.mean(lab_roi, axis=(0, 1))
+    mean_lab_255_scale = np.mean(lab_roi, axis=(0, 1))
 
-    # 결과를 정밀도 높은 float 리스트로 변환
-    return [round(float(val), 4) for val in mean_lab]
+    # 표준 LAB 범위 (L:0~100, A/B:-128~127)로 변환
+    L = (mean_lab_255_scale[0] * 100) / 255.0          # L: 0~255 -> 0~100
+    A = mean_lab_255_scale[1] - 128.0                   # A: 0~255 -> -128~127
+    B = mean_lab_255_scale[2] - 128.0                   # B: 0~255 -> -128~127
+
+
+    # 결과를 float 리스트로 변환
+    return [round(float(L), 4), round(float(A), 4), round(float(B), 4)]
+# ----------------------------------------------------------------------
+# 5. Delta E 계산 및 진단 
+# ----------------------------------------------------------------------
+def calculate_delta_e(lab1, lab2):
+    """
+    Delta E 1976 공식에 따라 두 LAB 색상 간의 차이를 계산합니다.
+    """
+    L1, A1, B1 = lab1
+    L2, A2, B2 = lab2
+    
+    # Delta E = sqrt((L1-L2)^2 + (A1-A2)^2 + (B1-B2)^2)
+    delta_e = np.sqrt(
+        (L1 - L2)**2 + (A1 - A2)**2 + (B1 - B2)**2
+    )
+    return float(delta_e)
+
+def perform_diagnosis(class_name, measured_lab, reference_data):
+    """
+    측정된 LAB 값을 기준으로 가장 가까운 기준 단계(level)를 찾습니다.
+    """
+    if class_name not in reference_data:
+        return {"result": "진단 불가", "delta_e": None}
+
+    pad_references = reference_data[class_name]
+    
+    best_match = None
+    min_delta_e = float('inf')
+    
+    # 측정된 LAB 값과 모든 기준 LAB 값을 비교
+    for ref in pad_references:
+        ref_lab = ref['lab']
+        delta_e = calculate_delta_e(measured_lab, ref_lab)
+        
+        # 가장 작은 Delta E를 가진 레벨을 '가장 가까운 색상'으로 저장
+        if delta_e < min_delta_e:
+            min_delta_e = delta_e
+            best_match = ref
+            
+    # 최종 진단 결정
+    if best_match and min_delta_e <= best_match['max_delta_e']:
+        diagnosis_result = best_match['level']
+    else:
+        # 가장 가까운 색상이라도 허용 오차를 벗어나면 (예: 색상 변질)
+        diagnosis_result = f"가까움({best_match['level']})"
+        
+    return {
+        "result": diagnosis_result,
+        "measured_delta_e": round(min_delta_e, 4)
+    }
 
 # ----------------------------------------------------------------------
-# 5. 메인 분석 파이프라인 (3단계 + 4단계 통합)
+# 6. 메인 분석 파이프라인 (3단계 + 4단계 통합)
 # ----------------------------------------------------------------------
 def analyze_image_pipeline(image_path):
+    # 0. 기준표 데이터 로드 (5단계 준비)
+    reference_data = load_reference_data()
+
     # 1. 파일 로드
     image = cv2.imread(image_path)
     if image is None:
@@ -175,15 +243,19 @@ def analyze_image_pipeline(image_path):
             # 3단계: YOLO 좌표를 픽셀 좌표로 변환
             x_min, y_min, x_max, y_max = normalize_to_pixel_coords(box_norm, W_warped, H_warped)
             
-            # 👇 4단계: LAB 색상 추출 로직 실행
-            lab_color = extract_lab_color(processed_image, [x_min, y_min, x_max, y_max])
+            # 4단계: LAB 색상 추출 로직 실행
+            measured_lab = extract_lab_color(processed_image, [x_min, y_min, x_max, y_max])
             
+            # 5단계 : 진단 로직 실행
+            diagnosis_info = perform_diagnosis(class_name, measured_lab, reference_data)
+
             # 패드 결과 리스트에 저장 (LAB 값 포함)
             pad_results.append({
                 "class": class_name,
                 "confidence": round(conf, 4),
                 "box_pixel": [x_min, y_min, x_max, y_max],
-                "lab_color": lab_color  # 💡 4단계 결과!
+                "lab_color": measured_lab,      
+                "diagnosis": diagnosis_info     
             })
 
             # # 👇👇👇 [디버깅 코드]: 이제 debug_image 변수가 정의되어 사용 가능 👇👇👇
