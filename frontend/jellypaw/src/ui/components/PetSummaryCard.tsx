@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, Pressable, ImageSourcePropType } from 'react-native';
+// src/ui/components/PetSummaryCard.tsx
+import React from 'react';
+import { View, Image, StyleSheet, Pressable } from 'react-native';
 import { Text } from './Text';
 import Feather from 'react-native-vector-icons/Feather';
 import { palette, theme } from '../system/variants';
@@ -24,8 +25,7 @@ function InfoChip({
 }
 
 type Props = {
-  /** null: 기본이미지로 리셋, undefined: 이전 유지, string: 교체 */
-  avatarUri?: string | null;
+  avatarUri?: string | null; // string: 사용, null/빈값: 기본이미지
   name: string;
   kind: string;
   registeredAt?: string;
@@ -45,18 +45,12 @@ export default function PetSummaryCard({
   sex,
   onEdit,
 }: Props) {
-  const [source, setSource] = useState<ImageSourcePropType>(defaultPetImage);
+  const hasValidUri =
+    typeof avatarUri === 'string' && avatarUri.trim().length > 0;
 
-  useEffect(() => {
-    if (avatarUri === null) {
-      // 부모가 기본 이미지로 리셋을 의도
-      setSource(defaultPetImage);
-    } else if (typeof avatarUri === 'string' && avatarUri.trim().length > 0) {
-      // 유효한 URL이면 교체
-      setSource({ uri: avatarUri });
-    }
-    // avatarUri === undefined 인 경우: 이전 이미지 유지 (깜빡임 방지)
-  }, [avatarUri]);
+  const source = hasValidUri
+    ? { uri: avatarUri as string }
+    : defaultPetImage;
 
   return (
     <View style={S.card}>
@@ -66,12 +60,15 @@ export default function PetSummaryCard({
             source={source}
             defaultSource={defaultPetImage}
             style={S.avatar}
-            onError={() => setSource(defaultPetImage)} // 네트워크 실패 시 기본으로
           />
           <View style={{ paddingLeft: 16 }}>
-            <Text weight="bold" style={S.title}>{name}</Text>
+            <Text weight="bold" style={S.title}>
+              {name}
+            </Text>
             <Text style={S.sub}>{kind}</Text>
-            {!!registeredAt && <Text style={S.meta}>등록일: {registeredAt}</Text>}
+            {!!registeredAt && (
+              <Text style={S.meta}>등록일: {registeredAt}</Text>
+            )}
           </View>
         </View>
       </View>
@@ -84,7 +81,9 @@ export default function PetSummaryCard({
 
       <Pressable onPress={onEdit} style={S.editBtn}>
         <Feather name="edit-3" size={18} color={theme.border.default} />
-        <Text weight="medium" style={S.editLabel}>정보 수정</Text>
+        <Text weight="medium" style={S.editLabel}>
+          정보 수정
+        </Text>
       </Pressable>
     </View>
   );

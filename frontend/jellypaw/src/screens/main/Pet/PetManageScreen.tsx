@@ -7,7 +7,7 @@ import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
 import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
 import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
-import { API_BASE_URL } from '@env';
+import { API_BASE_URL, VITE_IMAGE_BASE_URL } from '@env';
 
 //  React Query 훅 사용
 import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
@@ -19,6 +19,19 @@ const toAbsolute = (u?: string | null) => {
   const base = (API_BASE_URL || '').replace(/\/+$/, '');
   const path = u.replace(/^\/+/, '');
   return `${base}/${path}`;
+};
+
+const toImageUrl = (u?: string | null) => {
+  if (!u || !u.trim()) return null;
+
+  // 이미 절대 경로면 그대로 사용
+  if (/^https?:\/\//i.test(u)) return u.trim();
+
+  // 이미지 베이스 없으면 일단 원본 리턴 (디버깅용)
+  if (!VITE_IMAGE_BASE_URL) return u.trim();
+
+  // console.log(`${VITE_IMAGE_BASE_URL}${u}`)
+  return `${VITE_IMAGE_BASE_URL}${u}`;
 };
 
 const formatGender = (g: any) =>
@@ -72,13 +85,13 @@ export default function PetManageScreen({ navigation }: any) {
           >
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
-                key={pet.petId}
-                name={pet.name ?? ''}
-                species={formatSpecies(pet.species)}
-                avatarUri={toAbsolute(pet.photoUrl)}
-                selected={selectedPetId === pet.petId}
-                onPress={() => setSelectedPetId(pet.petId ?? 0)}
-              />
+  key={pet.petId}
+  name={pet.name ?? ''}
+  species={formatSpecies(pet.species)}
+  avatarUri={toImageUrl(pet.photoUrl)}
+  selected={selectedPetId === pet.petId}
+  onPress={() => setSelectedPetId(pet.petId ?? 0)}
+/>
             ))}
 
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
@@ -97,23 +110,21 @@ export default function PetManageScreen({ navigation }: any) {
         {/* 상세 정보 */}
         <View style={{ paddingTop: 16, gap: 16 }}>
           {activeTab === 'info' && (
-            <PetSummaryCard
-              name={selectedPet?.name ?? ''}
-              kind={formatSpecies(selectedPet?.species)}
-              avatarUri={toAbsolute(selectedPet?.photoUrl) ?? null}
-              age={selectedPet?.age ?? 0}
-              weight={selectedPet?.weight ?? 0}
-              sex={formatGender(selectedPet?.gender ?? 'NON')}
-              onEdit={() =>
-                navigation.navigate('EditPet', {
-                  petId: selectedPetId,
-                  // 프리필용: 쿼리 캐시에 이미 있음 → initial로 전달해도 되고 안 해도 됨
-                  initial: selectedPet,
-                })
-              }
-            />
-          )}
-
+  <PetSummaryCard
+    name={selectedPet?.name ?? ''}
+    kind={formatSpecies(selectedPet?.species)}
+    avatarUri={toImageUrl(selectedPet?.photoUrl) ?? null}
+    age={selectedPet?.age ?? 0}
+    weight={selectedPet?.weight ?? 0}
+    sex={formatGender(selectedPet?.gender ?? 'NON')}
+    onEdit={() =>
+      navigation.navigate('EditPet', {
+        petId: selectedPetId,
+        initial: selectedPet,
+      })
+    }
+  />
+)}
           {activeTab === 'health' && (
             <View style={S.healthPlaceholder}>
               <Text>건강 체크 콘텐츠 영역</Text>
