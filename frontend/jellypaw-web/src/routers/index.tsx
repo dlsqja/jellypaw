@@ -23,7 +23,7 @@ const mainRoutes = {
       element: <Feed />,
     },
     {
-      path: '/feed/:feedId',
+      path: '/feed/:boardId',
       element: <FeedDetail />,
     },
     {

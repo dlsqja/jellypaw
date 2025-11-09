@@ -3,103 +3,30 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import Comment from './Components/Comments';
-import { getFeedDetail } from '@/services/api/feed';
+import { getFeedDetail, getComments } from '@/services/api/feed';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import type { GetFeedDetailResponse } from '@/types/feed';
+import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 import { FaPaw } from 'react-icons/fa';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-interface CommentProps {
-  id: number;
-  profileImageUrl: string;
-  name: string;
-  content: string;
-  createdAt: string;
-  likeCount: number;
-  replyCount: number;
-  replies: {
-    id: number;
-    profileImageUrl: string;
-    name: string;
-    content: string;
-    createdAt: string;
-    likeCount: number;
-  }[];
-}
-
-// 댓글 더미데이터
-const commentData: CommentProps[] = [
-  {
-    id: 1,
-    profileImageUrl: '/src/assets/pets/반려동물1.png',
-    name: '멍멍이집사',
-    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-    createdAt: '2시간 전',
-    likeCount: 20,
-    replyCount: 2,
-    replies: [
-      {
-        id: 1,
-        profileImageUrl: '/src/assets/pets/반려동물1.png',
-        name: '멍멍이집사',
-        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-        createdAt: '2시간 전',
-        likeCount: 0,
-      },
-      {
-        id: 2,
-        profileImageUrl: '/src/assets/pets/반려동물1.png',
-        name: '멍멍이집사',
-        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-        createdAt: '2시간 전',
-        likeCount: 0,
-      },
-    ],
-  },
-  {
-    id: 2,
-    profileImageUrl: '/src/assets/pets/반려동물2.png',
-    name: '멍멍이집사2',
-    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-    createdAt: '2시간 전',
-    likeCount: 20,
-    replyCount: 0,
-    replies: [],
-  },
-  {
-    id: 3,
-    profileImageUrl: '/src/assets/pets/반려동물3.png',
-    name: '멍멍이집사3',
-    content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-    createdAt: '2시간 전',
-    likeCount: 10,
-    replyCount: 1,
-    replies: [
-      {
-        id: 1,
-        profileImageUrl: '/src/assets/pets/반려동물1.png',
-        name: '멍멍이집사',
-        content: '오늘 공원에서 신나게 뛰어놀았어요! 날씨도 좋고 행복한 하루였습니다 🐕💕',
-        createdAt: '2시간 전',
-        likeCount: 9,
-      },
-    ],
-  },
-];
-
 export default function FeedDetail() {
-  const { feedId } = useParams();
+  const { boardId } = useParams();
   const [detailData, setDetailData] = useState<GetFeedDetailResponse>();
+  const [comments, setComments] = useState<GetCommentsResponse[]>([]);
 
+  // 게시글 상세 및 댓글 조회
   useEffect(() => {
-    getFeedDetail(Number(feedId)).then((data) => {
-      console.log(data);
-      setDetailData(data);
+    // 게시글 상세 조회
+    getFeedDetail(Number(boardId)).then((detailData) => {
+      setDetailData(detailData);
     });
-  }, [feedId]);
-
+    // 댓글 조회
+    getComments(Number(boardId)).then((comments) => {
+      setComments(comments);
+    });
+  }, [boardId]);
   return (
     <>
       <BackHeader title="게시글" />
@@ -108,7 +35,9 @@ export default function FeedDetail() {
       <Card className="rounded-none shadow-none border-none bg-gray-100">
         <CardHeader className="py-4">
           <div className="flex items-center justify-between gap-3">
+            {/* 프로필 이미지 */}
             <div className="flex items-center gap-3">
+              {/* 프로필 이미지가 있으면 이미지 표시, 없으면 기본 이미지 표시(발자국) */}
               {detailData?.boardUser?.profileImg ? (
                 <img
                   className="w-12 h-12 rounded-full object-cover"
@@ -120,11 +49,13 @@ export default function FeedDetail() {
                   <FaPaw className="w-12 h-12 text-aqua-300" />
                 </div>
               )}
+              {/* 프로필 이름 및 게시글 생성 시간 */}
               <div className="flex flex-col">
                 <div className="text-aqua-500 p2-b">{detailData?.boardUser?.nickname}</div>
                 <div className="text-aqua-500 p3">{detailData?.createdAt}</div>
               </div>
             </div>
+            {/* 팔로잉 버튼 */}
             <Button size="sm" shape="pillSolid">
               {detailData?.boardUser?.nickname ? '팔로잉' : '팔로우'}
             </Button>
@@ -132,11 +63,12 @@ export default function FeedDetail() {
         </CardHeader>
 
         <CardContent>
-          {/* 이미지 */}
-          {detailData?.images && detailData?.images.length > 0 ? (
-            detailData.images
-              .split(',')
-              .map((image) => <img className="w-full h-96 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${image}`} alt="게시글 이미지" />)
+          {/* 게시글 이미지 */}
+          {/* 게시글 이미지가 있으면 이미지 표시, 없으면 기본 이미지 표시(발자국) */}
+          {detailData?.images && detailData.images.length > 0 ? (
+            detailData.images.map((image) => (
+              <img key={image} className="w-full h-96 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${image}`} alt="게시글 이미지" />
+            ))
           ) : (
             <div className="w-full h-96 rounded-[12px] bg-gray-200 flex justify-center items-center">
               <FaPaw className="w-12 h-12 text-gray-300" />
@@ -172,16 +104,13 @@ export default function FeedDetail() {
           </div>
 
           {/* 댓글 */}
-          {commentData.map((comment, index) => (
+          {comments.map((comment, index) => (
             <Comment
               key={index}
-              profileImageUrl={comment.profileImageUrl}
-              name={comment.name}
+              profileImageUrl={comment.userId.profileImg}
+              name={comment.userId.nickname}
               content={comment.content}
               createdAt={comment.createdAt}
-              likeCount={comment.likeCount}
-              replyCount={comment.replyCount}
-              replies={comment.replies}
             />
           ))}
         </CardContent>

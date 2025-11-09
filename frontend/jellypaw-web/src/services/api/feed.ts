@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios';
-import type { GetFeedsResponse, GetFeedDetailResponse } from '@/types/feed';
+import type { GetFeedsResponse, GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 
 interface ApiResponse<T> {
   code: number;
@@ -19,6 +19,19 @@ export const getFeedDetail = async (boardId: number): Promise<GetFeedDetailRespo
   return response.data.data;
 };
 
+
+// 댓글 조회
+export const getComments = async (boardId: number): Promise<GetCommentsResponse[]> => {
+    const response = await apiClient.get<ApiResponse<GetCommentsResponse[]>>(`/comments/${boardId}`);
+    return response.data.data;
+};
+
+// 댓글 생성
+// export const createComment = async (post_id: number, data: any): Promise<any> => {
+//   const response = await apiClient.post<any>(`/comments/${post_id}`, data);
+//   return response.data;
+// };
+
 // 게시글 수정
 // export const updateFeed = async (post_id: number, data: any): Promise<any> => {
 //   const response = await apiClient.patch<any>(`/boards/${post_id}`, data);
@@ -31,17 +44,6 @@ export const getFeedDetail = async (boardId: number): Promise<GetFeedDetailRespo
 //   return response.data;
 // };
 
-// 댓글 조회
-// export const getComments = async (post_id: number): Promise<any[]> => {
-//   const response = await apiClient.get<any[]>(`/comments/${post_id}`);
-//   return response.data;
-// };
-
-// 댓글 생성
-// export const createComment = async (post_id: number, data: any): Promise<any> => {
-//   const response = await apiClient.post<any>(`/comments/${post_id}`, data);
-//   return response.data;
-// };
 
 // 댓글 수정
 // export const updateComment = async (comment_id: number, data: any): Promise<any> => {

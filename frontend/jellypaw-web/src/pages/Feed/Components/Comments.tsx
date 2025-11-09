@@ -2,14 +2,15 @@ import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Replies from './Replies';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { FaPaw } from 'react-icons/fa';
 interface CommentProps {
   profileImageUrl: string;
-  name: string;
-  content: string;
-  createdAt: string;
-  likeCount: number;
-  replyCount: number;
-  replies: {
+  name?: string;
+  content?: string;
+  createdAt?: string;
+  likeCount?: number;
+  replyCount?: number;
+  replies?: {
     id: number;
     profileImageUrl: string;
     name: string;
@@ -24,7 +25,13 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
   return (
     <div className="w-full flex justify-start items-start gap-3 mb-2">
       {/* 프로필 이미지 */}
-      <img className="w-10 h-10 rounded-full" src={profileImageUrl} />
+      {profileImageUrl ? (
+        <img className="w-10 h-10 rounded-full" src={profileImageUrl} />
+      ) : (
+        <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+          <FaPaw className="w-10 h-10 text-aqua-300" />
+        </div>
+      )}
       {/* 댓글 내용 */}
       <div className="w-full flex flex-col justify-start items-start gap-1.5">
         {/* 댓글 내용 컨테이너 */}
@@ -47,7 +54,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             <div className="flex items-center">
               <button type="button" className="flex items-center gap-1 ml-3 cursor-pointer">
                 <Heart className="h-4 w-4  text-gray-300" />
-                {likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>}
+                {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>}
               </button>
               <button type="button" className="flex items-center gap-1 ml-4 cursor-pointer">
                 <MessageCircle className="h-4 w-4 text-gray-300" />
@@ -57,7 +64,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
           </div>
         </div>
         {/* 대댓글 */}
-        {replyCount > 0 && (
+        {replyCount && replyCount > 0 && (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
               <div className="w-40 inline-flex justify-start items-center gap-2 ml-3 cursor-pointer pt-1">
@@ -66,16 +73,17 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              {replies.map((reply, index) => (
-                <Replies
-                  key={index}
-                  profileImageUrl={reply.profileImageUrl}
-                  name={reply.name}
-                  content={reply.content}
-                  createdAt={reply.createdAt}
-                  likeCount={reply.likeCount}
-                />
-              ))}
+              {replies &&
+                replies.map((reply, index) => (
+                  <Replies
+                    key={index}
+                    profileImageUrl={reply.profileImageUrl}
+                    name={reply.name}
+                    content={reply.content}
+                    createdAt={reply.createdAt}
+                    likeCount={reply.likeCount}
+                  />
+                ))}
             </CollapsibleContent>
           </Collapsible>
         )}

@@ -8,7 +8,7 @@ export interface GetFeedsResponse {
   content?: string;
   createdAt?: string;
   id?: number;
-  images?: string;
+  images?: string[];
   starRating?: number;
   title?: string;
 
@@ -16,7 +16,21 @@ export interface GetFeedsResponse {
 
 // 게시글 상세 조회 응답
 export interface GetFeedDetailResponse extends GetFeedsResponse {
-  likeCount: number;
-  commentCount: number;
-  isFollowing: boolean;
+  likeCount?: number;
+  commentCount?: number;
+  isFollowing?: boolean;
+}
+
+
+// 댓글 조회 응답
+export interface GetCommentsResponse {
+  id?: number;
+  parent?: number;
+  userId: {
+    id: number;
+    nickname: string;
+    profileImg: string;
+  };
+  content?: string;
+  createdAt?: string;
 }

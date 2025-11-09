@@ -89,7 +89,7 @@ export default function Feed() {
             imageUrl={feed.boardUser?.profileImg ? `${IMAGE_BASE_URL}${feed.boardUser.profileImg}` : ''}
             createdAt={feed.createdAt || ''}
             content={feed.content || ''}
-            imageUrls={feed.images ? feed.images.split(',').map((image) => `${IMAGE_BASE_URL}${image}`) : []}
+            imageUrls={feed.images ? feed.images.map((image) => `${IMAGE_BASE_URL}${image}`) : []}
             title={feed.title || ''}
             rating={feed.starRating}
             date={feed.createdAt || ''}
