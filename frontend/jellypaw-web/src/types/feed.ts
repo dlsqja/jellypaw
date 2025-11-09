@@ -1,16 +1,19 @@
 // 게시글 전체 목록 조회 응답
 export interface GetFeedsResponse {
-  boardUser: {
+  boardUser?: {
     id?: number;
     nickname?: string;
-    profileImg?: string;
+    profileImg?: string | null;
   };
   content?: string;
   createdAt?: string;
   id?: number;
-  images?: string[];
+  images?: string[] | null;
   starRating?: number;
   title?: string;
+  // 아래 내용 추가 되어야 함
+//   likeCount?: number;
+//   commentCount?: number;
 
 }
 
