@@ -1,16 +1,23 @@
 import apiClient from '@/lib/axios';
+import type { GetFeedsResponse, GetFeedDetailResponse } from '@/types/feed';
+
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
 
 // 게시글 전체 목록 조회
-// export const getFeeds = async (): Promise<any[]> => {
-//   const response = await apiClient.get<any[]>('/boards');
-//   return response.data;
-// };
+export const getFeeds = async (): Promise<GetFeedsResponse[]> => {
+  const response = await apiClient.get<ApiResponse<GetFeedsResponse[]>>('/boards');
+  return response.data.data;
+};
 
 // 게시글 상세 조회
-// export const getFeedDetail = async (user_id: number): Promise<any> => {
-//   const response = await apiClient.get<any>(`/boards/${user_id}`);
-//   return response.data;
-// };
+export const getFeedDetail = async (boardId: number): Promise<GetFeedDetailResponse> => {
+  const response = await apiClient.get<ApiResponse<GetFeedDetailResponse>>(`/boards/${boardId}`);
+  return response.data.data;
+};
 
 // 게시글 수정
 // export const updateFeed = async (post_id: number, data: any): Promise<any> => {

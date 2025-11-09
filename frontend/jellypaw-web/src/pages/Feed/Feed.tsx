@@ -7,11 +7,17 @@ import { getFollowers } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
 import { BsPersonCircle } from 'react-icons/bs';
+import { getFeeds } from '@/services/api/feed';
+import type { GetFeedsResponse } from '@/types/feed';
+import { useNavigate } from 'react-router-dom';
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function Feed() {
   const { data: profileData } = useProfile();
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
+  const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
+  const navigate = useNavigate();
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
@@ -28,46 +34,13 @@ export default function Feed() {
     setActiveProfile(name);
   };
 
-  // 게시글 더미 데이터
-  const articles = [
-    {
-      name: '탄산',
-      imageUrl: '/src/assets/pets/반려동물1.png',
-      createdAt: '2시간 전',
-      content:
-        '아주 맛있군! 탄산이가 정말 좋아하는 연어와 고구마를 섞어서 만든 수제 사료예요. 두 줄까지만 보이고 나머지 더보기더보기더보기더비고디보기더보기더보기더비고디...',
-      imageUrls: ['/src/assets/articles/게시글 사진.png', '/src/assets/articles/게시글 사진.png', '/src/assets/articles/게시글 사진.png'],
-      title: '탄산이 오늘 먹은 것',
-      rating: 5.0,
-      date: '24.01.15',
-      likeCount: 10,
-      commentCount: 10,
-    },
-    {
-      name: '구찌',
-      imageUrl: '/src/assets/pets/반려동물2.png',
-      createdAt: '5시간 전',
-      content: '구찌가 오늘 산책하면서 정말 즐거워했어요! 새로 만난 친구와도 잘 어울렸고 나무도 열심히 탐색했답니다.',
-      imageUrls: ['/src/assets/articles/게시글 사진.png', '/src/assets/articles/게시글 사진.png'],
-      title: '오늘의 산책',
-      rating: 4.5,
-      date: '24.01.15',
-      likeCount: 25,
-      commentCount: 8,
-    },
-    {
-      name: '짜장',
-      imageUrl: '/src/assets/pets/반려동물3.png',
-      createdAt: '1일 전',
-      content: '짜장이가 요즘 새 장난감을 좋아해요. 계속 가지고 다니면서 놀고 있네요. 귀여워서 못 견디겠어요!',
-      imageUrls: ['/src/assets/articles/게시글 사진.png'],
-      title: '새 장난감',
-      rating: 5.0,
-      date: '24.01.14',
-      likeCount: 15,
-      commentCount: 5,
-    },
-  ];
+  // 게시글 목록 조회
+  useEffect(() => {
+    getFeeds().then((data) => {
+      console.log(data);
+      setFeeds(data || []);
+    });
+  }, []);
 
   return (
     <>
@@ -109,19 +82,23 @@ export default function Feed() {
 
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
-        {articles.map((article, index) => (
+        {feeds.map((feed, index) => (
           <Article
             key={index}
-            name={article.name}
-            imageUrl={article.imageUrl}
-            createdAt={article.createdAt}
-            content={article.content}
-            imageUrls={article.imageUrls}
-            title={article.title}
-            rating={article.rating}
-            date={article.date}
-            likeCount={article.likeCount}
-            commentCount={article.commentCount}
+            name={feed.boardUser?.nickname || ''}
+            imageUrl={feed.boardUser?.profileImg ? `${IMAGE_BASE_URL}${feed.boardUser.profileImg}` : ''}
+            createdAt={feed.createdAt || ''}
+            content={feed.content || ''}
+            imageUrls={feed.images ? feed.images.split(',').map((image) => `${IMAGE_BASE_URL}${image}`) : []}
+            title={feed.title || ''}
+            rating={feed.starRating}
+            date={feed.createdAt || ''}
+            onClick={() => {
+              if (!feed.id) {
+                return;
+              }
+              navigate(`/feed/${feed.id}`);
+            }}
           />
         ))}
       </div>

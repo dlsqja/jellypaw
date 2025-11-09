@@ -6,56 +6,82 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/com
 import IconText from '@/components/texts/IconText';
 import { Badge } from '@/components/ui/badge';
 import { FaStar } from 'react-icons/fa6';
+import { FaPaw } from 'react-icons/fa';
+
+// 게시글 컴포넌트 인터페이스
 interface ArticleProps {
   name: string;
   imageUrl: string;
   createdAt: string;
   content: string;
-  imageUrls: string[];
+  imageUrls?: string[];
   title?: string;
   rating?: number;
   date?: string;
   likeCount?: number;
   commentCount?: number;
+  onClick?: () => void;
 }
 
+// 게시글 컴포넌트
 export default function Article({
   name,
   imageUrl,
   createdAt,
   content,
-  imageUrls,
+  imageUrls = [],
   title,
   rating,
   date,
-  likeCount = 12,
-  commentCount = 3,
+  likeCount = 0,
+  commentCount = 0,
+  onClick,
 }: ArticleProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
-
+  // 이미지 슬라이더 관련 상태 관리
   useEffect(() => {
     if (!api) {
       return;
     }
-
+    // 현재 선택된 스냅 인덱스 설정
     setCurrent(api.selectedScrollSnap());
 
+    // 스냅 인덱스 변경 시 상태 업데이트
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
 
+  // 게시글 컴포넌트 반환
   return (
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
-      <Card className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100">
+      <Card
+        className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100 cursor-pointer"
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        onClick={onClick}
+        onKeyDown={(event) => {
+          if (!onClick) return;
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+      >
         {/* 프로필 헤더 */}
         <CardHeader className="p-4 gap-4">
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
                 {/* 프로필 사진*/}
-                <img className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300" src={imageUrl} alt={name} />
+                {imageUrl ? (
+                  <img className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300" src={imageUrl} alt={name} />
+                ) : (
+                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+                    <FaPaw className="w-10 h-10 text-aqua-300" />
+                  </div>
+                )}
                 <div className="ml-3 flex flex-col">
                   {/* 프로필 이름, 게시글 생성 시간*/}
                   <div className="text-aqua-500 p2-b ">{name}</div>
