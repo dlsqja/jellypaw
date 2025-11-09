@@ -21,6 +21,7 @@ export default function FeedDetail() {
     // 게시글 상세 조회
     getFeedDetail(Number(boardId)).then((detailData) => {
       setDetailData(detailData);
+      console.log(detailData);
     });
     // 댓글 조회
     getComments(Number(boardId)).then((comments) => {
@@ -91,11 +92,11 @@ export default function FeedDetail() {
             <div className="flex items-center">
               <button type="button" className="h-7 flex items-center gap-1 cursor-pointer ">
                 <Heart className="h-5 w-5 text-pink-300" />
-                <span className="text-aqua-500 p2-b">{detailData?.likeCount}</span>
+                <span className="text-aqua-500 p2-b">{detailData?.likeCount || 0}</span>
               </button>
               <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer ">
                 <MessageCircle className="h-5 w-5 text-gray-600" />
-                <span className="text-aqua-500 p2-b">{detailData?.commentCount}</span>
+                <span className="text-aqua-500 p2-b">{detailData?.commentCount || 0}</span>
               </button>
             </div>
             <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer ">
@@ -105,13 +106,7 @@ export default function FeedDetail() {
 
           {/* 댓글 */}
           {comments.map((comment, index) => (
-            <Comment
-              key={index}
-              profileImageUrl={comment.userId.profileImg}
-              name={comment.userId.nickname}
-              content={comment.content}
-              createdAt={comment.createdAt}
-            />
+            <Comment key={index} userId={comment.userId} content={comment.content} createdAt={comment.createdAt} />
           ))}
         </CardContent>
       </Card>

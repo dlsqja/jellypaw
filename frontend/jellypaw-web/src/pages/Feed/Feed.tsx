@@ -6,10 +6,8 @@ import Article from '@/pages/Feed/Components/Article';
 import { getFollowers } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
-import { BsPersonCircle } from 'react-icons/bs';
 import { getFeeds } from '@/services/api/feed';
 import type { GetFeedsResponse } from '@/types/feed';
-import { useNavigate } from 'react-router-dom';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -17,7 +15,6 @@ export default function Feed() {
   const { data: profileData } = useProfile();
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
-  const navigate = useNavigate();
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
@@ -28,8 +25,10 @@ export default function Feed() {
     }
   }, [profileData?.nickname]); // profileData.nickname이 변경될 때마다 실행
 
+  // 팔로워 활성화 상태
   const [activeProfile, setActiveProfile] = useState<string>('전체');
 
+  // 팔로워 클릭 핸들러
   const handleProfileClick = (name: string) => {
     setActiveProfile(name);
   };
@@ -85,20 +84,13 @@ export default function Feed() {
         {feeds.map((feed, index) => (
           <Article
             key={index}
-            name={feed.boardUser?.nickname || ''}
-            imageUrl={feed.boardUser?.profileImg ? `${IMAGE_BASE_URL}${feed.boardUser.profileImg}` : ''}
-            createdAt={feed.createdAt || ''}
-            content={feed.content || ''}
-            imageUrls={feed.images ? feed.images.map((image) => `${IMAGE_BASE_URL}${image}`) : []}
-            title={feed.title || ''}
-            rating={feed.starRating}
-            date={feed.createdAt || ''}
-            onClick={() => {
-              if (!feed.id) {
-                return;
-              }
-              navigate(`/feed/${feed.id}`);
-            }}
+            boardUser={feed.boardUser}
+            content={feed.content}
+            createdAt={feed.createdAt}
+            id={feed.id}
+            images={feed.images}
+            starRating={feed.starRating}
+            title={feed.title}
           />
         ))}
       </div>

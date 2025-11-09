@@ -7,36 +7,13 @@ import IconText from '@/components/texts/IconText';
 import { Badge } from '@/components/ui/badge';
 import { FaStar } from 'react-icons/fa6';
 import { FaPaw } from 'react-icons/fa';
+import type { GetFeedsResponse } from '@/types/feed';
+import { useNavigate } from 'react-router-dom';
 
-// 게시글 컴포넌트 인터페이스
-interface ArticleProps {
-  name: string;
-  imageUrl: string;
-  createdAt: string;
-  content: string;
-  imageUrls?: string[];
-  title?: string;
-  rating?: number;
-  date?: string;
-  likeCount?: number;
-  commentCount?: number;
-  onClick?: () => void;
-}
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-// 게시글 컴포넌트
-export default function Article({
-  name,
-  imageUrl,
-  createdAt,
-  content,
-  imageUrls = [],
-  title,
-  rating,
-  date,
-  likeCount = 0,
-  commentCount = 0,
-  onClick,
-}: ArticleProps) {
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title }: GetFeedsResponse) {
+  const navigate = useNavigate();
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   // 이미지 슬라이더 관련 상태 관리
@@ -58,15 +35,10 @@ export default function Article({
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
       <Card
         className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100 cursor-pointer"
-        role={onClick ? 'button' : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        onClick={onClick}
-        onKeyDown={(event) => {
-          if (!onClick) return;
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            onClick();
-          }
+        role="button"
+        tabIndex={0}
+        onClick={() => {
+          navigate(`/feed/${id}`);
         }}
       >
         {/* 프로필 헤더 */}
@@ -75,8 +47,12 @@ export default function Article({
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
                 {/* 프로필 사진*/}
-                {imageUrl ? (
-                  <img className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300" src={imageUrl} alt={name} />
+                {boardUser?.profileImg ? (
+                  <img
+                    className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300"
+                    src={`${IMAGE_BASE_URL}${boardUser.profileImg}`}
+                    alt={boardUser.nickname}
+                  />
                 ) : (
                   <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
                     <FaPaw className="w-10 h-10 text-aqua-300" />
@@ -84,7 +60,7 @@ export default function Article({
                 )}
                 <div className="ml-3 flex flex-col">
                   {/* 프로필 이름, 게시글 생성 시간*/}
-                  <div className="text-aqua-500 p2-b ">{name}</div>
+                  <div className="text-aqua-500 p2-b ">{boardUser?.nickname}</div>
                   <div className="text-aqua-500 p3">{createdAt}</div>
                 </div>
               </div>
@@ -104,9 +80,9 @@ export default function Article({
                     <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{date}</Badge>
+                    <Badge>{createdAt}</Badge>
                     <Badge variant="pink">
-                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof rating === 'number' ? rating.toFixed(1) : rating}
+                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
                   </div>
                 </div>
@@ -120,21 +96,27 @@ export default function Article({
               {/* 이미지 슬라이더 - carousel 사용 */}
               <Carousel setApi={setApi} className="w-full relative">
                 <CarouselContent>
-                  {imageUrls.map((url, index) => (
-                    <CarouselItem key={index}>
-                      <div className="w-77 h-64 relative rounded-[12px]">
-                        <img className="w-77 h-64 rounded-[12px] object-cover" src={url} alt={`${title} - 이미지 ${index + 1}`} />
-                      </div>
-                    </CarouselItem>
-                  ))}
+                  {images &&
+                    images.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <div className="w-77 h-64 relative rounded-[12px]">
+                          <img
+                            className="w-77 h-64 rounded-[12px] object-cover"
+                            src={`${IMAGE_BASE_URL}${url}`}
+                            alt={`${title} - 이미지 ${index + 1}`}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
                 </CarouselContent>
                 {/* 이미지 인디케이터 */}
-                {imageUrls.length > 1 && (
+                {images && images.length > 1 && (
                   <div className="pt-3 flex justify-center">
                     <div className="flex gap-1">
-                      {imageUrls.map((_, index) => (
-                        <div key={index} className={`w-2 h-2 rounded-full ${index === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
-                      ))}
+                      {images &&
+                        images.map((_, index) => (
+                          <div key={index} className={`w-2 h-2 rounded-full ${index === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+                        ))}
                     </div>
                   </div>
                 )}
@@ -146,11 +128,11 @@ export default function Article({
               <div className="flex items-center">
                 <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
                   <Heart className="h-5 w-5 text-pink-300" />
-                  <span className="text-aqua-500 p2-b">{likeCount}</span>
+                  <span className="text-aqua-500 p2-b">{0}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
-                  <span className="ttext-aqua-500 p2-b">{commentCount}</span>
+                  <span className="ttext-aqua-500 p2-b">{0}</span>
                 </button>
               </div>
               <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">

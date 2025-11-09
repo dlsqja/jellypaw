@@ -3,30 +3,15 @@ import { useState } from 'react';
 import Replies from './Replies';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FaPaw } from 'react-icons/fa';
-interface CommentProps {
-  profileImageUrl: string;
-  name?: string;
-  content?: string;
-  createdAt?: string;
-  likeCount?: number;
-  replyCount?: number;
-  replies?: {
-    id: number;
-    profileImageUrl: string;
-    name: string;
-    content: string;
-    createdAt: string;
-    likeCount: number;
-  }[];
-}
+import type { GetCommentsResponse } from '@/types/feed';
 
-export default function Comment({ profileImageUrl, name, content, createdAt, likeCount, replyCount, replies }: CommentProps) {
+export default function Comment({ userId, content, createdAt }: GetCommentsResponse) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="w-full flex justify-start items-start gap-3 mb-2">
       {/* 프로필 이미지 */}
-      {profileImageUrl ? (
-        <img className="w-10 h-10 rounded-full" src={profileImageUrl} />
+      {userId.profileImg ? (
+        <img className="w-10 h-10 rounded-full" src={userId.profileImg} />
       ) : (
         <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
           <FaPaw className="w-10 h-10 text-aqua-300" />
@@ -37,7 +22,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
         {/* 댓글 내용 컨테이너 */}
         <div className="w-full bg-aqua-100 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
           <div className="flex justify-between items-center">
-            <div className="text-aqua-500 p2-b">{name}</div>
+            <div className="text-aqua-500 p2-b">{userId.nickname}</div>
             {/* 댓글 작성 시간, 더보기 버튼 */}
             <div className="flex justify-start items-center gap-2">
               <div className="text-gray-300 p3">{createdAt}</div>
@@ -46,7 +31,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
               </button>
             </div>
           </div>
-          <div className="text-aqua-500 p2">{content}</div>
+          <div className="text-aqua-500 p2">{content || ''}</div>
         </div>
         {/* 댓글 작성 시간, 좋아요, 댓글 보기, 댓글 달기 */}
         <div className="flex justify-start items-center">
@@ -54,7 +39,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             <div className="flex items-center">
               <button type="button" className="flex items-center gap-1 ml-3 cursor-pointer">
                 <Heart className="h-4 w-4  text-gray-300" />
-                {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>}
+                {/* {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>} */}
               </button>
               <button type="button" className="flex items-center gap-1 ml-4 cursor-pointer">
                 <MessageCircle className="h-4 w-4 text-gray-300" />
@@ -63,7 +48,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
             </div>
           </div>
         </div>
-        {/* 대댓글 */}
+        {/* 대댓글
         {replyCount && replyCount > 0 && (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
@@ -86,7 +71,7 @@ export default function Comment({ profileImageUrl, name, content, createdAt, lik
                 ))}
             </CollapsibleContent>
           </Collapsible>
-        )}
+        )} */}
       </div>
     </div>
   );
