@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -62,6 +63,9 @@ public class BoardView {
     @JsonIgnore
     @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
     private ViewCount viewCount;
+
+    @Column(length = 200)
+    private String thumbnail;
 
     public void initializeCounts() {
         this.comment = CommentCount.builder().boardId(this).build();
