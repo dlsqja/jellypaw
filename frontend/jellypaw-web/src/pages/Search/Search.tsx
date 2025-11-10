@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from '@/components/headers/Header';
 import { Input } from '@/components/ui/input';
 import IconText from '@/components/texts/IconText';
@@ -7,11 +7,12 @@ import { LuClock3 } from 'react-icons/lu';
 import { IoIosArrowForward } from 'react-icons/io';
 import { Spinner } from '@/components/ui/spinner';
 import { useSearchStore } from '@/store/searchStore';
-import { searchUsers } from '@/services/api/search';
-import type { SearchUsersResponse } from '@/types/search';
+import { searchPlaces, searchUsers } from '@/services/api/search';
+import type { SearchPlacesResponse, SearchUsersResponse } from '@/types/search';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 import { BsPersonCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
+type PlaceResult = NonNullable<SearchPlacesResponse['places']>[number];
 // 검색 페이지 컴포넌트
 export default function Search() {
   // 검색어 상태
@@ -23,8 +24,10 @@ export default function Search() {
 
   // 검색 결과 상태
   const [results, setResults] = useState<SearchUsersResponse[]>([]);
+  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
+  const skipNextSearchRef = useRef(0);
+  const [cursor, setCursor] = useState<number | null>(null);
   // 검색어 공백 제거
   const removeblank = (keyword: string) => keyword.trim();
   // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
@@ -42,48 +45,97 @@ export default function Search() {
     addSearch(removedBlankKeyword, searchType);
   };
 
+  const removedBlankSearchValue = useMemo(() => removeblank(searchValue), [searchValue]);
   // @ 유저명 혹은 장소명 판별
-  const isUserQuery = useMemo(() => removeblank(searchValue).startsWith('@'), [searchValue]);
+  const isUserQuery = useMemo(() => removedBlankSearchValue.startsWith('@'), [removedBlankSearchValue]);
+  const hasKeyword = removedBlankSearchValue.length > 0;
 
-  // 검색 결과 조회 (유저만)
+  // 검색 요청
   useEffect(() => {
-    const removedBlankKeyword = removeblank(searchValue);
-    if (!removedBlankKeyword || !removedBlankKeyword.startsWith('@')) {
+    // 다음 검색 건너뛰기
+    if (skipNextSearchRef.current > 0) {
+      skipNextSearchRef.current -= 1;
+      return;
+    }
+
+    // 검색어 없으면 초기화
+    if (!removedBlankSearchValue) {
       setResults([]);
+      setPlaceResults([]);
       setIsLoading(false);
       return;
     }
 
-    // @ 제거 후 조회
-    const keyword = sanitizeUserKeyword(removedBlankKeyword);
-    if (!keyword) {
-      setResults([]);
-      setIsLoading(false);
-      return;
-    }
-
-    // 검색 로딩 시작
+    // 검색 타입 추출
+    const searchType = extractSearchType(removedBlankSearchValue);
+    // 로딩 상태 설정
     setIsLoading(true);
+    // 검색 요청 타임아웃
     const timeoutId = setTimeout(() => {
-      searchUsers(keyword)
-        .then((users) => {
-          const nextResults = users ?? [];
-          setResults(nextResults);
-          console.log('results:', nextResults);
-        })
-        .catch((error) => {
-          console.log(error);
+      // 유저 검색 요청
+      if (searchType === 'user') {
+        // 유저 검색어 @이후 값 추룰룰
+        const keyword = sanitizeUserKeyword(removedBlankSearchValue);
+        // 유저 검색어 없으면 초기화
+        if (!keyword) {
           setResults([]);
-        })
-        .finally(() => {
           setIsLoading(false);
-        });
+          return;
+        }
+
+        // 유저 검색 요청
+        searchUsers(keyword)
+          .then((users) => {
+            const nextResults = users ?? [];
+            setResults(nextResults);
+            setPlaceResults([]);
+            console.log('results:', nextResults);
+          })
+          .catch((error) => {
+            console.log(error);
+            setResults([]);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+
+        // 장소 검색 요청
+      } else {
+        const nextCursor = cursor ?? 0;
+        searchPlaces(removedBlankSearchValue, nextCursor)
+          .then((places) => {
+            console.log('입력값:', removedBlankSearchValue);
+
+            const nextPlaces = (places.places ?? []) as PlaceResult[];
+            setPlaceResults(nextPlaces);
+            setResults([]);
+
+            console.log('places:', nextPlaces);
+
+            if (places.nextCursor == null) {
+              setCursor(null);
+            } else {
+              const ids = nextPlaces.map((place) => place.id).filter((id): id is number => typeof id === 'number');
+              const lastId = ids.length > 0 ? ids[ids.length - 1] : places.nextCursor;
+              setCursor(lastId);
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            setPlaceResults([]);
+            setCursor(null);
+            console.log('places error:', error);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }
     }, 1000);
 
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [searchValue]);
+  }, [removedBlankSearchValue, cursor]);
 
   return (
     <>
@@ -95,21 +147,16 @@ export default function Search() {
           className="rounded-full p2-b placeholder:text-gray-300 placeholder:p2"
           value={searchValue}
           onChange={(e) => {
+            skipNextSearchRef.current = 0;
             setSearchValue(e.target.value);
-            console.log('searchValue:', e.target.value);
           }}
         />
-        {!searchValue && (
+        {!hasKeyword && (
           <div className="flex items-center justify-between">
             <p className="text-gray-500 p2-b">최근 검색</p>
-            {recentSearches.length > 0 && (
-              <button type="button" className="text-gray-300 caption1 underline" onClick={clearSearches}>
-                전체 삭제
-              </button>
-            )}
           </div>
         )}
-        {!searchValue &&
+        {!hasKeyword &&
           recentSearches.map((item) => (
             <div key={item.id} className="flex flex-col mb-2">
               <div className="flex items-center justify-between cursor-pointer" onClick={() => setSearchValue(item.keyword)}>
@@ -127,8 +174,15 @@ export default function Search() {
               </div>
             </div>
           ))}
+        {!hasKeyword && recentSearches.length > 0 && (
+          <div className="mt-1 flex justify-center">
+            <button type="button" className="text-gray-300 caption1" onClick={clearSearches}>
+              최근 검색 히스토리 삭제
+            </button>
+          </div>
+        )}
 
-        {isUserQuery && (
+        {hasKeyword && (
           <div className="flex flex-col gap-3">
             {isLoading && (
               <div className="flex flex-col items-center justify-center h-full pt-6 gap-3 text-gray-300 p2">
@@ -136,14 +190,16 @@ export default function Search() {
                 <span className="text-gray-300 p2">검색 중...</span>
               </div>
             )}
-            {!isLoading && results.length > 0 ? (
+            {!isLoading && isUserQuery && results.length > 0 && (
               <>
+                {/* 유저 검색 결과 */}
                 <p className="text-gray-500 p2-b">검색 결과</p>
                 {results.map((result) => (
                   <div
                     key={result.userId}
                     className="w-full h-23 bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
                     onClick={() => {
+                      skipNextSearchRef.current = 2;
                       handleSubmit(result.nickname || '', 'user');
                       setSearchValue(result.nickname ? `@${result.nickname}` : '');
                       navigate(`/search/person/${result.userId}`);
@@ -171,8 +227,36 @@ export default function Search() {
                   </div>
                 ))}
               </>
-            ) : null}
-            {!isLoading && results.length === 0 && (
+            )}
+
+            {/* 장소 검색 결과 */}
+            {!isLoading && !isUserQuery && placeResults && placeResults.length > 0 && (
+              <>
+                <p className="text-gray-500 p2-b">검색 결과</p>
+                {placeResults.map((place) => (
+                  <div
+                    key={place.id}
+                    className="w-full bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                    onClick={() => {
+                      skipNextSearchRef.current = 2;
+                      handleSubmit(place.title || '', 'place');
+                      navigate(`/search/location/${place.id || 0}`);
+                    }}
+                  >
+                    <div className="p-4 w-full h-full flex justify-between gap-3 items-center cursor-pointer">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-aqua-500 h6-b">{place.title}</span>
+                        <span className="text-gray-500 p2 line-clamp-1">{place.address}</span>
+                        <span className="text-gray-300 caption1">{place.phoneNumber || '연락처 정보 없음'}</span>
+                      </div>
+                      <IoIosArrowForward className="text-gray-300 w-3 h-3" />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {!isLoading && ((isUserQuery && results.length === 0) || (!isUserQuery && placeResults && placeResults.length === 0)) && (
               <div className="flex flex-col items-center justify-start h-full pt-10 text-center">
                 <p className="text-aqua-500 p2-b">검색 결과가 없습니다</p>
                 <p className="text-gray-300 caption1 mt-2">다른 검색어를 입력해보세요</p>

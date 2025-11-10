@@ -2,16 +2,15 @@ import { create, type StateCreator } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface RecentSearch {
-  id: number;
+  id: string;
   keyword: string;
   type: 'user' | 'place';
-  searchedAt: number;
 }
 
 interface SearchState {
   recentSearches: RecentSearch[];
   addSearch: (keyword: string, type?: 'user' | 'place') => void;
-  removeSearch: (id: number) => void;
+  removeSearch: (id: string) => void;
   clearSearches: () => void;
 }
 
@@ -22,28 +21,26 @@ const searchStore: StateCreator<SearchState> = (set, get) => ({
   recentSearches: [],
   // 최근 검색 추가
   addSearch: (keyword: string, type = 'place') => {
-    const raw: string = keyword.trim();
+    const raw = keyword.trim();
     if (!raw) {
       return;
     }
-    // 최근 검색 형식 변환
+
     const formatted = type === 'user' ? (raw.startsWith('@') ? raw : `@${raw}`) : raw;
     const { recentSearches } = get();
-    // 중복 제거
+
     const withoutDuplicate = recentSearches.filter((item) => item.keyword !== formatted);
-    // 새 검색 추가
     const newEntry: RecentSearch = {
-      id: Date.now(),
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       keyword: formatted,
       type,
-      searchedAt: Date.now(),
     };
-    // 최근 검색 목록 업데이트
+
     const next = [newEntry, ...withoutDuplicate].slice(0, MAX_RECENT);
     set({ recentSearches: next });
   },
   // 최근 검색 삭제
-  removeSearch: (id: number) => {
+  removeSearch: (id: string) => {
     set((state) => ({
       ...state,
       recentSearches: state.recentSearches.filter((item) => item.id !== id),
