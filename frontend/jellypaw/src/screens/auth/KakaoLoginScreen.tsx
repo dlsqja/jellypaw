@@ -1,48 +1,45 @@
 // src/screens/auth/KakaoLoginScreen.tsx
 import React, { useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button } from '../../ui/components/Button';
 import { Text } from '../../ui/components/Text';
-
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
-import { Button } from '../../ui/components/Button';
 
-export default function KakaoLoginScreen({
-  navigation,
-}: NativeStackScreenProps<AuthStackParamList, 'KakaoLogin'>) {
+type Props = NativeStackScreenProps<AuthStackParamList, 'KakaoLogin'>;
+
+export default function KakaoLoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
-  const onPress = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.replace('SignupWebView');
-      
 
-    }, 400);
+  const onPress = async () => {
+    try {
+      setLoading(true);
+
+      // 실제에선 Kakao SDK 사용해서 code 받아오기
+      // const code = await getKakaoAuthCode();
+      const code = 'KAKAO_AUTH_CODE_FROM_SDK';
+
+      navigation.replace('LoginBridge', { code });
+    } catch (e: any) {
+      console.log(e);
+      setLoading(false);
+    }
   };
 
   return (
     <View style={S.root}>
       <View style={S.content}>
-        {/* 로고 */}
         <Image
           source={require('../../../assets/images/logo.png')}
           style={{ width: 300, height: 300 }}
           resizeMode="contain"
         />
-
-        {/* 서브 카피 */}
-        {/* <Text style={S.subtitle}>반려동물과 함께하는 일상을 공유해보세요</Text> */}
-
-        {/* 버튼 */}
         <View style={S.ctaWrap}>
           <Button
             title="카카오로 시작하기"
             tone="kakao"
             shape="pillSolid"
             size="lg"
-            titleStyle={{ fontFamily: 'Pretendard-Bold' }}
             loading={loading}
             disabled={loading}
             onPress={onPress}
@@ -55,32 +52,7 @@ export default function KakaoLoginScreen({
 }
 
 const S = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  // 시안처럼 전체 블록을 아래로 내리기
-  content: {
-    marginTop: 175,
-    alignItems: 'center',
-    width: '100%',
-  },
-  // 로고 95px + 다음 요소와 51px 간격
-  // logo: {
-  //   width: 95,
-  //   height: 95,
-  // },
-  // 텍스트는 기존 타이포 유지, 아래와 51px 간격
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 22,
-    fontFamily: 'Pretendard-Bold',
-    color: '#284542',
-    lineHeight: 32,
-    marginBottom: 51,
-    maxWidth: 293, // 시안 느낌의 가로 폭 제한
-  },
-  ctaWrap: {
-    width: '100%',
-  },
+  root: { flex: 1, backgroundColor: '#FAFAFA' },
+  content: { marginTop: 175, alignItems: 'center', width: '100%' },
+  ctaWrap: { width: '100%' },
 });

@@ -1,8 +1,7 @@
 // src/screens/auth/SignupWebViewScreen.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
-  Image,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -10,17 +9,21 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import AuthLayout from '../../layouts/AuthLayout';
 import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
 import { Button } from '../../ui/components/Button';
+import {
+  getEmailByAuthId,
+  signupWithKakao,
+} from '../../services/auth/userService';
+import { setTokens } from '../../lib/tokenStorage';
 
 type Props = CompositeScreenProps<
   NativeStackScreenProps<AuthStackParamList, 'SignupWebView'>,
@@ -29,27 +32,59 @@ type Props = CompositeScreenProps<
 
 export default function SignupWebViewScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
+  const { authId, email: initialEmail } = route.params || {};
 
-  // 카카오에서 넘겨줄 값 (없으면 기본값)
-  const kakaoEmail = route?.params?.email ?? '카카오톡 이메일 기본값';
-
+  const [email, setEmail] = useState(initialEmail || '');
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState<string | undefined>();
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = () => {
+  // authId만 있고 email 없으면 서버에서 조회
+  useEffect(() => {
+    (async () => {
+      try {
+        if (authId && !initialEmail) {
+          const serverEmail = await getEmailByAuthId(authId);
+          if (serverEmail) setEmail(serverEmail);
+        }
+      } catch (e) {
+        console.log('[Signup] getEmailByAuthId 실패', e);
+      }
+    })();
+  }, [authId, initialEmail]);
+
+  const onSubmit = async () => {
     if (!nickname.trim()) {
       setError('닉네임을 입력하세요');
       return;
     }
     setError(undefined);
-    // Root Navigator를 통해 FeedStack으로 이동 (메인 피드 화면)
-    navigation.getParent()?.navigate('FeedStack');
+
+    try {
+      setLoading(true);
+      const res = await signupWithKakao(email, nickname.trim());
+      // 응답 래퍼 안에 accessToken 있음 (UserSignupResponse)
+      const accessToken =
+        res?.data?.accessToken || res?.data?.data?.accessToken;
+      if (accessToken) {
+        await setTokens(accessToken);
+      }
+
+      navigation.getParent()?.reset({
+        index: 0,
+        routes: [{ name: 'FeedStack' as never }],
+      });
+    } catch (e: any) {
+      console.log(e);
+      setError(e?.message || '회원가입 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={S.root}>
       <BackHeader title="추가 정보 입력" />
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -62,20 +97,10 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
               { paddingBottom: insets.bottom + 24 },
             ]}
           >
-            {/* 상단 로고 */}
-            <View style={S.logoWrap}>
-              <Image
-                source={{ uri: 'https://placehold.co/95x95' }}
-                style={{ width: 95, height: 95 }}
-                resizeMode="contain"
-              />
-            </View>
-
-            {/* 폼 */}
             <View style={{ width: '100%' }}>
-              <Input label="이메일" value={kakaoEmail} editable={false} />
+              <Input label="이메일" value={email} editable={false} />
               <Text style={S.meta}>
-                카카오에서 제공된 이메일이에요. 수정은 카카오에서 가능
+                카카오에서 제공된 이메일이에요. 수정은 카카오에서 가능해요.
               </Text>
 
               <View style={{ height: 12 }} />
@@ -91,15 +116,15 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
               />
             </View>
 
-            {/* CTA */}
             <View style={S.cta}>
               <Button
                 title="회원 가입"
                 tone="aqua"
                 shape="pillSolid"
                 size="lg"
+                loading={loading}
+                disabled={loading}
                 style={{ width: '100%', height: 60, paddingHorizontal: 32 }}
-                titleStyle={{ fontFamily: 'Pretendard-SemiBold', fontSize: 16 }}
                 onPress={onSubmit}
               />
             </View>
@@ -117,24 +142,16 @@ const S = StyleSheet.create({
     paddingTop: 8,
     alignItems: 'center',
   },
-  logoWrap: {
-    height: 128,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
   meta: {
     fontSize: 12,
     color: '#999',
     marginTop: 8,
-    fontFamily: 'Pretendard-Regular',
   },
   nickLabel: {
     color: '#374151',
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,
-    fontFamily: 'Pretendard-SemiBold',
   },
   cta: {
     width: '100%',

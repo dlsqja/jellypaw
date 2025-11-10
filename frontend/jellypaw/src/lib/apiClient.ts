@@ -1,18 +1,18 @@
+// src/lib/apiClient.ts
 import axios, { type AxiosInstance } from 'axios';
-import { API_BASE_URL, ACCESS_TOKEN } from '@env';
+import { API_BASE_URL } from '@env';
 import { getAccessToken, clearTokens } from './tokenStorage';
+
+// API BASE: 끝 / 제거 (API용)
 const BASE_URL = (API_BASE_URL || '').replace(/\/+$/, '');
 
 // API 클라이언트 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
-// 메서드 기본 CT 제거(혹시 남아있으면 끼어듦)
+// 메서드 기본 CT 제거 (axios 기본값 충돌 방지)
 try {
   // @ts-ignore
   delete apiClient.defaults.headers.common['Content-Type'];
@@ -24,15 +24,17 @@ try {
   delete apiClient.defaults.headers.patch?.['Content-Type'];
 } catch {}
 
-// FormData 타입 확인
-const isFormData = (data: any) => typeof FormData !== 'undefined' && data instanceof FormData;
+// FormData 체크 (절대 건들지 말고, 헤더만 세팅)
+const isFormData = (data: any) =>
+  typeof FormData !== 'undefined' && data instanceof FormData;
 
-// base64 디코딩 함수 (atob 대체) -> JWT토큰 디코딩
+// base64 디코딩 (JWT payload 용)
 function base64Decode(str: string): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  const chars =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
   let output = '';
   let i = 0;
-  str = str.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+  str = str.replace(/[^A-Za-z0-9+/=]/g, '');
   while (i < str.length) {
     const enc1 = chars.indexOf(str.charAt(i++));
     const enc2 = chars.indexOf(str.charAt(i++));
@@ -46,65 +48,56 @@ function base64Decode(str: string): string {
   return output;
 }
 
-// JWT payload base64url decode → user_id 추출 (토큰에서 추출해서 주입)
-function getUserIdFromToken(token?: string): string | undefined {
+// JWT에서 user_id 추출 → X-User-Id 주입
+function getUserIdFromToken(token?: string | null): string | undefined {
   if (!token) return;
   try {
     const [, payload] = token.split('.');
-    // base64url을 일반 base64로 변환 (padding 추가)
+    if (!payload) return;
     const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const base64Padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-
-    // React Native에서 base64 디코딩 (atob 대신)
-    const decoded = base64Decode(base64Padded);
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const decoded = base64Decode(padded);
     const json = JSON.parse(decoded);
-    return json?.user_id || json?.sub || undefined;
+    return String(json.user_id || json.sub || json.id || '');
   } catch {
     return;
   }
 }
 
-// API 클라이언트 인터셉터 설정
+// ───────────────────────────────────
+// 요청 인터셉터
+// ───────────────────────────────────
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = ACCESS_TOKEN;
+    const token = await getAccessToken();
     config.headers = config.headers ?? {};
 
-    // Authorization 헤더 추가
+    // Authorization
     if (token) {
       (config.headers as any).Authorization = `Bearer ${token}`;
     }
 
-    // X-User-Id (BE가 요구함) — 토큰에서 추출해서 주입 (토큰에서 추출해서 주입)
+    // X-User-Id (백엔드에서 필요)
     const uid = getUserIdFromToken(token);
     if (uid && !(config.headers as any)['X-User-Id']) {
-      (config.headers as any)['X-User-Id'] = String(uid);
+      (config.headers as any)['X-User-Id'] = uid;
     }
 
-    // URL 정규화 (URL 정규화)
+    // URL 앞에 / 강제 (baseURL 뒤에 붙도록)
     if (typeof config.url === 'string') {
       config.url = '/' + config.url.replace(/^\/+/, '');
     }
 
-    // FormData면 CT를 확실히 multipart로 고정 (FormData면 CT를 확실히 multipart로 고정)
+    // FormData면 body는 그대로 두고, 헤더만 multipart로
     if (isFormData(config.data)) {
       (config.headers as any)['Content-Type'] = 'multipart/form-data';
-      (config.headers as any)['Accept'] = 'application/json';
-
-      // 공통/메서드 헤더에 남아있는 CT 제거(덮어쓰기 방지)
-      // @ts-ignore
-      if (config.headers?.common) delete config.headers.common['Content-Type'];
-      // @ts-ignore
-      if (config.headers?.post) delete config.headers.post['Content-Type'];
+      (config.headers as any).Accept = 'application/json';
     }
 
     // 디버그
     try {
       const h = config.headers ?? {};
-      // 디버그 로그 출력
       console.log('[api:req]', {
-        // baseURL: config.baseURL,
-        // token: token,
         method: (config.method || 'get').toUpperCase(),
         url: (config.baseURL || '') + (config.url || ''),
         isFormData: isFormData(config.data),
@@ -112,15 +105,15 @@ apiClient.interceptors.request.use(
       });
     } catch {}
 
-    // 요청 설정 반환
     return config;
   },
   (e) => Promise.reject(e),
 );
 
-// API 클라이언트 인터셉터 설정
+// ───────────────────────────────────
+// 응답 인터셉터
+// ───────────────────────────────────
 apiClient.interceptors.response.use(
-  // 성공 응답 처리
   (res) => {
     console.log('[api:res]', {
       url: res.config?.url,
@@ -130,56 +123,20 @@ apiClient.interceptors.response.use(
     });
     return res;
   },
-  // 에러 응답 처리
-  (err) => {
+  async (err) => {
     console.log('[api:err]', {
       url: err?.config?.url,
       status: err?.response?.status,
       data: err?.response?.data,
     });
+
+    // 여기서 401 시 토큰 정리 정도만 (리프레시는 나중에)
+    if (err?.response?.status === 401) {
+      await clearTokens();
+    }
+
     return Promise.reject(err);
   },
 );
-
-// ⚠️ 필요해질 때까지 그대로 주석 유지해도 OK
-// apiClient.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     if (error.response?.status === 401) {
-//       // 토큰 정리
-//       await clearTokens();
-//       // 화면 이동은 네비게이션으로 처리(전역 ref 등)
-//       // navigationRef.current?.reset({ index: 0, routes: [{ name: 'Auth' }] });
-//     }
-//     return Promise.reject(error);
-//   },
-// );
-
-// apiClient.interceptors.request.use(
-//   async config => {
-//     // async 추가
-//     // AsyncStorage에서 토큰 가져와서 헤더에 추가
-//     const accessToken = await getAccessToken(); // localStorage 대신 getAccessToken 사용, await 추가
-//     if (accessToken) {
-//       config.headers['Authorization'] = `Bearer ${accessToken}`;
-//     }
-//     return config;
-//   },
-//   error => Promise.reject(error),
-// );
-
-// apiClient.interceptors.response.use(
-//   (response) => response,
-//   async (error) => {
-//     if (error.response?.status === 401) {
-//       // 토큰 만료 시 로그아웃 처리
-//       console.log('토큰 만료 - 로그아웃 처리');
-//       localStorage.removeItem('accessToken');
-//       localStorage.removeItem('refreshToken');
-//       window.location.href = '/auth';
-//     }
-//     return Promise.reject(error);
-//   },
-// );
 
 export default apiClient;
