@@ -101,10 +101,10 @@ public class PetService {
         Pet pet = petRepository.findById(petId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
 
         String newUrl = s3Service.uploadPetProfileImage(petProfileImg);
+        String oldUrl = pet.getPhotoUrl();
         pet.updatePhotoUrl(newUrl);
 
         //S3 삭제를 먼저하지 않은 이유 : s3에 저장된 img 가 삭제되고 pet db에 url 수정중에 실패가되면 삭제된 url을 가리키게 됨
-        String oldUrl = pet.getPhotoUrl();
         s3Service.deleteFile(oldUrl);
         
         return pet;
@@ -113,7 +113,7 @@ public class PetService {
     @Transactional
     public void deletePet(Long userId, Long petId) {
 
-        UserPet  userPet = userPetRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        UserPet  userPet = userPetRepository.findByPetIdAndUserId(petId, userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         userPetRepository.delete(userPet);
 
         boolean hasOtherOwner = userPetRepository.existsByPetId(petId);

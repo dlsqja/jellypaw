@@ -7,8 +7,9 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceEvent {
+public class BoardDeleteEvent {
 
-    private Long placeId;
-
+    private Long id;
+    private Long userId;
 }
+
