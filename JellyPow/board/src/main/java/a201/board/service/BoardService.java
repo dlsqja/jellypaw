@@ -1,10 +1,12 @@
 package a201.board.service;
 
 import a201.board.data.entity.Image;
+import a201.board.data.entity.Place;
 import a201.board.data.entity.Board;
 import a201.board.data.entity.BoardUser;
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
+import a201.board.data.request.PlaceCreateRequest;
 import a201.board.data.response.BoardResponse;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -35,6 +38,15 @@ public class BoardService {
     private final BoardUserRepository boardUserRepository;
     private final S3Service s3Service;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final PlaceService placeService;
+
+    public List<BoardResponse> getFeeds() {
+
+        List<Board> boards = boardRepository.findAll();
+
+
+        return boards.stream().map(BoardResponse::fromEntity).collect(Collectors.toList());
+    }
 
     public BoardResponse getPost(Long userId, Long postId) {
 
@@ -59,7 +71,7 @@ public class BoardService {
         return boardResponse;
     }
 
-    public void createPost(Long userId, BoardRequest boardRequest) {
+    public void createPost(Long userId, BoardRequest boardRequest, PlaceCreateRequest placeRequest) {
 
         Board newBoard = boardRequest.toEntity();
         BoardUser boardUser = boardUserRepository.findById(userId)
@@ -89,7 +101,14 @@ public class BoardService {
 
         newBoard.setImages(images);
 
+		Place place = null;
+		if (placeRequest != null) {
+			place = placeService.createPlace(placeRequest);
+			newBoard.setPlaceId(place.getId());
+		}
+
         boardRepository.save(newBoard);
+
 
         //TODO:: 생성 이벤트 발생
         BoardCreateEvent boardCreateEvent = BoardCreateEvent.builder()
@@ -98,7 +117,7 @@ public class BoardService {
                 .category(boardRequest.getCategory())
                 .title(boardRequest.getTitle())
                 .content(boardRequest.getContent())
-                .placeId(boardRequest.getPlaceId())
+                .placeId(placeRequest != null ? place.getId() : null)
                 .starRating(boardRequest.getStarRating())
                 .createdAt(newBoard.getCreatedAt())
                 .visibility(boardRequest.getVisibility())

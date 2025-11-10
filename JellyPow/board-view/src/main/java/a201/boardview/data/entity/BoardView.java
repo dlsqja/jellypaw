@@ -2,11 +2,14 @@ package a201.boardview.data.entity;
 
 import a201.common.enums.Category;
 import a201.common.enums.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "board_view")
@@ -48,4 +51,21 @@ public class BoardView {
     @Column
     private Visibility visibility;
 
+    @JsonIgnore
+    @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
+    private CommentCount comment;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
+    private LikeCount likeCount;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
+    private ViewCount viewCount;
+
+    public void initializeCounts() {
+        this.comment = CommentCount.builder().boardId(this).build();
+        this.likeCount = LikeCount.builder().boardId(this).build();
+        this.viewCount = ViewCount.builder().boardId(this).build();
+    }
 }

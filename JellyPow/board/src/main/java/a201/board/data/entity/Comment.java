@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "comment")
@@ -27,15 +29,19 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private BoardUser userId;
 
-    @Builder.Default
-    @ManyToOne
-    @JoinColumn
-    private Comment parent=null;
-
     @Column(nullable = false)
     private String content;
 
     @Builder.Default
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
+    @ManyToOne
+    @JoinColumn
+    private Comment parent=null;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> children = new ArrayList<>();
 }
