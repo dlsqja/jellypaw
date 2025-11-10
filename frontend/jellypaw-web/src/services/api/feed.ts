@@ -1,16 +1,35 @@
 import apiClient from '@/lib/axios';
+import type { GetFeedsResponse, GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
+
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
 
 // 게시글 전체 목록 조회
-// export const getFeeds = async (): Promise<any[]> => {
-//   const response = await apiClient.get<any[]>('/boards');
-//   return response.data;
-// };
+export const getFeeds = async (): Promise<GetFeedsResponse[]> => {
+  const response = await apiClient.get<ApiResponse<GetFeedsResponse[]>>('/boards');
+  return response.data.data;
+};
 
 // 게시글 상세 조회
-// export const getFeedDetail = async (user_id: number): Promise<any> => {
-//   const response = await apiClient.get<any>(`/boards/${user_id}`);
-//   return response.data;
-// };
+export const getFeedDetail = async (boardId: number): Promise<GetFeedDetailResponse> => {
+  const response = await apiClient.get<ApiResponse<GetFeedDetailResponse>>(`/boards/${boardId}`);
+  return response.data.data;
+};
+
+// 댓글 조회
+export const getComments = async (boardId: number): Promise<GetCommentsResponse[]> => {
+  const response = await apiClient.get<ApiResponse<GetCommentsResponse[]>>(`/comments/${boardId}`);
+  return response.data.data;
+};
+
+// 댓글 생성
+export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse> => {
+  const response = await apiClient.post<ApiResponse<GetCommentsResponse>>(`/comments/${boardId}`, { parent, content });
+  return response.data.data;
+};
 
 // 게시글 수정
 // export const updateFeed = async (post_id: number, data: any): Promise<any> => {
@@ -21,18 +40,6 @@ import apiClient from '@/lib/axios';
 // 게시글 삭제
 // export const deleteFeed = async (post_id: number): Promise<any> => {
 //   const response = await apiClient.delete<any>(`/boards/${post_id}`);
-//   return response.data;
-// };
-
-// 댓글 조회
-// export const getComments = async (post_id: number): Promise<any[]> => {
-//   const response = await apiClient.get<any[]>(`/comments/${post_id}`);
-//   return response.data;
-// };
-
-// 댓글 생성
-// export const createComment = async (post_id: number, data: any): Promise<any> => {
-//   const response = await apiClient.post<any>(`/comments/${post_id}`, data);
 //   return response.data;
 // };
 

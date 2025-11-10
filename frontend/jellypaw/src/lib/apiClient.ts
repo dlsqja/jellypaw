@@ -72,7 +72,7 @@ apiClient.interceptors.request.use(
     const token = await getAccessToken();
     config.headers = config.headers ?? {};
 
-    // Authorization
+    // Authorization 헤더 추가
     if (token) {
       (config.headers as any).Authorization = `Bearer ${token}`;
     }
@@ -97,7 +97,10 @@ apiClient.interceptors.request.use(
     // 디버그
     try {
       const h = config.headers ?? {};
+      // 디버그 로그 출력
       console.log('[api:req]', {
+        // baseURL: config.baseURL,
+        // token: token,
         method: (config.method || 'get').toUpperCase(),
         url: (config.baseURL || '') + (config.url || ''),
         isFormData: isFormData(config.data),
@@ -105,6 +108,7 @@ apiClient.interceptors.request.use(
       });
     } catch {}
 
+    // 요청 설정 반환
     return config;
   },
   (e) => Promise.reject(e),
@@ -114,6 +118,7 @@ apiClient.interceptors.request.use(
 // 응답 인터셉터
 // ───────────────────────────────────
 apiClient.interceptors.response.use(
+  // 성공 응답 처리
   (res) => {
     console.log('[api:res]', {
       url: res.config?.url,

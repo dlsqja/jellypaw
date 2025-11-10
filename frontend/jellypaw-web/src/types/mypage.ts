@@ -5,8 +5,10 @@ export interface GetProfileResponse {
   description?: string;
   profileImg?: string;
   backgroundImg?: string;
+  followerNum?: number;
+  followingNum?: number;
+  postCount?: number;
   role?: string;
-  accessToken?: string;
 }
 
 // 프로필 수정 요청
