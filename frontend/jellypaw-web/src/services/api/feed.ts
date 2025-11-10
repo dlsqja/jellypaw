@@ -19,18 +19,17 @@ export const getFeedDetail = async (boardId: number): Promise<GetFeedDetailRespo
   return response.data.data;
 };
 
-
 // 댓글 조회
 export const getComments = async (boardId: number): Promise<GetCommentsResponse[]> => {
-    const response = await apiClient.get<ApiResponse<GetCommentsResponse[]>>(`/comments/${boardId}`);
-    return response.data.data;
+  const response = await apiClient.get<ApiResponse<GetCommentsResponse[]>>(`/comments/${boardId}`);
+  return response.data.data;
 };
 
 // 댓글 생성
-// export const createComment = async (post_id: number, data: any): Promise<any> => {
-//   const response = await apiClient.post<any>(`/comments/${post_id}`, data);
-//   return response.data;
-// };
+export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse> => {
+  const response = await apiClient.post<ApiResponse<GetCommentsResponse>>(`/comments/${boardId}`, { parent, content });
+  return response.data.data;
+};
 
 // 게시글 수정
 // export const updateFeed = async (post_id: number, data: any): Promise<any> => {
@@ -43,7 +42,6 @@ export const getComments = async (boardId: number): Promise<GetCommentsResponse[
 //   const response = await apiClient.delete<any>(`/boards/${post_id}`);
 //   return response.data;
 // };
-
 
 // 댓글 수정
 // export const updateComment = async (comment_id: number, data: any): Promise<any> => {

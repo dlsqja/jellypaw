@@ -12,9 +12,8 @@ export interface GetFeedsResponse {
   starRating?: number;
   title?: string;
   // 아래 내용 추가 되어야 함
-//   likeCount?: number;
-//   commentCount?: number;
-
+  //   likeCount?: number;
+  //   commentCount?: number;
 }
 
 // 게시글 상세 조회 응답
@@ -23,7 +22,6 @@ export interface GetFeedDetailResponse extends GetFeedsResponse {
   commentCount?: number;
   isFollowing?: boolean;
 }
-
 
 // 댓글 조회 응답
 export interface GetCommentsResponse {
@@ -36,4 +34,13 @@ export interface GetCommentsResponse {
   };
   content?: string;
   createdAt?: string;
+  replyCount?: number;
+  replies?: [];
+}
+
+// 댓글 작성 요청
+// parent가 null 이면 댓글, 아니면 대댓글
+export interface CreateCommentRequest {
+  parent?: number | null;
+  content?: string;
 }

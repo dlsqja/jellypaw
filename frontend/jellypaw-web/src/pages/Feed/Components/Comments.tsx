@@ -1,24 +1,23 @@
 import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Replies from './Replies';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Input } from '@/components/ui/input';
-import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { FaPaw } from 'react-icons/fa';
 import type { GetCommentsResponse } from '@/types/feed';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-export default function Comment({ userId, content, createdAt }: GetCommentsResponse) {
-  const [isOpen, setIsOpen] = useState(false);
+interface CommentProps extends GetCommentsResponse {
+  onReply?: (commentId: number | null) => void;
+}
 
+export default function Comment({ id, userId, content, createdAt, replyCount, replies, onReply }: CommentProps) {
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="w-full flex justify-start items-start gap-2 pb-2">
       {/* 프로필 이미지 */}
       {userId.profileImg ? (
-        <img className="w-10 h-10 rounded-full" src={userId.profileImg} />
+        <img className="w-10 h-10 rounded-full" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
       ) : (
         <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
           <FaPaw className="w-10 h-10 text-aqua-300" />
@@ -48,15 +47,15 @@ export default function Comment({ userId, content, createdAt }: GetCommentsRespo
                 <Heart className="h-4 w-4  text-gray-300" />
                 {/* {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>} */}
               </button>
-              <button type="button" className="flex items-center gap-1 ml-4 cursor-pointer">
+              <button type="button" className="flex items-center gap-1 ml-4 cursor-pointer" onClick={() => onReply?.(id ?? null)}>
                 <MessageCircle className="h-4 w-4 text-gray-300" />
                 <span className="text-gray-300 p3-b">답글 달기</span>
               </button>
             </div>
           </div>
         </div>
-        {/* 대댓글
-        {replyCount && replyCount > 0 && (
+        {/* 대댓글 */}
+        {/* {replyCount && replyCount > 0 && (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <CollapsibleTrigger asChild>
               <div className="w-40 inline-flex justify-start items-center gap-2 ml-3 cursor-pointer pt-1">

@@ -16,19 +16,36 @@ export default function FeedDetail() {
   const { boardId } = useParams();
   const [detailData, setDetailData] = useState<GetFeedDetailResponse>();
   const [comments, setComments] = useState<GetCommentsResponse[]>([]);
+  const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
 
   // 게시글 상세 및 댓글 조회
   useEffect(() => {
     // 게시글 상세 조회
     getFeedDetail(Number(boardId)).then((detailData) => {
       setDetailData(detailData);
-      console.log(detailData);
+      console.log('detailData', detailData);
     });
     // 댓글 조회
     getComments(Number(boardId)).then((comments) => {
+      console.log('comments', comments);
       setComments(comments);
+      setReplyTargetId(null);
     });
   }, [boardId]);
+
+  const refreshComments = () => {
+    if (!boardId) {
+      return;
+    }
+    getComments(Number(boardId)).then((comments) => {
+      setComments(comments);
+      setReplyTargetId(null);
+    });
+  };
+
+  const handleReplySelect = (commentId: number | null) => {
+    setReplyTargetId((prev) => (prev === commentId ? null : commentId));
+  };
   return (
     <>
       <BackHeader title="게시글" />
@@ -108,17 +125,14 @@ export default function FeedDetail() {
 
           {/* 댓글 */}
           <div className="flex flex-col gap-4">
-            {comments.map((comment) => (
-              <Comment
-                key={comment.id ?? `${comment.userId.id}-${comment.createdAt}`}
-                userId={comment.userId}
-                content={comment.content}
-                createdAt={comment.createdAt}
-              />
-            ))}
+            {comments
+              .filter((comment): comment is GetCommentsResponse => !!comment && !!comment.userId)
+              .map((comment) => (
+                <Comment key={comment.id ?? `${comment.userId.id}-${comment.createdAt}`} {...comment} onReply={handleReplySelect} />
+              ))}
           </div>
           {/* 댓글 입력창 */}
-          <CommentInput />
+          <CommentInput parentId={replyTargetId} onSubmitSuccess={refreshComments} onCancelReply={() => setReplyTargetId(null)} />
         </CardContent>
       </Card>
     </>
