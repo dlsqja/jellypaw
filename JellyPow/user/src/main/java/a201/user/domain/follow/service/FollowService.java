@@ -66,6 +66,9 @@ public class FollowService {
         User toUser = userRepository.findByNickname(nickname)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        if (fromUser.getId().equals(toUser.getId())) {
+            throw new CustomException(ErrorCode.UNFOLLOW_SELF);
+        }
         // 2. 팔로우 관계 조회
         Follow follow = followRepository.findByFromUserAndToUser(fromUser, toUser)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOLLOWING));

@@ -7,20 +7,23 @@ import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.service.UserService;
 import a201.user.global.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Public User", description = "공개 사용자 API (인증 불필요)")
 @Slf4j
 @RestController
-@RequestMapping("/api/public")
+@RequestMapping("/public")
 @RequiredArgsConstructor
 public class PublicUserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    // 회원가입
+    @Operation(summary = "회원가입", description = "새로운 사용자를 등록합니다.")
     @PostMapping("/signup")
     public ApiResponse<UserSignupResponse> signup(@RequestBody UserRequest request) {
         try {
@@ -49,11 +52,18 @@ public class PublicUserController {
         }
     }
 
-    // 닉네임 중복 체크
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임의 중복 여부를 확인합니다.")
     @GetMapping("/check-nickname")
     public ApiResponse<Boolean> checkNicknameDuplicate(@RequestParam String nickname) {
         boolean isDuplicate = userService.isNicknameDuplicate(nickname);
         return ApiResponse.success(isDuplicate);
     }
+
+	@Operation(summary = "인증 ID로 이메일 조회", description = "인증 ID를 통해 이메일을 조회합니다.")
+	@GetMapping("/get-email/{authId}")
+	public ApiResponse<String> getEmail(@PathVariable Long authId) {
+		String email = userService.getEmailByAuthId(authId);
+		return ApiResponse.success(email);
+	}
 }
 

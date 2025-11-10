@@ -113,7 +113,7 @@ public class PetService {
     @Transactional
     public void deletePet(Long userId, Long petId) {
 
-        UserPet  userPet = userPetRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+        UserPet  userPet = userPetRepository.findByPetIdAndUserId(petId, userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
         userPetRepository.delete(userPet);
 
         boolean hasOtherOwner = userPetRepository.existsByPetId(petId);
