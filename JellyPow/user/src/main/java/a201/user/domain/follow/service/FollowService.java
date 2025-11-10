@@ -8,6 +8,7 @@ import a201.user.domain.follow.repository.FollowRepository;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class FollowService {
@@ -87,7 +89,10 @@ public class FollowService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Follow> follows = followRepository.findByToUser(user);
-
+		log.info("follows: {}", follows);
+		log.info("follows.get(0).getFromUser(): {}", follows.get(0).getFromUser());
+		log.info("followResponse: ", FollowUserResponse.from(follows.get(0).getFromUser()));
+		
         return follows.stream()
                 .map(follow -> FollowUserResponse.from(follow.getFromUser()))
                 .collect(Collectors.toList());
