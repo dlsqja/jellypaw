@@ -55,7 +55,21 @@ pipeline {
 
                   cd ./${COMPOSE_DIR}
                   chmod +x ./gradlew
+                  
+                  # 빌드 전 elasticsearch 디렉토리 확인
+                  echo "=== 빌드 전 파일 확인 ==="
+                  ls -la ./${SERVICE_DIR}/src/main/resources/elasticsearch/ || echo "elasticsearch 디렉토리가 없습니다!"
+                  
                   ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
+                  
+                  # 빌드 후 JAR 파일 내부 확인
+                  echo "=== 빌드 후 JAR 파일 내부 확인 ==="
+                  JAR_FILE=$(find ./${SERVICE_DIR}/build/libs -name "*.jar" ! -name "*-plain.jar" | head -1)
+                  if [ -n "$JAR_FILE" ]; then
+                    echo "JAR 파일: $JAR_FILE"
+                    jar tf "$JAR_FILE" | grep -i "elasticsearch" || echo "WARNING: JAR에 elasticsearch 관련 파일이 없습니다!"
+                    jar tf "$JAR_FILE" | grep "elasticsearch/user-settings.json" && echo "✓ elasticsearch/user-settings.json 파일이 JAR에 포함되어 있습니다." || echo "✗ ERROR: elasticsearch/user-settings.json 파일이 JAR에 없습니다!"
+                  fi
                 '''
               }
             }
