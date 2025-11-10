@@ -36,6 +36,8 @@ pipeline {
             fi
           '''
         }
+        // elasticsearch 디렉토리를 stash하여 다음 stage로 전달
+        stash name: 'elasticsearch-resources', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch/**"
       }
     }
 
@@ -48,6 +50,9 @@ pipeline {
       }
       steps {
             script {
+              // elasticsearch 디렉토리 unstash
+              unstash 'elasticsearch-resources'
+              
               withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
                 sh '''
                   mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
@@ -58,7 +63,10 @@ pipeline {
                   
                   # 빌드 전 elasticsearch 디렉토리 확인
                   echo "=== 빌드 전 파일 확인 ==="
-                  ls -la ./${SERVICE_DIR}/src/main/resources/elasticsearch/ || echo "elasticsearch 디렉토리가 없습니다!"
+                  ls -la ./${SERVICE_DIR}/src/main/resources/elasticsearch/ || {
+                    echo "ERROR: elasticsearch 디렉토리가 없습니다!"
+                    exit 1
+                  }
                   
                   ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
                   
