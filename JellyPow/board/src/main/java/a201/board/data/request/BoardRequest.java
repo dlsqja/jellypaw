@@ -21,7 +21,7 @@ public class BoardRequest {
 
     private String content;
 
-    private Long placeId;
+    // private Long placeId;
 
     private BigDecimal starRating;
 
@@ -34,7 +34,7 @@ public class BoardRequest {
         return Board.builder()
                 .title(title)
                 .content(content)
-                .placeId(placeId)
+                // .placeId(placeId)
                 .starRating(starRating)
                 .visibility(visibility)
                 .category(category)

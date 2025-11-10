@@ -1,5 +1,6 @@
 package a201.user.domain.user.service;
 
+import a201.user.common.annotation.TimeTrace;
 import a201.user.domain.auth.entity.Auth;
 import a201.user.domain.auth.repository.AuthRepository;
 import a201.user.domain.user.dto.UserRequest;
@@ -7,6 +8,7 @@ import a201.common.event.UserEvent;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
+import a201.user.domain.user.service.UserSearchService;
 import a201.common.s3.S3Service;
 import a201.common.enums.ErrorCode;
 import a201.common.exception.CustomException;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @Service
@@ -26,6 +29,7 @@ public class UserService {
 	private final AuthRepository authRepository;
 	private final S3Service s3Service;
 	private final KafkaTemplate<String, String> kafkaTemplate;
+	private final UserSearchService userSearchService;
 
     // 회원가입	
     @Transactional
@@ -49,11 +53,20 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // 4. Kafka로 이벤트 발행
+        // 4. Elasticsearch에 자동 동기화
+        try {
+            userSearchService.syncUser(savedUser.getId());
+        } catch (Exception e) {
+            // Elasticsearch 동기화 실패해도 회원가입은 성공 처리
+            // 로그만 남기고 계속 진행
+            System.err.println("Elasticsearch 동기화 실패 (회원가입은 성공): " + e.getMessage());
+        }
+
+        // 5. Kafka로 이벤트 발행
         UserEvent event = new UserEvent(savedUser.getId(), savedUser.getNickname(), savedUser.getProfileImg());
         kafkaTemplate.send("user-create-topic", JsonUtil.toJsonString(event));
 
-        // 5. 응답 반환
+        // 6. 응답 반환
         return UserSignupResponse.from(savedUser);
     }
 
@@ -106,15 +119,33 @@ public class UserService {
                 backgroundImgUrl
         );
 
-		//
+        // 5. Elasticsearch에 자동 동기화 (프로필 변경 반영)
+        try {
+            userSearchService.syncUser(user.getId());
+        } catch (Exception e) {
+            // Elasticsearch 동기화 실패해도 프로필 수정은 성공 처리
+            System.err.println("Elasticsearch 동기화 실패 (프로필 수정은 성공): " + e.getMessage());
+        }
 
-		// 5. Kafka로 이벤트 발행
+		// 6. Kafka로 이벤트 발행
 		UserEvent event = new UserEvent(user.getId(), user.getNickname(), user.getProfileImg());
 		kafkaTemplate.send("user-update-topic", JsonUtil.toJsonString(event));
 
-        // 5. 응답 반환
+        // 7. 응답 반환
         return UserSignupResponse.from(user);
     }
+	
+	// 유저 검색 (prefix: LIKE "nickname%") - 최대 1000개
+	@TimeTrace  // AOP로 자동으로 실행 시간 측정
+	public List<User> searchUsers(String nickname) {
+		return userRepository.findFirst1000ByNicknameStartingWith(nickname);
+	}
+
+	// 유저 검색 (포함 검색: LIKE "%nickname%") - 최대 1000개
+	@TimeTrace
+	public List<User> searchUsersLike(String nickname) {
+		return userRepository.findFirst1000ByNicknameContaining(nickname);
+	}
 
     // 닉네임 중복 체크
     public boolean isNicknameDuplicate(String nickname) {

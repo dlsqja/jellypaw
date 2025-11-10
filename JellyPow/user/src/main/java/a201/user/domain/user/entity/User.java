@@ -33,6 +33,10 @@ public class User {
     @Builder.Default
     private Integer following = 0;
 
+    @Column(name = "post_count", nullable = false, columnDefinition = "BIGINT NOT NULL DEFAULT 0")
+    @Builder.Default
+    private Long postCount = 0L;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
@@ -67,6 +71,18 @@ public class User {
     public void decrementFollowing() {
         if (this.following > 0) {
             this.following--;
+        }
+    }
+
+    // 게시물 수 증가
+    public void incrementPostCount() {
+        this.postCount++;
+    }
+
+    // 게시물 수 감소
+    public void decrementPostCount() {
+        if (this.postCount > 0) {
+            this.postCount--;
         }
     }
 
