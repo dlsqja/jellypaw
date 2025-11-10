@@ -49,7 +49,14 @@ public class FollowController {
     @GetMapping("/followers/{nickname}")
     public ApiResponse<List<FollowUserResponse>> getFollowers(@PathVariable String nickname) {
         try {
+			System.out.println("팔로워 목록 조회 nickname: " + nickname);
             List<FollowUserResponse> followers = followService.getFollowers(nickname);
+			if (!followers.isEmpty()) {
+				FollowUserResponse followUserResponse = followers.get(0);
+				System.out.println("팔로워 목록 조회 followers: " + followers.get(0).getUserId());
+				System.out.println("팔로워 목록 조회 followers: " + followers.get(0).getNickname());
+				System.out.println("팔로워 목록 조회 followers: " + followers.get(0).getProfileImg());
+			}
             return ApiResponse.success(followers);
         } catch (CustomException e) {
             return ApiResponse.error(e.getErrorCode());

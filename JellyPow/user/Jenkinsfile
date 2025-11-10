@@ -22,7 +22,7 @@ pipeline {
             # 권한 문제가 있는 elasticsearch 디렉토리 삭제 (sudo 시도 후 일반 삭제)
             if [ -d "./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch" ]; then
               sudo rm -rf ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch 2>/dev/null || \
-              rm -rf ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch 2>/dev/null || \
+				  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearchsearch 2>/dev/null || \
               echo "디렉토리 삭제 실패 (무시하고 계속 진행)"
             fi
           '''
@@ -74,15 +74,8 @@ pipeline {
           sh '''
             cd ./${COMPOSE_DIR}/${SERVICE_DIR}/
             echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
-            
-            echo "=== Docker 이미지 빌드 시작 ==="
-            docker build --no-cache -t ${DOCKER_IMAGE}:latest -t ${DOCKER_IMAGE}:$(date +%Y%m%d-%H%M%S) .
-            
-            echo "=== Docker 이미지 푸시 시작 (latest) ==="
-            docker push ${DOCKER_IMAGE}:latest
-            
-            echo "=== 빌드된 이미지 확인 ==="
-            docker images | grep ${DOCKER_IMAGE} | head -5
+            docker build --no-cache -t ${DOCKER_IMAGE} .
+            docker push ${DOCKER_IMAGE}
           '''
         }
       }
@@ -119,28 +112,10 @@ pipeline {
                   ssh -i "$KEYFILE" -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
                     cd /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}
                     echo \\"$DOCKERHUB_PASSWORD\\" | docker login -u \\"$DOCKERHUB_USERNAME\\" --password-stdin
-                    
-                    echo '=== 기존 컨테이너 중지 및 제거 ==='
                     docker compose down || true
-                    
-                    echo '=== 기존 이미지 제거 ==='
-                    docker rmi ${DOCKER_IMAGE}:latest || true
-                    
-                    echo '=== 최신 이미지 Pull ==='
                     docker compose pull
-                    
-                    echo '=== Pull된 이미지 확인 ==='
-                    docker images | grep ${DOCKER_IMAGE} || echo '이미지 확인 실패'
-                    
-                    echo '=== 컨테이너 강제 재생성 및 시작 ==='
-                    docker compose up -d --force-recreate --remove-orphans
-                    
-                    echo '=== 배포 완료 - 컨테이너 상태 확인 ==='
-                    docker compose ps
-                    
-                    echo '=== 최근 로그 확인 ==='
-                    docker compose logs --tail=20 user
-                    
+                    docker compose up -d --remove-orphans
+
                     docker image prune -f
                   "
             """
