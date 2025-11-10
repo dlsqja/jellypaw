@@ -18,9 +18,9 @@ export default function Feed() {
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
-      getFollowers(profileData.nickname).then((data) => {
-        console.log(data);
-        setFollowings(data || []); // null이면 빈 배열로 설정
+      getFollowers(profileData.nickname).then((followers) => {
+        console.log('followers', followers);
+        setFollowings(followers || []); // null이면 빈 배열로 설정
       });
     }
   }, [profileData?.nickname]); // profileData.nickname이 변경될 때마다 실행
@@ -35,9 +35,9 @@ export default function Feed() {
 
   // 게시글 목록 조회
   useEffect(() => {
-    getFeeds().then((data) => {
-      console.log(data);
-      setFeeds(data || []);
+    getFeeds().then((feeds) => {
+      console.log('feeds', feeds);
+      setFeeds(feeds || []);
     });
   }, []);
 
