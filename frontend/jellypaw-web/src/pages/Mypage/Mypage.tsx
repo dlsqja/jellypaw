@@ -11,11 +11,13 @@ const tabs = [
 ];
 
 export default function Mypage() {
-  const [activeTab, setActiveTab] = useState<string>('feed');
+  const [activeTab, setActiveTab] = useState('feed');
 
   return (
     <>
-      <Header title="내 공간" />
+      <div className="flex items-center justify-between">
+        <Header title="내 공간" />
+      </div>
       <div className="inline-flex flex-col gap-6">
         {/* 프로필 */}
         <MyProfile />

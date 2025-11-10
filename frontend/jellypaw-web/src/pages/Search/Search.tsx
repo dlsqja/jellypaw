@@ -25,44 +25,43 @@ export default function Search() {
   const [results, setResults] = useState<SearchUsersResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 검색 제출 핸들러
-  const normalizeKeyword = (value: string) => value.trim();
-  // 검색 타입 추출
-  const extractSearchType = (value: string): 'user' | 'place' => (value.startsWith('@') ? 'user' : 'place');
+  // 검색어 공백 제거
+  const removeblank = (keyword: string) => keyword.trim();
+  // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
+  const extractSearchType = (keyword: string): 'user' | 'place' => (keyword.startsWith('@') ? 'user' : 'place');
   // 사용자 키워드 정규화
-  const sanitizeUserKeyword = (value: string) => value.replace(/^@+/, '');
-  // 검색 제출 핸들러
-  const handleSubmit = (value: string, type?: 'user' | 'place') => {
-    const trimmed = normalizeKeyword(value);
-    if (!trimmed) return;
-    const searchType = type ?? extractSearchType(trimmed);
-    addSearch(trimmed, searchType);
+  const sanitizeUserKeyword = (keyword: string) => keyword.replace(/^@+/, '');
+
+  // 검색어 제출
+  const handleSubmit = (keyword: string, type?: 'user' | 'place') => {
+    // 검색어 공백 제거
+    const removedBlankKeyword = removeblank(keyword);
+    if (!removedBlankKeyword) return;
+    // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
+    const searchType = type ?? extractSearchType(removedBlankKeyword);
+    addSearch(removedBlankKeyword, searchType);
   };
 
-  // 엔터 키 핸들러
-  const handleEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      handleSubmit(searchValue);
-    }
-  };
-
-  const isUserQuery = useMemo(() => normalizeKeyword(searchValue).startsWith('@'), [searchValue]);
+  // @ 유저명 혹은 장소명 판별
+  const isUserQuery = useMemo(() => removeblank(searchValue).startsWith('@'), [searchValue]);
 
   // 검색 결과 조회 (유저만)
   useEffect(() => {
-    const normalized = normalizeKeyword(searchValue);
-    if (!normalized || !normalized.startsWith('@')) {
+    const removedBlankKeyword = removeblank(searchValue);
+    if (!removedBlankKeyword || !removedBlankKeyword.startsWith('@')) {
       setResults([]);
       setIsLoading(false);
       return;
     }
+
     // @ 제거 후 조회
-    const keyword = sanitizeUserKeyword(normalized);
+    const keyword = sanitizeUserKeyword(removedBlankKeyword);
     if (!keyword) {
       setResults([]);
       setIsLoading(false);
       return;
     }
+
     // 검색 로딩 시작
     setIsLoading(true);
     const timeoutId = setTimeout(() => {
@@ -73,6 +72,7 @@ export default function Search() {
           console.log('results:', nextResults);
         })
         .catch((error) => {
+          console.log(error);
           setResults([]);
         })
         .finally(() => {
@@ -91,14 +91,13 @@ export default function Search() {
       <div className="flex flex-col gap-3 pb-3">
         <Input
           type="search"
-          placeholder="사용자 혹은 장소 검색"
-          className="rounded-full placeholder:text-gray-300 placeholder:p2-b"
+          placeholder="@유저명 혹은 장소명을 입력해주세요"
+          className="rounded-full p2-b placeholder:text-gray-300 placeholder:p2"
           value={searchValue}
           onChange={(e) => {
             setSearchValue(e.target.value);
             console.log('searchValue:', e.target.value);
           }}
-          onKeyDown={handleEnter}
         />
         {!searchValue && (
           <div className="flex items-center justify-between">
@@ -147,9 +146,7 @@ export default function Search() {
                     onClick={() => {
                       handleSubmit(result.nickname || '', 'user');
                       setSearchValue(result.nickname ? `@${result.nickname}` : '');
-                      if (result.userId) {
-                        navigate(`/search/person/${result.userId}`);
-                      }
+                      navigate(`/search/person/${result.userId}`);
                     }}
                   >
                     <div className="p-4 w-full h-full flex justify-between items-center cursor-pointer">
