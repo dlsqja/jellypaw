@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import Comment from './Components/Comments';
+import CommentInput from './Components/CommentInput';
 import { getFeedDetail, getComments } from '@/services/api/feed';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -63,7 +64,8 @@ export default function FeedDetail() {
           </div>
         </CardHeader>
 
-        <CardContent>
+        {/* 댓글 입력창과의 간격을 위해 padding 추가 */}
+        <CardContent className="pb-2">
           {/* 게시글 이미지 */}
           {/* 게시글 이미지가 있으면 이미지 표시, 없으면 기본 이미지 표시(발자국) */}
           {detailData?.images && detailData.images.length > 0 ? (
@@ -105,9 +107,18 @@ export default function FeedDetail() {
           </div>
 
           {/* 댓글 */}
-          {comments.map((comment, index) => (
-            <Comment key={index} userId={comment.userId} content={comment.content} createdAt={comment.createdAt} />
-          ))}
+          <div className="flex flex-col gap-4">
+            {comments.map((comment) => (
+              <Comment
+                key={comment.id ?? `${comment.userId.id}-${comment.createdAt}`}
+                userId={comment.userId}
+                content={comment.content}
+                createdAt={comment.createdAt}
+              />
+            ))}
+          </div>
+          {/* 댓글 입력창 */}
+          <CommentInput />
         </CardContent>
       </Card>
     </>

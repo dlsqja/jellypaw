@@ -1,14 +1,21 @@
 import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import Replies from './Replies';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
+import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { FaPaw } from 'react-icons/fa';
 import type { GetCommentsResponse } from '@/types/feed';
 
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+
 export default function Comment({ userId, content, createdAt }: GetCommentsResponse) {
   const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="w-full flex justify-start items-start gap-3 mb-2">
+    <div className="w-full flex justify-start items-start gap-2 pb-2">
       {/* 프로필 이미지 */}
       {userId.profileImg ? (
         <img className="w-10 h-10 rounded-full" src={userId.profileImg} />
