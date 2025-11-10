@@ -2,6 +2,7 @@ package a201.board.controller;
 
 import a201.board.data.request.BoardRequest;
 import a201.board.data.request.BoardUpdateRequest;
+import a201.board.data.request.PlaceCreateRequest;
 import a201.board.data.response.BoardResponse;
 import a201.board.service.BoardService;
 import a201.common.response.ApiResponse;
@@ -31,14 +32,23 @@ public class BoardController {
         return ApiResponse.success(boardResponse);
     }
 
+    //TODO:: 임시
+    @Operation(summary = "피드 조회", description = "모든 게시글을 조회합니다.")
+    @GetMapping
+    public ApiResponse<?> getFeeds(@RequestHeader("X-User-Id") Long userId) {
+
+        return ApiResponse.success(boardService.getFeeds());
+    }
+
     @Operation(summary = "게시글 작성", description = "새로운 게시글을 작성합니다.")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Void> create(@RequestHeader("X-User-Id") Long userId,
                                     @RequestPart("boardRequest") BoardRequest boardRequest,
+									@RequestPart(value = "placeRequest", required = false) PlaceCreateRequest placeRequest,
                                     @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
         boardRequest.setNewImages(newImages);
-        boardService.createPost(userId, boardRequest);
+        boardService.createPost(userId, boardRequest, placeRequest);
 
         return ApiResponse.success(null);
 

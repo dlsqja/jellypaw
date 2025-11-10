@@ -11,6 +11,7 @@ import a201.reservation.domain.reservation.entity.Reservation;
 import a201.reservation.domain.reservation.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +31,10 @@ public class ReservationController {
     @Operation(summary = "예약 생성", description = "특정 장소에 예약을 생성합니다.")
     @PostMapping("/{place_id}")
     public ApiResponse<ReservationResponse> reserve(@PathVariable Long place_id,
+                                                    @RequestHeader("X-User-Id") Long userId,
                                                     @RequestBody ReservationRequest reservationRequest) {
 
-        Reservation reservation = reservationService.reserve(place_id, reservationRequest);
+        Reservation reservation = reservationService.reserve(place_id, userId, reservationRequest);
 
         return ApiResponse.success(ReservationResponse.from(reservation));
     }

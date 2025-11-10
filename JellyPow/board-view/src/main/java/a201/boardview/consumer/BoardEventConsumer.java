@@ -40,13 +40,14 @@ public class BoardEventConsumer {
     }
 
     @KafkaListener(topics = "board-delete-topic", groupId = "board-view-service")
-    public void handleDeleteUpdate(String boardId) {
-        log.info("board 삭제 이벤트 수신: {}", boardId);
+    public void handleDeleteUpdate(String message) {
+        log.info("board 삭제 이벤트 수신: {}", message);
 
         try {
-            boardViewService.deleteBoard(Long.parseLong(boardId));
+            BoardDeleteEvent boardDeleteEvent = JsonUtil.fromJsonString(message, BoardDeleteEvent.class);
+            boardViewService.deleteBoard(boardDeleteEvent.getId());
         } catch (Exception e) {
-            log.error("User 업데이트 이벤트 처리 실패: {}", boardId, e);
+            log.error("Board 삭제 이벤트 처리 실패: {}", message, e);
         }
     }
 
