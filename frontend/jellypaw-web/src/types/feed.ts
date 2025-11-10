@@ -44,3 +44,10 @@ export interface CreateCommentRequest {
   parent?: number | null;
   content?: string;
 }
+
+// 게시글 삭제 응답
+export interface DeleteFeedResponse {
+  code: number;
+  message: string;
+  data: any;
+}

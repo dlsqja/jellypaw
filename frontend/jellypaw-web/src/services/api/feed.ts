@@ -38,10 +38,10 @@ export const createComment = async (boardId: number, parent: number | null, cont
 // };
 
 // 게시글 삭제
-// export const deleteFeed = async (post_id: number): Promise<any> => {
-//   const response = await apiClient.delete<any>(`/boards/${post_id}`);
-//   return response.data;
-// };
+export const deleteFeed = async (boardId: number): Promise<any> => {
+  const response = await apiClient.delete<ApiResponse<any>>(`/boards/${boardId}`);
+  return response.data.data;
+};
 
 // 댓글 수정
 // export const updateComment = async (comment_id: number, data: any): Promise<any> => {

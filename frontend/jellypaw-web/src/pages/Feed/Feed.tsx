@@ -50,7 +50,6 @@ export default function Feed() {
   return (
     <>
       <Header title="피드" />
-
       {/* 팔로워 목록 */}
       <div className="flex overflow-x-auto gap-4 w-full h-[95px] items-center scrollbar-hide">
         {/* 전체 */}
