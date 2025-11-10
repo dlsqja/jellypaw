@@ -12,6 +12,7 @@ import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
 import a201.common.enums.Visibility;
 import a201.common.event.BoardCreateEvent;
+import a201.common.event.BoardDeleteEvent;
 import a201.common.event.BoardUpdateEvent;
 import a201.common.s3.S3Service;
 import a201.common.exception.CustomException;
@@ -200,11 +201,17 @@ public class BoardService {
         }
 
         Long deleteId = board.getId();
+        Long boardUserId = board.getUserId().getId();
 
         boardRepository.deleteById(postId);
 
         //TODO:: 삭제 이벤트 발생
-        kafkaTemplate.send("board-delete-topic", String.valueOf(deleteId));
+        BoardDeleteEvent boardDeleteEvent = BoardDeleteEvent.builder()
+                .id(deleteId)
+                .userId(boardUserId)
+                .build();
+
+        kafkaTemplate.send("board-delete-topic", JsonUtil.toJsonString(boardDeleteEvent));
     }
 }
 
