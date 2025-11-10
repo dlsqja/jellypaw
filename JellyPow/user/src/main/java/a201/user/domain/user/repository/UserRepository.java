@@ -22,10 +22,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // nickname 존재 여부 확인
     boolean existsByNickname(String nickname);
 
-	// nickname으로 User 검색 (앞부분 일치: LIKE "12%")
-	List<User> findByNicknameStartingWith(String nickname);
+	// nickname으로 User 검색 (앞부분 일치: LIKE "12%") - 최대 1000개
+	List<User> findFirst1000ByNicknameStartingWith(String nickname);
 
-	// nickname으로 User 검색 (포함 검색: LIKE "%nickname%")
-	List<User> findByNicknameContaining(String nickname);
+	// nickname으로 User 검색 (포함 검색: LIKE "%nickname%") - 최대 1000개
+	List<User> findFirst1000ByNicknameContaining(String nickname);
 }
 

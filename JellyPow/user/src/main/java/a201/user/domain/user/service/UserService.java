@@ -135,16 +135,16 @@ public class UserService {
         return UserSignupResponse.from(user);
     }
 	
-	// 유저 검색 (prefix: LIKE "nickname%")
+	// 유저 검색 (prefix: LIKE "nickname%") - 최대 1000개
 	@TimeTrace  // AOP로 자동으로 실행 시간 측정
 	public List<User> searchUsers(String nickname) {
-		return userRepository.findByNicknameStartingWith(nickname);
+		return userRepository.findFirst1000ByNicknameStartingWith(nickname);
 	}
 
-	// 유저 검색 (포함 검색: LIKE "%nickname%")
+	// 유저 검색 (포함 검색: LIKE "%nickname%") - 최대 1000개
 	@TimeTrace
 	public List<User> searchUsersLike(String nickname) {
-		return userRepository.findByNicknameContaining(nickname);
+		return userRepository.findFirst1000ByNicknameContaining(nickname);
 	}
 
     // 닉네임 중복 체크

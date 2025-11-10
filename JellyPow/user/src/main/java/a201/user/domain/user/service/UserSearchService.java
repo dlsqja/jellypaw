@@ -13,6 +13,7 @@ import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,30 +68,57 @@ public class UserSearchService {
                 .collect(Collectors.toList());
     }
 
-    // MySQL 데이터를 Elasticsearch에 전체 동기화
+    // MySQL 데이터를 Elasticsearch에 전체 동기화 (배치 처리)
     @Transactional
     public String syncAllUsers() {
         long startTime = System.currentTimeMillis();
         
         // 1. MySQL에서 모든 유저 조회
         List<User> allUsers = userRepository.findAll();
+        int totalCount = allUsers.size();
+        int batchSize = 1000;  // Elasticsearch bulk 크기 제한을 고려한 배치 크기
         
-        // 2. UserDocument로 변환
-        List<UserDocument> userDocuments = allUsers.stream()
-                .map(UserDocument::from)
-                .collect(Collectors.toList());
+        System.out.println("=== Elasticsearch 동기화 시작 ===");
+        System.out.println("총 " + totalCount + "명의 유저 데이터를 " + batchSize + "개씩 배치 처리합니다.");
         
-        // 3. Elasticsearch에 일괄 저장
-        userSearchRepository.saveAll(userDocuments);
+        int successCount = 0;
+        int failCount = 0;
+        
+        // 2. 배치 단위로 처리
+        for (int i = 0; i < totalCount; i += batchSize) {
+            int endIndex = Math.min(i + batchSize, totalCount);
+            List<User> batchUsers = allUsers.subList(i, endIndex);
+            
+            try {
+                // UserDocument로 변환
+                List<UserDocument> batchDocuments = batchUsers.stream()
+                        .map(UserDocument::from)
+                        .collect(Collectors.toList());
+                
+                // Elasticsearch에 배치 저장
+                userSearchRepository.saveAll(batchDocuments);
+                successCount += batchDocuments.size();
+                
+                // 진행률 출력
+                int progress = Math.min(endIndex, totalCount);
+                int percentage = (progress * 100) / totalCount;
+                System.out.println("진행률: " + percentage + "% (" + progress + "/" + totalCount + ")");
+                
+            } catch (Exception e) {
+                failCount += batchUsers.size();
+                System.err.println("배치 저장 실패 (" + i + "~" + (endIndex - 1) + "): " + e.getMessage());
+            }
+        }
         
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
         
         String message = String.format(
             "=== Elasticsearch 동기화 완료 ===\n" +
-            "총 %d명의 유저 데이터 색인 완료\n" +
+            "총 %d명의 유저 데이터 색인 시도\n" +
+            "성공: %d명, 실패: %d명\n" +
             "소요 시간: %dms",
-            allUsers.size(), duration
+            totalCount, successCount, failCount, duration
         );
         
         System.out.println(message);
