@@ -3,7 +3,7 @@ export interface KakaoLoginResponse {
   needSignup: boolean;
   authId?: number;
   email?: string;
-  accessToken?: string; // needSignup=false일 때
+  accessToken?: string;
   user?: {
     userId: number;
     nickname: string;

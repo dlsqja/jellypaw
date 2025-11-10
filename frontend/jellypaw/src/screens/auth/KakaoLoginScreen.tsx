@@ -2,28 +2,27 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { Button } from '../../ui/components/Button';
-import { Text } from '../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
+import { KAKAO_REST_API_KEY, KAKAO_REDIRECT_URI } from '@env';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'KakaoLogin'>;
 
 export default function KakaoLoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
-  const onPress = async () => {
-    try {
-      setLoading(true);
+  const onPress = () => {
+    // 카카오 authorize URL 구성
+    const authorizeUrl =
+      `https://kauth.kakao.com/oauth/authorize` +
+      `?client_id=${KAKAO_REST_API_KEY}` +
+      `&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}` +
+      `&response_type=code`;
 
-      // 실제에선 Kakao SDK 사용해서 code 받아오기
-      // const code = await getKakaoAuthCode();
-      const code = 'KAKAO_AUTH_CODE_FROM_SDK';
+      console.log('[KAKAO AUTH URL]', authorizeUrl);
 
-      navigation.replace('LoginBridge', { code });
-    } catch (e: any) {
-      console.log(e);
-      setLoading(false);
-    }
+    // WebView 화면으로 이동 (여기서 로그인 + code 추출)
+    navigation.navigate('KakaoWebView', { authorizeUrl });
   };
 
   return (

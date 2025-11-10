@@ -19,9 +19,10 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
     (async () => {
       try {
         setErr(null);
-        const res = await loginWithKakaoCode(code);
+        const res = await loginWithKakaoCode(code); // /auth/kakao?code=
 
-        // 1) 회원가입 필요
+        if (!res) throw new Error('응답이 비어 있습니다.');
+
         if (res.needSignup) {
           if (!res.authId) throw new Error('authId 누락');
           if (!mounted.current) return;
@@ -32,17 +33,16 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
           return;
         }
 
-        // 2) 로그인 완료
         if (!res.accessToken) throw new Error('accessToken 누락');
         await setTokens(res.accessToken);
 
         if (!mounted.current) return;
-        // RootStack 기준으로 메인으로
         navigation.getParent()?.reset({
           index: 0,
           routes: [{ name: 'FeedStack' as never }],
         });
       } catch (e: any) {
+        console.log('[LoginBridge] error', e);
         if (!mounted.current) return;
         setErr(e?.message || '로그인 처리 중 오류가 발생했습니다.');
       }

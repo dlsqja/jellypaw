@@ -8,15 +8,16 @@ export async function getMe() {
   return res.data; // ApiResponse<UserSignupResponse>
 }
 
-// 카카오 인가코드로 로그인 요청 (백엔드 하이브리드)
-export async function loginWithKakaoCode(
-  code: string,
-): Promise<KakaoLoginResponse> {
-  const res = await apiClient.post<ApiResponse<KakaoLoginResponse>>(
-    '/auth/kakao',
-    null,
-    { params: { code } }, // @RequestParam String code
+// 카카오 code -> 백엔드 로그인
+export async function loginWithKakaoCode(code: string): Promise<KakaoLoginResponse> {
+  const res = await apiClient.get<ApiResponse<KakaoLoginResponse>>(
+    '/auth/kakao/callback',
+    { params: { code } },
   );
+
+  if (!res.data || !res.data.data) {
+    throw new Error('빈 응답입니다.');
+  }
   return res.data.data;
 }
 
