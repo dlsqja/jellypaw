@@ -8,24 +8,27 @@ import { Button } from '../../../ui/components/Button';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
 import { palette } from '../../../ui/system/variants';
 import Dropdown from '../../../ui/components/Dropdown';
-import { createPet } from '../../../services/api/pet'; 
-import { useNavigation } from '@react-navigation/native'; 
-// (선택) 저장 후 이동용
+import { createPet } from '../../../services/api/pet';
+import { useNavigation } from '@react-navigation/native';
+import {
+  launchCamera,
+  launchImageLibrary,
+  ImagePickerResponse,
+} from 'react-native-image-picker'; 
 
 export default function AddPetScreen() {
   const nav = useNavigation<any>();
 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
-  // ✅ 동물 “종류” 드롭다운 (강아지/고양이/기타)
-  const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('');
-
-  // 기존 필드
+  const [animalType, setAnimalType] =
+    useState<'강아지' | '고양이' | '기타' | ''>('');
   const [name, setName] = useState('');
-  const [breed, setBreed] = useState(''); 
+  const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
-  const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('남자');
+  const [gender, setGender] =
+    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
 
   const onSave = async () => {
     if (!name.trim()) {
@@ -34,18 +37,24 @@ export default function AddPetScreen() {
     }
 
     try {
-      // 프론트 → 서버 enum 매핑
       const species =
-        animalType === '강아지' ? 'DOG' :
-        animalType === '고양이' ? 'CAT' : undefined;
+        animalType === '강아지'
+          ? 'DOG'
+          : animalType === '고양이'
+          ? 'CAT'
+          : undefined;
 
       const genderEnum =
-        gender === '남자' ? 'MALE' :
-        gender === '여자' ? 'FEMALE' :
-        gender === '남자(중성화)' ? 'MALE_NEUTERING' :
-        gender === '여자(중성화)' ? 'FEMALE_NEUTERING' : 'NON';
+        gender === '남자'
+          ? 'MALE'
+          : gender === '여자'
+          ? 'FEMALE'
+          : gender === '남자(중성화)'
+          ? 'MALE_NEUTERING'
+          : gender === '여자(중성화)'
+          ? 'FEMALE_NEUTERING'
+          : 'NON';
 
-      // 숫자 파싱(비어있으면 undefined로)
       const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
       const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
 
@@ -55,20 +64,17 @@ export default function AddPetScreen() {
         gender: genderEnum,
         age: Number.isFinite(ageNum as number) ? ageNum : undefined,
         weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
-        photoUri, // 선택 안 했으면 null → 사진 없이 등록
+        photoUri, // 서비스단에서 FormData 처리
       });
 
       Alert.alert('등록 완료', '반려동물이 등록되었습니다.');
-      // 필요 시 돌아가기 or 목록으로 리다이렉트
-      // nav.goBack();
-      // nav.reset({ index: 0, routes: [{ name: 'PetManage' }] });
+      nav.goBack();
     } catch (e) {
       console.log(e);
       Alert.alert('오류', '등록 중 문제가 발생했어요.');
     }
   };
 
-  // 선택된 종류에 따라 품종 placeholder만 유연하게
   const breedPlaceholder = useMemo(() => {
     if (animalType === '강아지') return '예: 골든 리트리버';
     if (animalType === '고양이') return '예: 코리안 숏헤어';
@@ -81,21 +87,70 @@ export default function AddPetScreen() {
 
       <ScrollView
         contentContainerStyle={[{ paddingBottom: 40 }, S.scrollContent]}
-        keyboardShouldPersistTaps="always" 
+        keyboardShouldPersistTaps="always"
       >
         {/* 프로필 사진 */}
-        <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 16 }}>
+        <View
+          style={{
+            alignItems: 'center',
+            paddingTop: 32,
+            paddingBottom: 16,
+          }}
+        >
           <PhotoPicker
             uri={photoUri || undefined}
-            onTakePhoto={() => {}}
-            onPickFromLibrary={() => {}}
+            onTakePhoto={() => {
+              launchCamera(
+                {
+                  mediaType: 'photo',
+                  quality: 0.8,
+                  maxWidth: 1024,
+                  maxHeight: 1024,
+                },
+                (response: ImagePickerResponse) => {
+                  if (response.didCancel) return;
+                  if (response.errorMessage) {
+                    Alert.alert('오류', response.errorMessage);
+                    return;
+                  }
+                  const captured = response.assets?.[0]?.uri ?? null;
+                  if (captured) {
+                    setPhotoUri(captured);
+                  }
+                },
+              );
+            }}
+            onPickFromLibrary={() => {
+              launchImageLibrary(
+                {
+                  mediaType: 'photo',
+                  quality: 0.8,
+                  maxWidth: 1024,
+                  maxHeight: 1024,
+                  selectionLimit: 1,
+                },
+                (response: ImagePickerResponse) => {
+                  if (response.didCancel) return;
+                  if (response.errorMessage) {
+                    Alert.alert('오류', response.errorMessage);
+                    return;
+                  }
+                  const picked = response.assets?.[0]?.uri ?? null;
+                  if (picked) {
+                    setPhotoUri(picked);
+                  }
+                },
+              );
+            }}
           />
           <View style={{ height: 20 }} />
         </View>
 
         {/* 기본 정보 */}
-        <View style={S.sectionWrap}> 
-          <Text weight="bold" style={S.sectionTitle}>기본 정보</Text>
+        <View style={S.sectionWrap}>
+          <Text weight="bold" style={S.sectionTitle}>
+            기본 정보
+          </Text>
 
           <Input
             label="이름"
@@ -104,7 +159,7 @@ export default function AddPetScreen() {
             onChangeText={setName}
           />
 
-          {/* 동물 종류 드롭다운 (zIndex 가장 높게) */}
+          {/* 동물 종류 */}
           <View style={S.dropdownWrapTop}>
             <Dropdown
               label="동물 종류"
@@ -119,15 +174,16 @@ export default function AddPetScreen() {
             />
           </View>
 
-          {/* 품종
+          {/* 품종 (필요 시 활성화)
           <Input
             label="품종"
             placeholder={breedPlaceholder}
             value={breed}
             onChangeText={setBreed}
-          /> */}
+          />
+          */}
 
-          {/* ✅ 성별 드롭다운 (두 번째로 높게) */}
+          {/* 성별 */}
           <View style={S.dropdownWrapMid}>
             <Dropdown
               label="성별"
@@ -159,7 +215,13 @@ export default function AddPetScreen() {
           />
 
           <View style={{ paddingTop: 8, paddingBottom: 24 }}>
-            <Button title="저장하기" shape="pillSolid" size="lg" tone="aqua" onPress={onSave} />
+            <Button
+              title="저장하기"
+              shape="pillSolid"
+              size="lg"
+              tone="aqua"
+              onPress={onSave}
+            />
           </View>
         </View>
       </ScrollView>
@@ -169,11 +231,11 @@ export default function AddPetScreen() {
 
 const S = StyleSheet.create({
   scrollContent: {
-    // 드롭다운 메뉴가 스크롤 컨테이너 밖으로 나와도 보이게
     overflow: 'visible',
   },
   sectionWrap: {
     overflow: 'visible',
+    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 20,
@@ -181,7 +243,6 @@ const S = StyleSheet.create({
     color: palette.gray800,
     marginBottom: 16,
   },
-  // ✅ 드롭다운 레이어 우선순위 (iOS: zIndex, Android: elevation)
   dropdownWrapTop: {
     zIndex: 30,
     ...(Platform.OS === 'android' ? { elevation: 30 } : null),

@@ -3,34 +3,20 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { theme } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
+import { Button } from '../../../ui/components/Button';
 import { PetMiniCard, AddPetCard } from '../../../ui/components/PetMiniCard';
 import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
 import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
 import { API_BASE_URL, VITE_IMAGE_BASE_URL } from '@env';
 
-//  React Query 훅 사용
 import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
 import type { getPetListResponse } from '../../../types/main/pet';
 
-const toAbsolute = (u?: string | null) => {
-  if (!u || !u.trim()) return null;
-  if (/^(https?:)?\/\//i.test(u)) return u;
-  const base = (API_BASE_URL || '').replace(/\/+$/, '');
-  const path = u.replace(/^\/+/, '');
-  return `${base}/${path}`;
-};
-
 const toImageUrl = (u?: string | null) => {
   if (!u || !u.trim()) return null;
-
-  // 이미 절대 경로면 그대로 사용
   if (/^https?:\/\//i.test(u)) return u.trim();
-
-  // 이미지 베이스 없으면 일단 원본 리턴 (디버깅용)
   if (!VITE_IMAGE_BASE_URL) return u.trim();
-
-  // console.log(`${VITE_IMAGE_BASE_URL}${u}`)
   return `${VITE_IMAGE_BASE_URL}${u}`;
 };
 
@@ -61,12 +47,42 @@ export default function PetManageScreen({ navigation }: any) {
     }
   }, [isListLoading, pets, selectedPetId]);
 
-  const { data: selectedPet } = usePetDetail(selectedPetId || undefined);
+  // 선택된 펫 상세 (pets 없으면 enabled=false)
+  const { data: selectedPet } = usePetDetail(
+    selectedPetId || undefined,
+  );
 
   const tabs: TabItem[] = [
     { id: 'info', label: '동물 정보' },
     { id: 'health', label: '건강 체크' },
   ];
+
+  const isEmpty = !isListLoading && pets.length === 0;
+
+  // ✅ 여기서 early return (모든 hook 호출 *후*)
+  if (isEmpty) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+        <Header title="동물관리" />
+        <View style={S.emptyWrap}>
+          <Text weight="bold" style={S.emptyTitle}>
+            현재 등록된 반려동물이 없습니다.
+          </Text>
+          <Text style={S.emptySubtitle}>
+            반려동물을 등록하고 건강 정보와 일상을 관리해 보세요.
+          </Text>
+          <Button
+            title="동물 추가하기"
+            shape="pillSolid"
+            size="lg"
+            tone="aqua"
+            onPress={() => navigation.navigate('AddPet')}
+            style={S.emptyButton}
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
@@ -85,15 +101,14 @@ export default function PetManageScreen({ navigation }: any) {
           >
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
-  key={pet.petId}
-  name={pet.name ?? ''}
-  species={formatSpecies(pet.species)}
-  avatarUri={toImageUrl(pet.photoUrl)}
-  selected={selectedPetId === pet.petId}
-  onPress={() => setSelectedPetId(pet.petId ?? 0)}
-/>
+                key={pet.petId}
+                name={pet.name ?? ''}
+                species={formatSpecies(pet.species)}
+                avatarUri={toImageUrl(pet.photoUrl)}
+                selected={selectedPetId === pet.petId}
+                onPress={() => setSelectedPetId(pet.petId ?? 0)}
+              />
             ))}
-
             <AddPetCard onPress={() => navigation.navigate('AddPet')} />
           </ScrollView>
         </View>
@@ -109,22 +124,23 @@ export default function PetManageScreen({ navigation }: any) {
 
         {/* 상세 정보 */}
         <View style={{ paddingTop: 16, gap: 16 }}>
-          {activeTab === 'info' && (
-  <PetSummaryCard
-    name={selectedPet?.name ?? ''}
-    kind={formatSpecies(selectedPet?.species)}
-    avatarUri={toImageUrl(selectedPet?.photoUrl) ?? null}
-    age={selectedPet?.age ?? 0}
-    weight={selectedPet?.weight ?? 0}
-    sex={formatGender(selectedPet?.gender ?? 'NON')}
-    onEdit={() =>
-      navigation.navigate('EditPet', {
-        petId: selectedPetId,
-        initial: selectedPet,
-      })
-    }
-  />
-)}
+          {activeTab === 'info' && selectedPet && (
+            <PetSummaryCard
+              name={selectedPet?.name ?? ''}
+              kind={formatSpecies(selectedPet?.species)}
+              avatarUri={toImageUrl(selectedPet?.photoUrl) ?? null}
+              age={selectedPet?.age ?? 0}
+              weight={selectedPet?.weight ?? 0}
+              sex={formatGender(selectedPet?.gender ?? 'NON')}
+              onEdit={() =>
+                navigation.navigate('EditPet', {
+                  petId: selectedPetId,
+                  initial: selectedPet,
+                })
+              }
+            />
+          )}
+
           {activeTab === 'health' && (
             <View style={S.healthPlaceholder}>
               <Text>건강 체크 콘텐츠 영역</Text>
@@ -137,29 +153,10 @@ export default function PetManageScreen({ navigation }: any) {
 }
 
 const S = StyleSheet.create({
-  // 가로 스크롤 컨테이너
   petRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-  },
-
-  header: {
-    height: 64,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border.gray,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitle: { fontSize: 20, lineHeight: 28, color: theme.text.primary },
-  headerIcon: {
-    width: 24,
-    height: 24,
-    backgroundColor: theme.text.primary,
-    borderRadius: 2,
   },
   healthPlaceholder: {
     width: '100%',
@@ -170,5 +167,28 @@ const S = StyleSheet.create({
     backgroundColor: theme.bg.surface,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  emptyWrap: {
+    flex: 1,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: theme.text.primary,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: theme.text.secondary,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  emptyButton: {
+    paddingHorizontal: 32,
+    height: 52,
   },
 });

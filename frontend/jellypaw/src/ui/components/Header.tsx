@@ -41,7 +41,7 @@ const S = StyleSheet.create({
     alignItems: 'center',
   },
   divider: { borderBottomWidth: 1, borderBottomColor: palette.gray200 },
-  title: { fontSize: 20, lineHeight: 28, color: palette.gray800 },
+  title: { fontSize: 20, lineHeight: 28, color: palette.aqua500 },
   right: {
     marginLeft: 'auto',
     minWidth: 24,
