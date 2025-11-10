@@ -3,6 +3,7 @@ package a201.user.domain.user.controller;
 import a201.common.exception.CustomException;
 import a201.common.response.ApiResponse;
 import a201.user.domain.user.dto.UserRequest;
+import a201.user.domain.user.dto.UserProfileResponse;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.service.UserService;
@@ -40,10 +41,10 @@ public class UserController {
 
 	@Operation(summary = "프로필 조회", description = "현재 로그인한 사용자의 프로필 정보를 조회합니다.")
 	@GetMapping("/profile")
-	public ApiResponse<UserSignupResponse> getProfile(@RequestHeader("X-User-Id") Long userId) {
+	public ApiResponse<UserProfileResponse> getProfile(@RequestHeader("X-User-Id") Long userId) {
 		try {
 			User user = userService.getUserById(userId);
-			UserSignupResponse response = UserSignupResponse.from(user);
+			UserProfileResponse response = UserProfileResponse.from(user);
 			return ApiResponse.success(response);
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
