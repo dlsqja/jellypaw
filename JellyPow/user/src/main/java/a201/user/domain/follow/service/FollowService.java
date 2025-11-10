@@ -89,9 +89,7 @@ public class FollowService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Follow> follows = followRepository.findByToUser(user);
-		log.info("follows: {}", follows);
-		log.info("follows.get(0).getFromUser(): {}", follows.get(0).getFromUser());
-		log.info("followResponse: ", FollowUserResponse.from(follows.get(0).getFromUser()));
+		System.out.println("followResponse: "+ FollowUserResponse.from(follows.get(0).getFromUser()).getUserId());
 		
         return follows.stream()
                 .map(follow -> FollowUserResponse.from(follow.getFromUser()))
