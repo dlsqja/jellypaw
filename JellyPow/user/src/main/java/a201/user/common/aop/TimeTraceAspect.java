@@ -20,7 +20,7 @@ public class TimeTraceAspect {
         // 시작 시간
         long startTime = System.currentTimeMillis();
         
-        System.out.println("=== [시작] " + className + "." + methodName + "() ===");
+        System.out.println("--- [시작] " + className + "." + methodName + "() ---");
         
         Object result = null;
         try {
@@ -31,7 +31,7 @@ public class TimeTraceAspect {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
             
-            System.out.println("=== [종료] " + className + "." + methodName + "() ===");
+            System.out.println("--- [종료] " + className + "." + methodName + "() ---");
             System.out.println("소요 시간: " + duration + "ms");
             
             // 결과가 List인 경우 개수도 출력
