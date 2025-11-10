@@ -1,11 +1,6 @@
 pipeline {
   agent any
 
-  options {
-    // 기본 Git 체크아웃 건너뛰기 (수동으로 처리)
-    skipDefaultCheckout(true)
-  }
-
   environment {
     DOCKER_IMAGE = 'dlsqja3436/user'
     EC2_HOST = 'k13a201.p.ssafy.io'
@@ -14,33 +9,6 @@ pipeline {
   }
 
   stages {
-    stage('Clean and Checkout') {
-      steps {
-        script {
-          // Git 체크아웃 전에 권한 문제가 있는 디렉토리 정리
-          sh '''
-            # 권한 문제가 있는 elasticsearch 디렉토리 삭제
-            if [ -d "./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch" ]; then
-              sudo rm -rf ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch || rm -rf ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch || true
-            fi
-          '''
-          
-          // Git 체크아웃 수행
-          checkout scm
-          
-          // 체크아웃 후 elasticsearch 디렉토리가 없으면 다시 체크아웃
-          sh '''
-            if [ ! -d "./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch" ]; then
-              cd ./${COMPOSE_DIR}
-              git checkout HEAD -- ${SERVICE_DIR}/src/main/resources/elasticsearch/ || true
-            fi
-          '''
-        }
-        // elasticsearch 디렉토리를 stash하여 다음 stage로 전달
-        stash name: 'elasticsearch-resources', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch/**"
-      }
-    }
-
     stage('Build Application') {
       agent {
         docker {
@@ -50,34 +18,16 @@ pipeline {
       }
       steps {
             script {
-              // elasticsearch 디렉토리 unstash
-              unstash 'elasticsearch-resources'
-              
-              withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
+              withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG'),
+			  file(credentialsId: 'user-settings-json', variable: 'USER_SETTINGS_JSON')]) {
                 sh '''
                   mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+				  cat $USER_SETTINGS_JSON > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch/user-settings.json
                   cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
 
                   cd ./${COMPOSE_DIR}
                   chmod +x ./gradlew
-                  
-                  # 빌드 전 elasticsearch 디렉토리 확인
-                  echo "=== 빌드 전 파일 확인 ==="
-                  ls -la ./${SERVICE_DIR}/src/main/resources/elasticsearch/ || {
-                    echo "ERROR: elasticsearch 디렉토리가 없습니다!"
-                    exit 1
-                  }
-                  
                   ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
-                  
-                  # 빌드 후 JAR 파일 내부 확인
-                  echo "=== 빌드 후 JAR 파일 내부 확인 ==="
-                  JAR_FILE=$(find ./${SERVICE_DIR}/build/libs -name "*.jar" ! -name "*-plain.jar" | head -1)
-                  if [ -n "$JAR_FILE" ]; then
-                    echo "JAR 파일: $JAR_FILE"
-                    jar tf "$JAR_FILE" | grep -i "elasticsearch" || echo "WARNING: JAR에 elasticsearch 관련 파일이 없습니다!"
-                    jar tf "$JAR_FILE" | grep "elasticsearch/user-settings.json" && echo "✓ elasticsearch/user-settings.json 파일이 JAR에 포함되어 있습니다." || echo "✗ ERROR: elasticsearch/user-settings.json 파일이 JAR에 없습니다!"
-                  fi
                 '''
               }
             }
