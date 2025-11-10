@@ -22,6 +22,7 @@ pipeline {
 			  file(credentialsId: 'user-settings-json', variable: 'USER_SETTINGS_JSON')]) {
                 sh '''
                   mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+				  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch
 				  cat $USER_SETTINGS_JSON > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch/user-settings.json
                   cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
 
