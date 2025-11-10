@@ -12,7 +12,7 @@ import type { SearchPlacesResponse, SearchUsersResponse } from '@/types/search';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 import { BsPersonCircle } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
-type PlaceResult = NonNullable<SearchPlacesResponse['places']>[number];
+
 // 검색 페이지 컴포넌트
 export default function Search() {
   // 검색어 상태
@@ -24,10 +24,10 @@ export default function Search() {
 
   // 검색 결과 상태
   const [results, setResults] = useState<SearchUsersResponse[]>([]);
-  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
+  const [placeResults, setPlaceResults] = useState<SearchPlacesResponse['places']>([]);
   const [isLoading, setIsLoading] = useState(false);
   const skipNextSearchRef = useRef(0);
-  const [cursor, setCursor] = useState<number | null>(null);
+  const [cursor, setCursor] = useState<number | null>(0);
   // 검색어 공백 제거
   const removeblank = (keyword: string) => keyword.trim();
   // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
@@ -63,11 +63,16 @@ export default function Search() {
       setResults([]);
       setPlaceResults([]);
       setIsLoading(false);
+      setCursor(null);
       return;
     }
 
     // 검색 타입 추출
     const searchType = extractSearchType(removedBlankSearchValue);
+    if (searchType === 'place' && cursor === null) {
+      setIsLoading(false);
+      return;
+    }
     // 로딩 상태 설정
     setIsLoading(true);
     // 검색 요청 타임아웃
@@ -86,10 +91,10 @@ export default function Search() {
         // 유저 검색 요청
         searchUsers(keyword)
           .then((users) => {
-            const nextResults = users ?? [];
-            setResults(nextResults);
+            const userResults = users ?? [];
+            setResults(userResults);
             setPlaceResults([]);
-            console.log('results:', nextResults);
+            console.log('results:', userResults);
           })
           .catch((error) => {
             console.log(error);
@@ -101,12 +106,10 @@ export default function Search() {
 
         // 장소 검색 요청
       } else {
-        const nextCursor = cursor ?? 0;
-        searchPlaces(removedBlankSearchValue, nextCursor)
+        const requestCursor = cursor ?? 0;
+        searchPlaces(removedBlankSearchValue, requestCursor)
           .then((places) => {
-            console.log('입력값:', removedBlankSearchValue);
-
-            const nextPlaces = (places.places ?? []) as PlaceResult[];
+            const nextPlaces = places.places ?? [];
             setPlaceResults(nextPlaces);
             setResults([]);
 
@@ -114,10 +117,8 @@ export default function Search() {
 
             if (places.nextCursor == null) {
               setCursor(null);
-            } else {
-              const ids = nextPlaces.map((place) => place.id).filter((id): id is number => typeof id === 'number');
-              const lastId = ids.length > 0 ? ids[ids.length - 1] : places.nextCursor;
-              setCursor(lastId);
+            } else if (places.nextCursor !== cursor) {
+              setCursor(places.nextCursor);
             }
           })
           .catch((error) => {
@@ -149,6 +150,7 @@ export default function Search() {
           onChange={(e) => {
             skipNextSearchRef.current = 0;
             setSearchValue(e.target.value);
+            setCursor(0);
           }}
         />
         {!hasKeyword && (
@@ -240,7 +242,7 @@ export default function Search() {
                     onClick={() => {
                       skipNextSearchRef.current = 2;
                       handleSubmit(place.title || '', 'place');
-                      navigate(`/search/location/${place.id || 0}`);
+                      navigate(`/search/location/${place.id}`);
                     }}
                   >
                     <div className="p-4 w-full h-full flex justify-between gap-3 items-center cursor-pointer">
