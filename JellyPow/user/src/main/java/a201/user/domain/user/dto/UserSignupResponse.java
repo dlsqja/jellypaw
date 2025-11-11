@@ -17,6 +17,8 @@ public class UserSignupResponse {
     private String description;
     private String profileImg;
     private String backgroundImg;
+    private Integer follower;
+    private Integer following;
     private String role;
     private String accessToken;  // JWT 액세스 토큰
 
@@ -27,6 +29,8 @@ public class UserSignupResponse {
                 .description(user.getDescription())
                 .profileImg(user.getProfileImg())
                 .backgroundImg(user.getBackgroundImg())
+                .follower(user.getFollower())
+                .following(user.getFollowing())
                 .role(user.getRole())
                 .build();
     }
@@ -38,6 +42,8 @@ public class UserSignupResponse {
                 .description(user.getDescription())
                 .profileImg(user.getProfileImg())
                 .backgroundImg(user.getBackgroundImg())
+                .follower(user.getFollower())
+                .following(user.getFollowing())
                 .role(user.getRole())
                 .accessToken(accessToken)
                 .build();

@@ -6,8 +6,12 @@ import a201.board.data.entity.BoardUser;
 import a201.board.repository.LikeRepository;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
+import a201.common.event.CommentEvent;
+import a201.common.event.LikeEvent;
+import a201.common.util.JsonUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +25,9 @@ public class LikeService {
     private final BoardRepository boardRepository;
     private final BoardUserRepository boardUserRepository;
     private final LikeRepository likeRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public Like addLike(Long postId,Long userId) {
+    public void addLike(Long postId,Long userId) {
         Board board = boardRepository.getBoardById(postId);
         BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
@@ -31,14 +36,29 @@ public class LikeService {
                 .userId(boardUser)
                 .build();
 
-        //TODO::좋아요 이벤트 발생 
-        return likeRepository.save(like);
+        likeRepository.save(like);
+        //TODO::좋아요 이벤트 발생
+        LikeEvent likeEvent = LikeEvent.builder()
+                .id(postId)
+                .type("add")
+                .build();
+
+        kafkaTemplate.send("board-like-topic", JsonUtil.toJsonString(likeEvent));
+
     }
 
     public void removeLike(Long postId,Long userId) {
 
         likeRepository.deleteByUserId_IdAndBoard_Id(userId,postId);
+
         //TODO::삭제 이벤트 발생
+        LikeEvent likeEvent = LikeEvent.builder()
+                .id(postId)
+                .type("minus")
+                .build();
+
+        kafkaTemplate.send("board-like-topic", JsonUtil.toJsonString(likeEvent));
+
     }
 
     public List<Like> getLikesByMe(Long userId) {

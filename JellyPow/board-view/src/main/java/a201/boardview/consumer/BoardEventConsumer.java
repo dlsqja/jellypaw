@@ -1,10 +1,7 @@
 package a201.boardview.consumer;
 
-import a201.boardview.service.BoardUserService;
 import a201.boardview.service.BoardViewService;
-import a201.common.event.BoardCreateEvent;
-import a201.common.event.BoardUpdateEvent;
-import a201.common.event.UserEvent;
+import a201.common.event.*;
 import a201.common.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,15 +40,58 @@ public class BoardEventConsumer {
     }
 
     @KafkaListener(topics = "board-delete-topic", groupId = "board-view-service")
-    public void handleDeleteUpdate(String boardId) {
-        log.info("board 삭제 이벤트 수신: {}", boardId);
+    public void handleDeleteUpdate(String message) {
+        log.info("board 삭제 이벤트 수신: {}", message);
 
         try {
-            boardViewService.deleteBoard(Long.parseLong(boardId));
+            BoardDeleteEvent boardDeleteEvent = JsonUtil.fromJsonString(message, BoardDeleteEvent.class);
+            boardViewService.deleteBoard(boardDeleteEvent.getId());
         } catch (Exception e) {
-            log.error("User 업데이트 이벤트 처리 실패: {}", boardId, e);
+            log.error("Board 삭제 이벤트 처리 실패: {}", message, e);
         }
     }
+
+    @KafkaListener(topics = "board-like-topic", groupId = "board-view-service")
+    public void handleLike(String message) {
+
+
+        try {
+            LikeEvent likeEvent = JsonUtil.fromJsonString(message, LikeEvent.class);
+            log.info(likeEvent.toString());
+            if(likeEvent.getType().equals("add"))boardViewService.addLike(likeEvent.getId());
+            else if(likeEvent.getType().equals("minus")) boardViewService.removeLike(likeEvent.getId());
+
+        } catch (Exception e) {
+            log.error("업데이트 이벤트 처리 실패: {}", e);
+        }
+    }
+
+
+    @KafkaListener(topics = "board-comment-topic", groupId = "board-view-service")
+    public void handleComment(String message) {
+        try {
+
+            CommentEvent commentEvent = JsonUtil.fromJsonString(message, CommentEvent.class);
+            log.info(commentEvent.toString());
+            if(commentEvent.getType().equals("add"))boardViewService.addComment(commentEvent.getId());
+            else if(commentEvent.getType().equals("minus")) boardViewService.removeComment(commentEvent.getId(),commentEvent.getCount());
+
+        } catch (Exception e) {
+            log.error("업데이트 이벤트 처리 실패: {}", e);
+        }
+    }
+
+    @KafkaListener(topics = "board-view-topic", groupId = "board-view-service")
+    public void handleView(String boardId) {
+        try {
+            boardViewService.addView(Long.parseLong(boardId));
+
+        } catch (Exception e) {
+            log.error("업데이트 이벤트 처리 실패: {}", e);
+        }
+    }
+
+
 
     /*
     @KafkaListener(topics = "board-view-topic", groupId = "board-view-service")

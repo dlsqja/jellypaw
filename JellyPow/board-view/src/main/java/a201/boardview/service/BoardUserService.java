@@ -1,6 +1,7 @@
 package a201.boardview.service;
 
 import a201.boardview.data.entity.BoardUser;
+import a201.boardview.data.entity.CommentCount;
 import a201.boardview.repository.BoardUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class BoardUserService {
                 .build();
 
         boardUserRepository.save(boardUser);
+
+
         log.info("Board 서비스에 사용자 생성: userId={}, nickname={}", userId, nickname);
     }
 
@@ -50,5 +53,7 @@ public class BoardUserService {
 
         log.info("Board 서비스 사용자 정보 업데이트: userId={}, nickname={}", userId, nickname);
     }
+
+
 }
 

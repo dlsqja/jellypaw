@@ -1,13 +1,17 @@
 package a201.user.domain.follow.service;
 
 import a201.common.enums.ErrorCode;
+import a201.common.event.FollowEvent;
 import a201.common.exception.CustomException;
+import a201.common.util.JsonUtil;
 import a201.user.domain.follow.dto.FollowUserResponse;
 import a201.user.domain.follow.entity.Follow;
 import a201.user.domain.follow.repository.FollowRepository;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +19,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class FollowService {
 
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     // 팔로우 하기
     @Transactional
@@ -51,10 +57,13 @@ public class FollowService {
                 .build();
         followRepository.save(follow);
 
-        // 5. User 엔티티의 카운터 업데이트
-        fromUser.incrementFollowing();  // 내 팔로잉 수 증가
-        toUser.incrementFollower();     // 상대방 팔로워 수 증가
-        // JPA 변경 감지(Dirty Checking)로 자동 UPDATE
+        // 5. Kafka 이벤트 발행 (동시성 제어를 위해 카운터 업데이트는 이벤트로 처리)
+        FollowEvent followEvent = FollowEvent.builder()
+                .fromUserId(fromUserId)
+                .toUserId(toUser.getId())
+                .type("FOLLOW")
+                .build();
+        kafkaTemplate.send("follow-topic", JsonUtil.toJsonString(followEvent));
     }
 
     // 언팔로우 하기
@@ -76,9 +85,13 @@ public class FollowService {
         // 3. 팔로우 삭제
         followRepository.delete(follow);
 
-        // 4. User 엔티티의 카운터 업데이트
-        fromUser.decrementFollowing();  // 내 팔로잉 수 감소
-        toUser.decrementFollower();     // 상대방 팔로워 수 감소
+        // 4. Kafka 이벤트 발행 (동시성 제어를 위해 카운터 업데이트는 이벤트로 처리)
+        FollowEvent followEvent = FollowEvent.builder()
+                .fromUserId(fromUserId)
+                .toUserId(toUser.getId())
+                .type("UNFOLLOW")
+                .build();
+        kafkaTemplate.send("follow-topic", JsonUtil.toJsonString(followEvent));
     }
 
     // 팔로워 목록 조회 (나를 팔로우하는 사람들)
@@ -87,7 +100,7 @@ public class FollowService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         List<Follow> follows = followRepository.findByToUser(user);
-
+		
         return follows.stream()
                 .map(follow -> FollowUserResponse.from(follow.getFromUser()))
                 .collect(Collectors.toList());

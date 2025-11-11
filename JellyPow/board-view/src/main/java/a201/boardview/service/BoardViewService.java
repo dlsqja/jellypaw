@@ -1,9 +1,7 @@
 package a201.boardview.service;
 
-import a201.boardview.data.entity.BoardUser;
-import a201.boardview.data.entity.BoardView;
-import a201.boardview.repository.BoardUserRepository;
-import a201.boardview.repository.BoardViewRepository;
+import a201.boardview.data.entity.*;
+import a201.boardview.repository.*;
 import a201.common.event.BoardCreateEvent;
 import a201.common.event.BoardUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,12 +14,16 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class BoardViewService {
 
     private final BoardViewRepository boardViewRepository;
     private final BoardUserRepository boardUserRepository;
 
+    private final ViewRepository viewRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
     @Transactional
     public void createBoard(BoardCreateEvent boardCreateEvent) {
 
@@ -45,12 +47,12 @@ public class BoardViewService {
                 .starRating(boardCreateEvent.getStarRating())
                 .build();
 
-        boardViewRepository.save(boardView);
+        boardView.initializeCounts();
 
+        boardViewRepository.save(boardView);
         log.info("Board 생성: boardId={}", boardView.getId());
     }
 
-    @Transactional
     public void updateBoard(BoardUpdateEvent boardUpdateEvent) {
 
         BoardView boardView = boardViewRepository.findById(boardUpdateEvent.getId()).orElseThrow(() -> new EntityNotFoundException("Board Not Found"));
@@ -67,12 +69,33 @@ public class BoardViewService {
         log.info("Board 업데이트: boardId={}", boardView.getId());
     }
 
-    @Transactional
     public void deleteBoard(Long boardId) {
-
-
         boardViewRepository.deleteById(boardId);
 
         log.info("Board 삭제 업데이트: boardId={}", boardId);
+    }
+
+    public void addView(Long boardId) {
+        ViewCount viewCount = viewRepository.findByBoardId_Id(boardId);
+        viewCount.setCount(viewCount.getCount() + 1);
+    }
+
+    public void addLike(Long boardId) {
+        LikeCount likeCount = likeRepository.findByBoardId_Id(boardId);
+        likeCount.setCount(likeCount.getCount()+1);
+    }
+    public void removeLike(Long boardId) {
+        LikeCount likeCount = likeRepository.findByBoardId_Id(boardId);
+        likeCount.setCount(likeCount.getCount()-1);
+    }
+
+
+    public void addComment(Long boardId) {
+        CommentCount commentCount = commentRepository.findByBoardId_Id(boardId);
+        commentCount.setCount(commentCount.getCount()+1);
+    }
+    public void removeComment(Long boardId,int cnt) {
+        CommentCount commentCount = commentRepository.findByBoardId_Id(boardId);
+        commentCount.setCount(commentCount.getCount()-cnt);
     }
 }

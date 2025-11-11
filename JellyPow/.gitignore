@@ -48,3 +48,4 @@ out/
 ### Local Configuration Files ###
 **/application-local.properties
 **/common-local-config.properties
+**/user-settings.json
