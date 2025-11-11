@@ -110,6 +110,7 @@ public class BoardService {
 
         boardRepository.save(newBoard);
 
+        String thumbnail = images.isEmpty() ? null : images.get(0).getImageLink();
 
         //TODO:: 생성 이벤트 발생
         BoardCreateEvent boardCreateEvent = BoardCreateEvent.builder()
@@ -122,6 +123,7 @@ public class BoardService {
                 .starRating(boardRequest.getStarRating())
                 .createdAt(newBoard.getCreatedAt())
                 .visibility(boardRequest.getVisibility())
+                .thumbnail(thumbnail)
                 .build();
 
         boardCreateEvent.setUserId(boardUser.getId());
@@ -173,7 +175,10 @@ public class BoardService {
             }
         }
 
+
         boardRepository.save(board);
+
+        String thumbnail = board.getImages().isEmpty() ? null : images.get(0).getImageLink();
 
         //TODO:: 업데이트 이벤트 발생
         BoardUpdateEvent boardUpdateEvent = BoardUpdateEvent.builder()
@@ -184,6 +189,7 @@ public class BoardService {
                 .placeId(board.getPlaceId())
                 .starRating(board.getStarRating())
                 .visibility(board.getVisibility())
+                .thumbnail(thumbnail)
                 .build();
 
         kafkaTemplate.send("board-update-topic", JsonUtil.toJsonString(boardUpdateEvent));

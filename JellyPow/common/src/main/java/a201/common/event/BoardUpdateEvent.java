@@ -26,4 +26,6 @@ public class BoardUpdateEvent {
     private BigDecimal starRating;
 
     private Visibility visibility;
+
+    private String thumbnail;
 }

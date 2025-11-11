@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
-@RequestMapping("/boardview")
+@RequestMapping("/board-view")
 @RequiredArgsConstructor
 public class BoardViewController {
 
