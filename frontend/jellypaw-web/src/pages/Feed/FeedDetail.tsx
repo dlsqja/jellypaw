@@ -6,7 +6,7 @@ import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
 import { getFeedDetail, getComments } from '@/services/api/feed';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 import { FaPaw } from 'react-icons/fa';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
@@ -15,6 +15,7 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function FeedDetail() {
   const { boardId } = useParams();
+  const navigate = useNavigate();
   const [detailData, setDetailData] = useState<GetFeedDetailResponse>();
   const [comments, setComments] = useState<GetCommentsResponse[]>([]);
   const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
@@ -73,7 +74,14 @@ export default function FeedDetail() {
         <CardHeader className="py-4">
           <div className="flex items-center justify-between gap-3">
             {/* 프로필 이미지 */}
-            <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => {
+                if (detailData?.boardUser?.id) {
+                  navigate(`/search/person/${detailData.boardUser.id}`);
+                }
+              }}
+            >
               {/* 프로필 이미지가 있으면 이미지 표시, 없으면 기본 이미지 표시(발자국) */}
               {detailData?.boardUser?.profileImg ? (
                 <img
@@ -93,9 +101,9 @@ export default function FeedDetail() {
               </div>
             </div>
             {/* 팔로잉 버튼 */}
-            <Button size="sm" shape="pillSolid">
+            {/* <Button size="sm" shape="pillSolid">
               {detailData?.boardUser?.nickname ? '팔로잉' : '팔로우'}
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
 
@@ -158,9 +166,6 @@ export default function FeedDetail() {
                 <span className="text-aqua-500 p2-b">{detailData?.commentCount || 0}</span>
               </button>
             </div>
-            <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer ">
-              <Share2 className="h-5 w-5 text-aqua-500" />
-            </button>
           </div>
 
           {/* 댓글 */}
