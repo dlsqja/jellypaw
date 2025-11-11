@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -15,7 +16,7 @@ public class CommentResponse {
 
     private Long id;
     private BoardUser userId;
-    private Long parent;
+    private List<CommentResponse> childs;
     private String content;
     private LocalDateTime createdAt;
 
@@ -27,7 +28,11 @@ public class CommentResponse {
                 .createdAt(comment.getCreatedAt())
                 .build();
 
-        if(comment.getParent()!=null) commentResponse.parent = comment.getParent().getId();
+        if(comment.getParent()!=null) {
+            commentResponse.childs = comment.getChildren().stream()
+                    .map(CommentResponse::of)
+                    .toList();
+        }
 
         return commentResponse;
     }
