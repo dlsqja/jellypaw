@@ -13,6 +13,8 @@ import a201.common.enums.ErrorCode;
 import a201.common.exception.CustomException;
 import a201.common.util.JsonUtil;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -48,5 +50,23 @@ public class PlaceService {
 		}
 		
 		return placeRepository.save(place);
-	}	
+	}
+
+	// Place 검색 (title에서 LIKE 검색, 최대 10개)
+	@Transactional(readOnly = true)
+	public List<Place> searchPlaces(String title) {
+		return placeRepository.findFirst10ByTitleContaining(title);
+	}
+
+	// Place 검색 (title에서 LIKE 검색, cursor 기반 - 무한스크롤용)
+	@Transactional(readOnly = true)
+	public List<Place> searchPlacesWithCursor(String title, Long cursor) {
+		if (cursor == null || cursor == 0) {
+			// 첫 요청: cursor가 없으면 처음부터
+			return placeRepository.findFirst10ByTitleContaining(title);
+		} else {
+			// 다음 요청: cursor 이후의 데이터
+			return placeRepository.findFirst10ByTitleContainingAndIdGreaterThan(title, cursor);
+		}
+	}
 }
