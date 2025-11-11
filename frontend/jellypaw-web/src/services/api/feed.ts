@@ -9,8 +9,8 @@ interface ApiResponse<T> {
 
 // 게시글 전체 목록 조회
 export const getFeeds = async (): Promise<GetFeedsResponse[]> => {
-  const response = await apiClient.get<ApiResponse<GetFeedsResponse[]>>('/boards');
-  return response.data.data;
+  const response = await apiClient.get<ApiResponse<{ boards: GetFeedsResponse[] }>>('/board-view');
+  return response.data.data.boards;
 };
 
 // 게시글 상세 조회

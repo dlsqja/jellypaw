@@ -31,7 +31,7 @@ export default function Followers({ imageUrl, name, isActive = false, onClick }:
       </div>
 
       <div className="w-full flex justify-center">
-        <div className={`text-center p3-b ${textColor}`}>{name}</div>
+        <div className={`text-center p3-b line-clamp-1 ${textColor}`}>{name}</div>
       </div>
     </div>
   );

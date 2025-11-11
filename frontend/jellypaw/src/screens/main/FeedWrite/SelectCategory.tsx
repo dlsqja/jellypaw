@@ -16,57 +16,57 @@ const categories = [
     id: 1,
     name: '일상',
     value: 'DAILY',
-    icon: 'calendar-blank-outline',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'calendar-clear',
+    iconFamily: 'Ionicons',
   },
   {
     id: 2,
     name: '건강',
     value: 'HEALTH',
-    icon: 'cards-heart-outline',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'heart',
+    iconFamily: 'Ionicons',
   },
   {
     id: 3,
     name: '식당',
     value: 'DINING',
-    icon: 'silverware-variant',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'restaurant',
+    iconFamily: 'Ionicons',
   },
   {
     id: 4,
     name: '미용',
     value: 'BEAUTY',
-    icon: 'content-cut',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'cut',
+    iconFamily: 'Ionicons',
   },
   {
     id: 5,
     name: '음식',
     value: 'FOOD',
-    icon: 'food',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'fast-food',
+    iconFamily: 'Ionicons',
   },
   {
     id: 6,
     name: '장난감',
     value: 'TOY',
-    icon: 'game-controller-outline',
+    icon: 'game-controller',
     iconFamily: 'Ionicons',
   },
   {
     id: 7,
     name: '여행',
     value: 'TRAVEL',
-    icon: 'location-outline',
+    icon: 'location',
     iconFamily: 'Ionicons',
   },
   {
     id: 8,
     name: '기타',
     value: 'ETC',
-    icon: 'dots-vertical',
-    iconFamily: 'MaterialCommunityIcons',
+    icon: 'ellipsis-horizontal-circle-sharp',
+    iconFamily: 'Ionicons',
   },
 ];
 
@@ -92,11 +92,7 @@ const bottomNavItems = [
 export default function SelectCategory({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const handleCategorySelect = (
-    categoryId: number,
-    categoryName: string,
-    categoryValue: string,
-  ) => {
+  const handleCategorySelect = (categoryId: number, categoryName: string, categoryValue: string) => {
     setSelectedCategory(categoryId);
     navigation.navigate('FeedWrite', {
       categoryId,
@@ -118,10 +114,7 @@ export default function SelectCategory({ navigation }: Props) {
       {/* 상단 헤더 */}
 
       {/* 메인 콘텐츠 */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* 제목 영역 */}
         <View style={styles.titleSection}>
           <View style={styles.titleContainer}>
@@ -137,21 +130,13 @@ export default function SelectCategory({ navigation }: Props) {
 
         {/* 카테고리 그리드 */}
         <View style={styles.categoryGrid}>
-          {categories.map(category => (
+          {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
               style={styles.categoryCard}
-              onPress={() =>
-                handleCategorySelect(category.id, category.name, category.value)
-              }
+              onPress={() => handleCategorySelect(category.id, category.name, category.value)}
             >
-              <View
-                style={[
-                  styles.categoryIconContainer,
-                  selectedCategory === category.id &&
-                    styles.categoryIconContainerSelected,
-                ]}
-              >
+              <View style={[styles.categoryIconContainer, selectedCategory === category.id && styles.categoryIconContainerSelected]}>
                 {renderIcon(category.iconFamily, category.icon)}
               </View>
               <View style={styles.categoryLabelContainer}>

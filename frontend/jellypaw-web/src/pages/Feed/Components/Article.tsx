@@ -2,36 +2,108 @@ import { useState, useEffect } from 'react';
 import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MdRestaurant } from 'react-icons/md';
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import IconText from '@/components/texts/IconText';
 import { Badge } from '@/components/ui/badge';
 import { FaStar } from 'react-icons/fa6';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
-import { IoClose } from 'react-icons/io5';
-import { Button } from '@/components/ui/button';
-import { deleteFeed } from '@/services/api/feed';
+
+// 카테고리 아이콘
+import { IoCalendarClear } from 'react-icons/io5'; // 일상
+import { IoHeart } from 'react-icons/io5'; // 건강
+import { IoRestaurant } from 'react-icons/io5'; // 식당
+import { IoCut } from 'react-icons/io5'; // 미용
+import { IoFastFood } from 'react-icons/io5'; // 음식
+import { IoGameController } from 'react-icons/io5'; // 장난감
+import { IoLocation } from 'react-icons/io5'; // 여행
+import { IoEllipsisHorizontalCircleSharp } from 'react-icons/io5'; // 기타
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title }: GetFeedsResponse) {
+export default function Article({
+  boardUser,
+  likeCount,
+  category,
+  commentCount,
+  content,
+  createdAt,
+  id,
+  images,
+  starRating,
+  thumbnail,
+  title,
+  viewCount,
+  visibility,
+}: GetFeedsResponse) {
   const navigate = useNavigate();
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  // 이미지 슬라이더 관련 상태 관리
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-    // 현재 선택된 스냅 인덱스 설정
-    setCurrent(api.selectedScrollSnap());
 
-    // 스냅 인덱스 변경 시 상태 업데이트
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
+  // 뱃지 날짜 형식 변화
+  // 날짜 형식을 "25.01.15" 형식으로 변환 ("2025-11-11 05:20:20" -> "25.11.11")
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return '';
+    // 공백을 기준으로 split하여 날짜 부분만 추출
+    const datePart = dateString.split(' ')[0];
+    // "YYYY-MM-DD" 형식을 "YY.MM.DD" 형식으로 변환
+    const [year, month, day] = datePart.split('-');
+    if (year && month && day) {
+      // 연도의 마지막 2자리만 사용
+      const shortYear = year.slice(-2);
+      return `${shortYear}.${month}.${day}`;
+    }
+    return datePart;
+  };
+
+  // 프로필 옆 날짜짜 표시 형식 변화
+  // 상대 시간 표시 (예: "2시간 전", "3일 전")
+  const formatRelativeTime = (dateString?: string): string => {
+    if (!dateString) return '';
+
+    try {
+      // 날짜 문자열을 Date 객체로 변환
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+
+      // 밀리초를 분으로 변환
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+      // 1시간 미만이면 "N분 전"
+      if (diffMinutes < 60) {
+        return `${diffMinutes}분 전`;
+      }
+
+      // 1시간 이상이면 시간으로 변환
+      const diffHours = Math.floor(diffMinutes / 60);
+
+      // 오늘인지 확인 (같은 날인지 체크)
+      const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+
+      // 오늘이고 24시간 미만이면 "N시간 전"
+      if (isToday && diffHours < 24) {
+        return `${diffHours}시간 전`;
+      }
+
+      // 하루 이상 지났으면 일수로 계산
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays < 1) {
+        // 하루 미만이지만 오늘이 아니면 "오늘" (시간대 차이 등)
+        return '오늘';
+      } else if (diffDays < 30) {
+        return `${diffDays}일 전`;
+      } else if (diffDays < 365) {
+        const diffMonths = Math.floor(diffDays / 30);
+        return `${diffMonths}개월 전`;
+      } else {
+        const diffYears = Math.floor(diffDays / 365);
+        return `${diffYears}년 전`;
+      }
+    } catch (error) {
+      console.error('날짜 파싱 오류:', error);
+      return formatDate(dateString); // 오류 시 기본 형식으로 반환
+    }
+  };
 
   // 게시글 컴포넌트 반환
   return (
@@ -51,36 +123,18 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
               <div className="flex items-center">
                 {/* 프로필 사진*/}
                 {boardUser?.profileImg ? (
-                  <img
-                    className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300"
-                    src={`${IMAGE_BASE_URL}${boardUser.profileImg}`}
-                    alt={boardUser.nickname}
-                  />
+                  <img className="w-10 h-10 rounded-full object-cover " src={`${IMAGE_BASE_URL}${boardUser.profileImg}`} alt={boardUser.nickname} />
                 ) : (
-                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+                  <div className="w-10 h-10 rounded-full p-1.5 flex justify-center items-center">
                     <FaPaw className="w-10 h-10 text-aqua-300" />
                   </div>
                 )}
                 <div className="ml-3 flex flex-col">
                   {/* 프로필 이름, 게시글 생성 시간*/}
                   <div className="text-aqua-500 p2-b ">{boardUser?.nickname}</div>
-                  <div className="text-aqua-500 p3">{createdAt}</div>
+                  <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
                 </div>
               </div>
-              {/* ... */}
-              <button
-                type="button"
-                className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(true);
-                }}
-                aria-haspopup="dialog"
-                aria-expanded={isActionModalOpen}
-                aria-label="게시글 옵션 열기"
-              >
-                <MoreHorizontal className="h-5 w-5 text-gray-300" />
-              </button>
             </div>
           </div>
           {/* 게시물 내용 */}
@@ -90,11 +144,32 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
-                    <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
+                    <IconText
+                      icon={
+                        category === 'DAILY'
+                          ? IoCalendarClear
+                          : category === 'HEALTH'
+                          ? IoHeart
+                          : category === 'DINING'
+                          ? IoRestaurant
+                          : category === 'BEAUTY'
+                          ? IoCut
+                          : category === 'FOOD'
+                          ? IoFastFood
+                          : category === 'TOY'
+                          ? IoGameController
+                          : category === 'TRAVEL'
+                          ? IoLocation
+                          : IoEllipsisHorizontalCircleSharp
+                      }
+                      label={title}
+                      size="md"
+                      textStyle="h6-b"
+                    />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{createdAt}</Badge>
-                    <Badge variant="pink">
+                    <Badge className="w-30">{formatDate(createdAt)}</Badge>
+                    <Badge variant="pink" className="overflow-hidden text-ellipsis whitespace-nowrap">
                       <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
                   </div>
@@ -106,34 +181,12 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                 </div>
               </div>
 
-              {/* 이미지 슬라이더 - carousel 사용 */}
-              <Carousel setApi={setApi} className="w-full relative">
-                <CarouselContent>
-                  {images &&
-                    images.map((url, index) => (
-                      <CarouselItem key={index}>
-                        <div className="w-77 h-64 relative rounded-[12px]">
-                          <img
-                            className="w-77 h-64 rounded-[12px] object-cover"
-                            src={`${IMAGE_BASE_URL}${url}`}
-                            alt={`${title} - 이미지 ${index + 1}`}
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                </CarouselContent>
-                {/* 이미지 인디케이터 */}
-                {images && images.length > 1 && (
-                  <div className="pt-3 flex justify-center">
-                    <div className="flex gap-1">
-                      {images &&
-                        images.map((_, index) => (
-                          <div key={index} className={`w-2 h-2 rounded-full ${index === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </Carousel>
+              {/* 썸네일 */}
+              {thumbnail && (
+                <div className="w-77 h-64  rounded-[12px] ">
+                  <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${thumbnail}`} alt={`${title}`} />
+                </div>
+              )}
             </div>
 
             {/* 액션 바 */}
@@ -141,23 +194,20 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
               <div className="flex items-center">
                 <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
                   <Heart className="h-5 w-5 text-pink-300" />
-                  <span className="text-aqua-500 p2-b">{0}</span>
+                  <span className="text-aqua-500 p2-b">{likeCount ?? 0}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
-                  <span className="ttext-aqua-500 p2-b">{0}</span>
+                  <span className="ttext-aqua-500 p2-b">{commentCount ?? 0}</span>
                 </button>
               </div>
-              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">
-                <Share2 className="h-5 w-5 text-aqua-500" />
-              </button>
             </div>
           </CardContent>
         </CardHeader>
       </Card>
 
       {/* 게시글 수정 / 삭제 옵션 모달 */}
-      {isActionModalOpen && (
+      {/* {isActionModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           role="dialog"
@@ -213,7 +263,7 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

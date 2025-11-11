@@ -16,6 +16,8 @@ export default function Feed() {
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
+
+  // 팔로워 목록 조회
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
@@ -26,25 +28,44 @@ export default function Feed() {
     }
   }, [profileData?.nickname]); // profileData.nickname이 변경될 때마다 실행
 
-  // 팔로워 클릭 핸들러
+  // 팔로워 클릭 핸들러 - 팔로워 프로필 클릭 시 활성화
   const handleProfileClick = (userId: number | null) => {
     setActiveProfileId(userId);
   };
 
   // 게시글 목록 조회
   useEffect(() => {
-    getFeeds().then((feeds) => {
-      console.log('feeds', feeds);
-      setFeeds(feeds || []);
-    });
+    getFeeds()
+      .then((feeds) => {
+        console.log('feeds', feeds);
+        // createdAt 기준으로 최신순 정렬
+        const sortedFeeds = [...feeds].sort((a, b) => {
+          if (!a.createdAt || !b.createdAt) return 0;
+          // 날짜 문자열을 Date 객체로 변환하여 비교
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          // 최신순 (내림차순)
+          return dateB - dateA;
+        });
+        setFeeds(sortedFeeds);
+      })
+      .catch((error) => {
+        console.error('게시글 조회 실패:', error);
+        setFeeds([]);
+      });
   }, []);
 
   // 팔로워 userId와 게시글의 boardUser.id가 일치하는 게시글 필터링
   const filteredFeeds = useMemo(() => {
-    if (activeProfileId != null) {
-      return feeds.filter((feed) => feed.boardUser?.id === activeProfileId);
+    if (!Array.isArray(feeds)) {
+      return [];
     }
-    return feeds;
+    // activeProfileId가 null이면 전체 게시글 표시
+    if (activeProfileId === null) {
+      return feeds;
+    }
+    // 특정 팔로워의 게시글만 필터링
+    return feeds.filter((feed) => feed.boardUser?.id === activeProfileId);
   }, [feeds, activeProfileId]);
 
   return (
@@ -85,18 +106,30 @@ export default function Feed() {
 
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
-        {filteredFeeds.map((feed, index) => (
-          <Article
-            key={index}
-            boardUser={feed.boardUser}
-            content={feed.content}
-            createdAt={feed.createdAt}
-            id={feed.id}
-            images={feed.images}
-            starRating={feed.starRating}
-            title={feed.title}
-          />
-        ))}
+        {filteredFeeds.length > 0 ? (
+          filteredFeeds.map((feed, index) => (
+            <Article
+              key={feed.id ?? index}
+              likeCount={feed.likeCount}
+              boardUser={feed.boardUser}
+              content={feed.content}
+              createdAt={feed.createdAt}
+              id={feed.id}
+              category={feed.category}
+              commentCount={feed.commentCount}
+              images={feed.images}
+              thumbnail={feed.thumbnail}
+              starRating={feed.starRating}
+              viewCount={feed.viewCount}
+              visibility={feed.visibility}
+              title={feed.title}
+            />
+          ))
+        ) : (
+          <div className="text-gray-300 p2-b text-center py-8">
+            {activeProfileId === null ? '게시글이 없습니다.' : '해당 사용자의 게시글이 없습니다.'}
+          </div>
+        )}
       </div>
     </>
   );
