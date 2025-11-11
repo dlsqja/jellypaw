@@ -12,16 +12,19 @@ import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
-import { createFeed } from '../../../services/api/feedWrite';
+import { createFeed, updateFeed } from '../../../services/api/feedWrite';
+import { getRedisBoard } from '../../../services/api/redis';
 import type { FeedWriteRequest, FeedWritePlaceRequest } from '../../../types/main/feedWrite';
 import { theme } from '../../../ui/system/variants';
 import Feather from 'react-native-vector-icons/Feather';
+import { VITE_IMAGE_BASE_URL } from '@env';
 
 type Props = NativeStackScreenProps<FeedWriteStackParamList, 'FeedWrite'>;
 
 export default function FeedWrite({ route, navigation }: Props) {
-  const { categoryName, categoryValue = '' } = route.params;
+  const { categoryName, categoryValue = '', mode = 'create' } = route.params || {};
 
+  const [boardId, setBoardId] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
@@ -145,23 +148,69 @@ export default function FeedWrite({ route, navigation }: Props) {
     }
   };
 
+    React.useEffect(() => {
+    if (mode !== 'edit') {
+      // 작성 모드 기본 상태
+      setImages([
+        require('../../../../assets/images/pets/반려동물1.png'),
+        require('../../../../assets/images/pets/반려동물2.png'),
+        require('../../../../assets/images/pets/반려동물3.png'),
+      ]);
+      return;
+    }
+
+    (async () => {
+      try {
+        const data = await getRedisBoard();
+        if (!data) {
+          Alert.alert('알림', '수정할 게시글 정보를 찾을 수 없습니다.');
+          navigation.goBack();
+          return;
+        }
+
+        setBoardId(data.boardId);
+        setTitle(data.title);
+        setContent(data.content);
+        setRating(data.starRating || 0);
+        setImages((data.images || []).map(url => `${VITE_IMAGE_BASE_URL}${url}`));
+
+        if (data.place) {
+          setLocation(data.place.title || '');
+          setSelectedPlace({
+            place_id: data.place.placeCode || '',
+            name: data.place.title || '',
+            address: data.place.address || '',
+            phone_number: data.place.phoneNumber || '',
+            website: data.place.link || '',
+            opening_hours: { weekday_text: [] },
+          });
+        }
+      } catch (e) {
+        console.error(e);
+        Alert.alert('오류', '게시글 정보를 불러오지 못했어요.');
+        navigation.goBack();
+      }
+    })();
+  }, [mode, navigation]);
+
   const handleSubmit = async () => {
     if (isSubmitting) return;
+    if (!title.trim() || !content.trim()) return;
 
     try {
       setIsSubmitting(true);
 
-      // 이미지 URI 배열 필터링 (string 타입만)
-      const imageUris = images.filter((uri): uri is string => typeof uri === 'string');
+      const imageUris = images.filter(
+        (uri): uri is string => typeof uri === 'string',
+      );
 
-      // boardRequest 객체 생성
       const boardRequest: FeedWriteRequest = {
         category: categoryValue || '',
         title: title.trim(),
         content: content.trim(),
         placeId: selectedPlace?.place_id || '',
         starRating: rating,
-        visibility: 'PRIVATE', // 기본값, 필요시 수정
+        visibility: 'PRIVATE',
       };
 
       const placeRequest: FeedWritePlaceRequest = {
@@ -172,36 +221,39 @@ export default function FeedWrite({ route, navigation }: Props) {
         openingHours: selectedPlace?.opening_hours?.weekday_text || [],
         link: selectedPlace?.website || '',
       };
-      console.log('boardRequest', boardRequest);
-      console.log('placeRequest', placeRequest);
 
-      // API 호출
-      const result = await createFeed({
-        ...boardRequest,
-        newImages: imageUris,
-        placeRequest: placeRequest,
-      });
-      // console.log('result', result);
-      Alert.alert('성공', '게시글이 작성되었습니다.', [
-        {
-          text: '확인',
-          onPress: () => {
-            navigation.goBack();
-          },
-        },
-      ]);
+      if (mode === 'edit' && boardId) {
+        await updateFeed(boardId, {
+          ...boardRequest,
+          newImages: imageUris,
+          placeRequest,
+        });
+
+        Alert.alert('완료', '게시글이 수정되었습니다.', [
+          { text: '확인', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        await createFeed({
+          ...boardRequest,
+          newImages: imageUris,
+          placeRequest,
+        });
+
+        Alert.alert('성공', '게시글이 작성되었습니다.', [
+          { text: '확인', onPress: () => navigation.goBack() },
+        ]);
+      }
     } catch (error: any) {
-      console.error('게시글 작성 실패:', error);
-      Alert.alert('오류', error?.message || '게시글 작성에 실패했습니다.');
+      console.error(error);
+      Alert.alert('오류', error?.message || '요청 처리에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }
   };
-
   return (
     <>
       <View style={styles.container}>
-        <BackHeader title={categoryName} />
+        <BackHeader title={mode === 'edit' ? '게시글 수정' : categoryName} />
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           {/* 제목 입력 */}
@@ -323,11 +375,10 @@ export default function FeedWrite({ route, navigation }: Props) {
         {/* 게시물 작성하기 버튼 */}
         <View style={[styles.submitButtonContainer]}>
           <Button
-            title="게시물 작성하기"
+            title={mode === 'edit' ? '게시글 수정하기' : '게시물 작성하기'}
             onPress={handleSubmit}
             shape="pillSolid"
             tone="aqua"
-            titleStyle={{ fontFamily: 'Pretendard-Bold' }}
             disabled={title.length === 0 || content.length === 0 || isSubmitting}
           />
         </View>

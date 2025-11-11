@@ -1,3 +1,4 @@
+// Article.tsx
 import { useState, useEffect } from 'react';
 import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -11,103 +12,35 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { IoClose } from 'react-icons/io5';
 import { deleteFeed } from '@/services/api/feed';
-// 카테고리 아이콘
-import { IoCalendarClear } from 'react-icons/io5'; // 일상
-import { IoHeart } from 'react-icons/io5'; // 건강
-import { IoRestaurant } from 'react-icons/io5'; // 식당
-import { IoCut } from 'react-icons/io5'; // 미용
-import { IoFastFood } from 'react-icons/io5'; // 음식
-import { IoGameController } from 'react-icons/io5'; // 장난감
-import { IoLocation } from 'react-icons/io5'; // 여행
-import { IoEllipsisHorizontalCircleSharp } from 'react-icons/io5'; // 기타
+import { getFeedDetail } from '@/services/api/feed';
+import { saveBoardToRedis } from '@/services/api/redis';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-export default function Article({
-  boardUser,
-  likeCount,
-  category,
-  commentCount,
-  content,
-  createdAt,
-  id,
-  images,
-  starRating,
-  thumbnail,
-  title,
-  viewCount,
-  visibility,
-}: GetFeedsResponse) {
+// 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
+interface ArticleProps extends GetFeedsResponse {
+  currentUserId?: number;
+}
+
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title, currentUserId }: ArticleProps) {
   const navigate = useNavigate();
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  // 뱃지 날짜 형식 변화
-  // 날짜 형식을 "25.01.15" 형식으로 변환 ("2025-11-11 05:20:20" -> "25.11.11")
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return '';
-    // 공백을 기준으로 split하여 날짜 부분만 추출
-    const datePart = dateString.split(' ')[0];
-    // "YYYY-MM-DD" 형식을 "YY.MM.DD" 형식으로 변환
-    const [year, month, day] = datePart.split('-');
-    if (year && month && day) {
-      // 연도의 마지막 2자리만 사용
-      const shortYear = year.slice(-2);
-      return `${shortYear}.${month}.${day}`;
-    }
-    return datePart;
-  };
 
-  // 프로필 옆 날짜짜 표시 형식 변화
-  // 상대 시간 표시 (예: "2시간 전", "3일 전")
-  const formatRelativeTime = (dateString?: string): string => {
-    if (!dateString) return '';
+  // 🔹 내 게시글인지 여부
+  const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
 
-    try {
-      // 날짜 문자열을 Date 객체로 변환
-      const date = new Date(dateString);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
+  useEffect(() => {
+    if (!api) return;
 
-      // 밀리초를 분으로 변환
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    setCurrent(api.selectedScrollSnap());
 
-      // 1시간 미만이면 "N분 전"
-      if (diffMinutes < 60) {
-        return `${diffMinutes}분 전`;
-      }
+    api.on('select', () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
 
-      // 1시간 이상이면 시간으로 변환
-      const diffHours = Math.floor(diffMinutes / 60);
+  if (!id) return null; // id 없으면 방어적으로 렌더 안 함
 
-      // 오늘인지 확인 (같은 날인지 체크)
-      const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-
-      // 오늘이고 24시간 미만이면 "N시간 전"
-      if (isToday && diffHours < 24) {
-        return `${diffHours}시간 전`;
-      }
-
-      // 하루 이상 지났으면 일수로 계산
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-      if (diffDays < 1) {
-        // 하루 미만이지만 오늘이 아니면 "오늘" (시간대 차이 등)
-        return '오늘';
-      } else if (diffDays < 30) {
-        return `${diffDays}일 전`;
-      } else if (diffDays < 365) {
-        const diffMonths = Math.floor(diffDays / 30);
-        return `${diffMonths}개월 전`;
-      } else {
-        const diffYears = Math.floor(diffDays / 365);
-        return `${diffYears}년 전`;
-      }
-    } catch (error) {
-      console.error('날짜 파싱 오류:', error);
-      return formatDate(dateString); // 오류 시 기본 형식으로 반환
-    }
-  };
-
-  // 게시글 컴포넌트 반환
   return (
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
       <Card
@@ -132,30 +65,34 @@ export default function Article({
                   </div>
                 )}
                 <div className="ml-3 flex flex-col">
-                  {/* 프로필 이름, 게시글 생성 시간*/}
                   <div className="text-aqua-500 p2-b ">{boardUser?.nickname}</div>
                   <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
                 </div>
               </div>
-              <button
-                type="button"
-                className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(true);
-                }}
-                aria-haspopup="dialog"
-                aria-expanded={isActionModalOpen}
-                aria-label="게시글 옵션 열기"
-              >
-                <MoreHorizontal className="h-5 w-5 text-gray-300" />
-              </button>
+
+              {/* 🔹 내 글일 때만 ... 버튼 노출 */}
+              {isOwner && (
+                <button
+                  type="button"
+                  className="h-7 w-7 flex justify-center items-center cursor-pointer"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsActionModalOpen(true);
+                  }}
+                  aria-haspopup="dialog"
+                  aria-expanded={isActionModalOpen}
+                  aria-label="게시글 옵션 열기"
+                >
+                  <MoreHorizontal className="h-5 w-5 text-gray-300" />
+                </button>
+              )}
             </div>
           </div>
+
           {/* 게시물 내용 */}
           <CardContent>
             <div className="flex flex-col gap-4">
-              {/* 제목, 평점, 게시글 생성일*/}
+              {/* 제목, 평점, 날짜 */}
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
@@ -183,46 +120,67 @@ export default function Article({
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="w-30">{formatDate(createdAt)}</Badge>
-                    <Badge variant="pink" className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
+                    <Badge>{createdAt}</Badge>
+                    <Badge variant="pink">
+                      <FaStar className="text-pink-300 me-0.5" />
+                      {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
                   </div>
                 </div>
 
-                {/* 본문 내용 */}
+                {/* 본문 */}
                 <div className="h-15">
                   <div className="text-aqua-500 p2 line-clamp-3">{content}</div>
                 </div>
               </div>
 
-              {/* 썸네일 */}
-              {thumbnail && (
-                <div className="w-77 h-64  rounded-[12px] ">
-                  <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${thumbnail}`} alt={`${title}`} />
-                </div>
-              )}
+              {/* 이미지 슬라이더 */}
+              <Carousel setApi={setApi} className="w-full relative">
+                <CarouselContent>
+                  {images?.map((url, idx) => (
+                    <CarouselItem key={idx}>
+                      <div className="w-77 h-64 relative rounded-[12px]">
+                        <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${url}`} alt={`${title} - 이미지 ${idx + 1}`} />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {/* 인디케이터 */}
+                {images && images.length > 1 && (
+                  <div className="pt-3 flex justify-center">
+                    <div className="flex gap-1">
+                      {images.map((_, idx) => (
+                        <div key={idx} className={`w-2 h-2 rounded-full ${idx === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Carousel>
             </div>
 
             {/* 액션 바 */}
             <div className="h-10 border-t border-gray-200 flex justify-between items-center pt-2">
               <div className="flex items-center">
                 <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
-                  <Heart className="h-5 w-5 text-pink-300" />
-                  <span className="text-aqua-500 p2-b">{likeCount ?? 0}</span>
+                  <Heart className="h-5 w-5" />
+                  <span className="text-aqua-500 p2-b">{0}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
-                  <MessageCircle className="h-5 w-5 text-gray-600" />
-                  <span className="ttext-aqua-500 p2-b">{commentCount ?? 0}</span>
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="text-aqua-500 p2-b">{0}</span>
                 </button>
               </div>
+              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">
+                <Share2 className="h-5 w-5 text-aqua-500" />
+              </button>
             </div>
           </CardContent>
         </CardHeader>
       </Card>
 
-      {/* 게시글 수정 / 삭제 옵션 모달 */}
-      {isActionModalOpen && (
+      {/* 🔹 내 글 + 모달 오픈 상태일 때만 */}
+      {isOwner && isActionModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           role="dialog"
@@ -237,7 +195,7 @@ export default function Article({
           >
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-aqua-500 h6-b">게시글 관리</h3>
-              <IoClose className="w-5 h-5 text-aqau-500 cursor-pointer" onClick={() => setIsActionModalOpen(false)} />
+              <IoClose className="w-5 h-5 text-aqua-500 cursor-pointer" onClick={() => setIsActionModalOpen(false)} />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -246,9 +204,33 @@ export default function Article({
                 tone="aqua"
                 shape="pillSolid"
                 size="default"
-                onClick={() => {
+                onClick={async (event) => {
+                  event.stopPropagation();
                   setIsActionModalOpen(false);
-                  navigate(`/feed/${id}`);
+
+                  if (!id) return;
+
+                  try {
+                    // 1. 게시글 상세 조회 (백엔드 기준 BoardResponse랑 거의 같을 거라 가정)
+                    const detail = await getFeedDetail(Number(id));
+
+                    // 2. Redis에 저장 (서버는 X-User-Id로 유저별로 매핑)
+                    await saveBoardToRedis(detail);
+
+                    // 3. RN(WebView) 쪽에 “수정 모드 열어” 메시지
+                    if ((window as any).ReactNativeWebView) {
+                      (window as any).ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'OPEN_FEED_EDIT',
+                        }),
+                      );
+                    } else {
+                      console.log('ReactNativeWebView 없음 - 웹 환경에서 실행 중');
+                    }
+                  } catch (e) {
+                    console.error('수정 준비 실패', e);
+                    alert('수정 정보를 준비하는 데 실패했습니다.');
+                  }
                 }}
               >
                 게시글 수정하기
@@ -260,9 +242,8 @@ export default function Article({
                 size="default"
                 onClick={async () => {
                   const confirmed = window.confirm('정말 게시글을 삭제하시겠습니까?\n삭제된 게시글은 복구할 수 없습니다.');
-                  if (!confirmed) {
-                    return;
-                  }
+                  if (!confirmed) return;
+
                   setIsActionModalOpen(false);
                   try {
                     const response = await deleteFeed(Number(id));

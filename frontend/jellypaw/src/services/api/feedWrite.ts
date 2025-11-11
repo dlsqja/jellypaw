@@ -72,3 +72,49 @@ export const createFeed = async (
   // 게시글 작성 응답 반환
   return response.data.data;
 };
+
+export const updateFeed = async (
+  boardId: number,
+  params: FeedWriteRequest & { newImages?: string[] | null } & { placeRequest: FeedWritePlaceRequest },
+): Promise<any> => {
+  if (!params.title?.trim()) throw new Error('[updateFeed] title required');
+  if (!params.content?.trim()) throw new Error('[updateFeed] content required');
+
+  const { newImages, placeRequest, ...boardRequest } = params;
+
+  const form = new FormData();
+
+  form.append('boardRequest', {
+    string: JSON.stringify(boardRequest),
+    type: 'application/json',
+  } as any);
+
+  form.append('placeRequest', {
+    string: JSON.stringify(placeRequest),
+    type: 'application/json',
+  } as any);
+
+  const validImageUris = newImages?.filter((uri): uri is string => typeof uri === 'string') || [];
+  validImageUris.forEach((uri) => {
+    const filename = (uri.split('/').pop() || 'image.jpg').trim().toLowerCase();
+    const type =
+      filename.endsWith('.png') ? 'image/png' :
+      filename.endsWith('.webp') ? 'image/webp' :
+      'image/jpeg';
+    form.append('newImages', { uri, name: filename, type } as any);
+  });
+
+  const response = await apiClient.put<ApiResponse<any>>(`/boards/${boardId}`, form, {
+    headers: { Accept: 'application/json' },
+    transformRequest: (data) => data,
+  });
+
+  if (response.data?.code && response.data.code !== 200) {
+    const error: any = new Error(`[API] code=${response.data.code} msg=${response.data.message || 'UNKNOWN'}`);
+    error.response = { status: response.status, data: response.data };
+    error.config = response.config;
+    throw error;
+  }
+
+  return response.data.data;
+};

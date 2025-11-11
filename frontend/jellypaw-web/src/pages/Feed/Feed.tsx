@@ -106,30 +106,9 @@ export default function Feed() {
 
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
-        {filteredFeeds.length > 0 ? (
-          filteredFeeds.map((feed, index) => (
-            <Article
-              key={feed.id ?? index}
-              likeCount={feed.likeCount}
-              boardUser={feed.boardUser}
-              content={feed.content}
-              createdAt={feed.createdAt}
-              id={feed.id}
-              category={feed.category}
-              commentCount={feed.commentCount}
-              images={feed.images}
-              thumbnail={feed.thumbnail}
-              starRating={feed.starRating}
-              viewCount={feed.viewCount}
-              visibility={feed.visibility}
-              title={feed.title}
-            />
-          ))
-        ) : (
-          <div className="text-gray-300 p2-b text-center py-8">
-            {activeProfileId === null ? '게시글이 없습니다.' : '해당 사용자의 게시글이 없습니다.'}
-          </div>
-        )}
+        {filteredFeeds.map((feed, index) => (
+          <Article key={index} {...feed} currentUserId={profileData?.userId ?? profileData?.id} />
+        ))}
       </div>
     </>
   );

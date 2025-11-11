@@ -10,10 +10,12 @@ export type FeedWriteStackParamList = {
     categoryId: number;
     categoryName: string;
     categoryValue: string;
+    mode?: 'create' | 'edit';
   };
 };
 
 const Stack = createNativeStackNavigator<FeedWriteStackParamList>();
+
 
 // 피드 작성 네비게이터
 export default function FeedWriteNavigator() {

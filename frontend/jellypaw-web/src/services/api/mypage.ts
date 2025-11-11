@@ -4,7 +4,7 @@ import type { GetProfileResponse, EditProfileRequest } from '@/types/mypage';
 // 내 프로필 조회
 export const getMyProfile = async (): Promise<GetProfileResponse> => {
   const response = await apiClient.get('/users/profile');
-  // React Query는 undefined를 반환하면 안 되므로, null이나 undefined일 경우 빈 객체 반환
+  console.log(response);
   return response.data.data ?? {};
 };
 
