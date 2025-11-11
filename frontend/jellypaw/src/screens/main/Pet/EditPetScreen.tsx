@@ -17,6 +17,12 @@ import type { PetSpecies, PetGender, getPetDetailResponse } from '../../../types
 
 import { API_BASE_URL, VITE_IMAGE_BASE_URL } from '@env';
 
+// Route params 타입 정의
+type RouteParams = {
+  petId: number;
+  initial?: getPetDetailResponse;
+};
+
 // 상대→절대 변환(상세의 photoUrl이 상대경로일 수 있음)
 const toImageUrl = (u?: string | null) => {
   if (!u || !u.trim()) return null;
@@ -29,12 +35,11 @@ const toImageUrl = (u?: string | null) => {
 
   // 1순위: 이미지 베이스 URL
   if (VITE_IMAGE_BASE_URL && VITE_IMAGE_BASE_URL.trim()) {
-    return (
-      VITE_IMAGE_BASE_URL.replace(/\/+$/, '') +
-      '/' +
-      path
-    );
-  }}
+    return VITE_IMAGE_BASE_URL.replace(/\/+$/, '') + '/' + path;
+  }
+
+  return null;
+};
 
 const toSpecies = (label: '강아지' | '고양이' | '기타' | ''): PetSpecies | undefined =>
   label === '강아지' ? 'DOG' : label === '고양이' ? 'CAT' : undefined;

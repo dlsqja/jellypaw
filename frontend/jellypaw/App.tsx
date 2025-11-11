@@ -2,6 +2,7 @@
 import React, {useEffect} from 'react';
 import { StatusBar, useColorScheme, AppState, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import RootNavigator from './src/navigation/RootNavigator'; 
 import { QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query';
 
@@ -35,6 +36,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <RootNavigator />
+        <Toast />
       </SafeAreaProvider>
 
       {/* (선택) 개발 중 캐시 상태 보려면 켜두세요 */}
