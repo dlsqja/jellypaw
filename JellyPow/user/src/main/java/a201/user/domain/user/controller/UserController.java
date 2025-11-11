@@ -29,13 +29,14 @@ public class UserController {
 
     @Operation(summary = "프로필 수정", description = "사용자 프로필 정보를 수정합니다.")
 	@PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ApiResponse<UserSignupResponse> updateProfile(
+	public ApiResponse<UserProfileResponse> updateProfile(
 			@RequestHeader("X-User-Id") Long userId,
 			@RequestPart("data") UserRequest request,
 			@RequestPart(value = "profileImg", required = false) MultipartFile profileImg,
 			@RequestPart(value = "backgroundImg", required = false) MultipartFile backgroundImg) {
 		try {
-			UserSignupResponse response = userService.updateProfile(userId, request, profileImg, backgroundImg);
+			User user = userService.updateProfile(userId, request, profileImg, backgroundImg);
+			UserProfileResponse response = UserProfileResponse.from(user);
 			return ApiResponse.success(response);
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
@@ -70,10 +71,10 @@ public class UserController {
 
 	@Operation(summary = "유저 검색 (prefix)", description = "닉네임 접두사 검색 (LIKE 'nickname%')")
 	@GetMapping("/search")
-	public ApiResponse<List<UserSignupResponse>> searchUsers(@RequestParam String nickname) {
+	public ApiResponse<List<UserDetailResponse>> searchUsers(@RequestParam String nickname) {
 		try {
 			List<User> users = userService.searchUsers(nickname);
-			return ApiResponse.success(users.stream().map(UserSignupResponse::from).collect(Collectors.toList()));
+			return ApiResponse.success(users.stream().map(UserDetailResponse::from).collect(Collectors.toList()));
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
 		}
@@ -81,10 +82,10 @@ public class UserController {
 
 	@Operation(summary = "유저 검색 (포함 검색)", description = "닉네임 포함 검색 (LIKE '%nickname%')")
 	@GetMapping("/search/like")
-	public ApiResponse<List<UserSignupResponse>> searchUsersLike(@RequestParam String nickname) {
+	public ApiResponse<List<UserDetailResponse>> searchUsersLike(@RequestParam String nickname) {
 		try {
 			List<User> users = userService.searchUsersLike(nickname);
-			return ApiResponse.success(users.stream().map(UserSignupResponse::from).collect(Collectors.toList()));
+			return ApiResponse.success(users.stream().map(UserDetailResponse::from).collect(Collectors.toList()));
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
 		}

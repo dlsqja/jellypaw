@@ -72,7 +72,7 @@ public class UserService {
 
     // 프로필 수정
     @Transactional
-    public UserSignupResponse updateProfile(Long userId, UserRequest request, MultipartFile profileImg, MultipartFile backgroundImg) {
+    public User updateProfile(Long userId, UserRequest request, MultipartFile profileImg, MultipartFile backgroundImg) {
         // 1. userId로 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -132,7 +132,7 @@ public class UserService {
 		kafkaTemplate.send("user-update-topic", JsonUtil.toJsonString(event));
 
         // 7. 응답 반환
-        return UserSignupResponse.from(user);
+        return user;
     }
 	
 	// 유저 검색 (prefix: LIKE "nickname%") - 최대 1000개

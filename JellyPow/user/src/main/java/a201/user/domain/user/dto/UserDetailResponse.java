@@ -10,6 +10,7 @@ import lombok.*;
 @Builder
 public class UserDetailResponse {
 
+	private Long userId;
     private String nickname;
     private String description;
     private String profileImg;
@@ -21,6 +22,7 @@ public class UserDetailResponse {
 
     public static UserDetailResponse from(User user) {
         return UserDetailResponse.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .description(user.getDescription())
                 .profileImg(user.getProfileImg())
