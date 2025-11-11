@@ -1,35 +1,10 @@
-import React, { useMemo } from 'react';
-import { Platform } from 'react-native';
-import WebView from 'react-native-webview';
-import { ACCESS_TOKEN } from '@env';
+// src/screens/main/Mypage/MypageScreen.tsx
+import React from 'react';
+import AuthorizedWebView from '../../../layouts/AuthorizedWebView';
+import { WEB_BASE_URL } from '@env';
 
-const os = Platform.OS;
-os === 'android';
+const WEB_BASE = (WEB_BASE_URL || 'http://k13a201.p.ssafy.io:3000').replace(/\/+$/, '');
 
 export default function MypageScreen() {
-  const injectedJavaScript = useMemo(
-    //  토큰 넣는 함수 -> 로그인 넣으면 삭제 해도 됨
-    () => `
-      (function() {
-        try {
-          localStorage.setItem('accessToken', ${JSON.stringify(ACCESS_TOKEN || '')});
-        } catch (e) {
-          console.log('[MypageScreen] Failed to inject accessToken', e);
-        }
-      })();
-      true;
-    `,
-    [],
-  );
-
-  return (
-    <WebView
-      cacheEnabled={false}
-      cacheMode="LOAD_NO_CACHE"
-      source={{ uri: 'http://k13a201.p.ssafy.io:3000/mypage' }}
-      sharedCookiesEnabled
-      thirdPartyCookiesEnabled
-      injectedJavaScript={injectedJavaScript}
-    />
-  );
+  return <AuthorizedWebView uri={`${WEB_BASE}/mypage`} />;
 }
