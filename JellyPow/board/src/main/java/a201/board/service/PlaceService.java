@@ -10,6 +10,7 @@ import a201.board.data.request.PlaceCreateRequest;
 import a201.board.data.request.PlaceUpdateRequest;
 import a201.board.repository.PlaceRepository;
 import a201.common.enums.ErrorCode;
+import a201.common.event.PlaceEvent;
 import a201.common.exception.CustomException;
 import a201.common.util.JsonUtil;
 
@@ -37,6 +38,8 @@ public class PlaceService {
 	// Place 수정
 	public Place updatePlace(Long placeId, PlaceUpdateRequest placeUpdateRequest) {
 		Place place = getPlaceById(placeId);
+		Long oldUserId = place.getUserId();
+
 		place.setTitle(placeUpdateRequest.getTitle());
 		place.setAddress(placeUpdateRequest.getAddress());
 		place.setOpeningHours(placeUpdateRequest.getOpeningHoursString(placeUpdateRequest.getOpeningHours()));
@@ -44,11 +47,12 @@ public class PlaceService {
 		place.setLink(placeUpdateRequest.getLink());
 		place.setUserId(placeUpdateRequest.getUserId());
 
+		//System.out.println("oldId: " + oldUserId + ", nowId: " + placeUpdateRequest.getUserId());
 		// userId가 존재하면(처음 업데이트 되는거면 kafka등록)
-		if (place.getUserId() == null && placeUpdateRequest.getUserId() != null) {
-			kafkaTemplate.send("place-update-topic", JsonUtil.toJsonString(null));
+		if (oldUserId == null && placeUpdateRequest.getUserId() != null) {
+			kafkaTemplate.send("place-available-topic", JsonUtil.toJsonString(new PlaceEvent(place.getId())));
 		}
-		
+
 		return placeRepository.save(place);
 	}
 
