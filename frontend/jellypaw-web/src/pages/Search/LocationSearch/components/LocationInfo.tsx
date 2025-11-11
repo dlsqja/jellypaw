@@ -52,11 +52,17 @@ export default function LocationInfo({ openingHours }: LocationInfoProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2 mt-4">
+            {/* 운영시간 표시 */}
+
             {parsedHours.length > 0 ? (
+              // 요일별 운영시간 표시
               parsedHours.map((item, index) => (
+                // 요일과 시간 표시
                 <div key={index} className="flex justify-between">
                   <p className="text-aqua-500 p2">{item.day}</p>
+                  {/* 시간 정보 없을 시  휴무 표시 */}
                   {item.time === '휴무' || item.time.toLowerCase().includes('휴무') ? (
+                    // 휴무 표시
                     <p className="text-pink-400 p2-b">휴무</p>
                   ) : (
                     <p className="text-aqua-500 p2-b">{item.time}</p>
@@ -64,6 +70,7 @@ export default function LocationInfo({ openingHours }: LocationInfoProps) {
                 </div>
               ))
             ) : (
+              // 운영시간 정보가 없을 때 표시
               <p className="text-aqua-500 p2">{openingHours || '운영시간 정보가 없습니다'}</p>
             )}
           </div>

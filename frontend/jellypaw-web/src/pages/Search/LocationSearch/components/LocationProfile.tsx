@@ -52,16 +52,27 @@ export default function LocationProfile({ title, address, phoneNumber, link, sta
           <div className="flex flex-col gap-2 mt-4">
             <div className="flex gap-3 items-center">
               <SlLocationPin className="text-aqua-500 w-3.5 h-3.5" />
-              <span className="text-aqua-500 p2">{address}</span>
+              <span className="text-aqua-500 p2">{address || '주소 정보가 없습니다'}</span>
             </div>
 
             <div className="flex gap-3 items-center">
               <MdOutlinePhone className="text-aqua-500 w-3.5 h-3.5" />
-              <span className="text-aqua-500 p2">{phoneNumber}</span>
+              <span className="text-aqua-500 p2">{phoneNumber || '전화번호 정보가 없습니다'}</span>
             </div>
             <div className="flex gap-3 items-center">
               <TbWorld className="text-aqua-500 w-3.5 h-3.5" />
-              <span className="text-aqua-300 p2">{link || '링크 정보가 없습니다'}</span>
+              {link ? (
+                <a
+                  href={link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-aqua-300 p2 hover:text-aqua-500 underline cursor-pointer"
+                >
+                  {link}
+                </a>
+              ) : (
+                <span className="text-aqua-300 p2">홈페이지 정보가 없습니다</span>
+              )}
             </div>
           </div>
         </CardContent>
