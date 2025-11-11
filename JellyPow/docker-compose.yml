@@ -91,3 +91,4 @@ services:
 volumes:
   mysql_data:
   elasticsearch_data:
+  redis_data:
