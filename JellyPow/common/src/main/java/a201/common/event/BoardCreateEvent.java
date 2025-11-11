@@ -33,6 +33,8 @@ public class BoardCreateEvent {
 
     private BigDecimal starRating;
 
+    private String thumbnail;
+
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;

@@ -38,6 +38,8 @@ public class BoardViewService {
         BoardUser findUser =  boardUserRepository.findById(boardCreateEvent.getUserId()).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
 
+
+
         BoardView boardView = BoardView.builder()
                 .id(boardCreateEvent.getId())
                 .userId(findUser)
@@ -48,6 +50,7 @@ public class BoardViewService {
                 .createdAt(boardCreateEvent.getCreatedAt())
                 .visibility(boardCreateEvent.getVisibility())
                 .starRating(boardCreateEvent.getStarRating())
+                .thumbnail(boardCreateEvent.getThumbnail())
                 .build();
 
         boardView.initializeCounts();
@@ -66,6 +69,7 @@ public class BoardViewService {
         boardView.setPlaceId(boardUpdateEvent.getPlaceId());
         boardView.setStarRating(boardUpdateEvent.getStarRating());
         boardView.setVisibility(boardUpdateEvent.getVisibility());
+        boardView.setThumbnail(boardUpdateEvent.getThumbnail());
 
         boardViewRepository.save(boardView);
 
