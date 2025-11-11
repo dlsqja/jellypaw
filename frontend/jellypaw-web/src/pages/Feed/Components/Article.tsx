@@ -14,17 +14,78 @@ import { IoClose } from 'react-icons/io5';
 import { deleteFeed } from '@/services/api/feed';
 import { getFeedDetail } from '@/services/api/feed';
 import { saveBoardToRedis } from '@/services/api/redis';
+import {
+  IoCalendarClear,
+  IoHeart,
+  IoRestaurant,
+  IoCut,
+  IoFastFood,
+  IoGameController,
+  IoLocation,
+  IoEllipsisHorizontalCircleSharp,
+} from 'react-icons/io5';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+
+// 날짜 포맷팅 함수 (YY.MM.DD 형식)
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return '';
+  const datePart = dateString.split(' ')[0];
+  const [year, month, day] = datePart.split('-');
+  if (year && month && day) {
+    const shortYear = year.slice(-2);
+    return `${shortYear}.${month}.${day}`;
+  }
+  return datePart;
+};
+
+// 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
+const formatRelativeTime = (dateString?: string): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}분 전`;
+    }
+    const diffHours = Math.floor(diffMinutes / 60);
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+
+    if (isToday && diffHours < 24) {
+      return `${diffHours}시간 전`;
+    }
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 1) {
+      return '오늘';
+    } else if (diffDays < 30) {
+      return `${diffDays}일 전`;
+    } else if (diffDays < 365) {
+      const diffMonths = Math.floor(diffDays / 30);
+      return `${diffMonths}개월 전`;
+    } else {
+      const diffYears = Math.floor(diffDays / 365);
+      return `${diffYears}년 전`;
+    }
+  } catch (error) {
+    console.error('날짜 파싱 오류:', error);
+    return formatDate(dateString);
+  }
+};
 
 // 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
 interface ArticleProps extends GetFeedsResponse {
   currentUserId?: number;
 }
 
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title, currentUserId }: ArticleProps) {
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title, category, currentUserId }: ArticleProps) {
   const navigate = useNavigate();
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
   // 🔹 내 게시글인지 여부
   const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
@@ -120,7 +181,7 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{createdAt}</Badge>
+                    <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(createdAt)}</Badge>
                     <Badge variant="pink">
                       <FaStar className="text-pink-300 me-0.5" />
                       {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
