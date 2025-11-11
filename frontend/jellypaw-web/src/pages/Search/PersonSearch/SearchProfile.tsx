@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import type { SearchUsersDetailResponse } from '@/types/search';
 import { Spinner } from '@/components/ui/spinner';
 import { BsPersonCircle } from 'react-icons/bs';
+import { follow, unfollow } from '@/services/api/followers';
+import { useProfile } from '@/hooks/queries/ProfileQuery';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -10,15 +12,74 @@ interface SearchProfileProps {
   profileData: SearchUsersDetailResponse | null;
   isLoading: boolean;
   targetUserId?: number;
+  onProfileUpdate?: () => void; // 프로필 데이터 갱신 콜백
 }
 
-export default function SearchProfile({ profileData, isLoading, targetUserId }: SearchProfileProps) {
+export default function SearchProfile({ profileData, isLoading, targetUserId, onProfileUpdate }: SearchProfileProps) {
+  // 현재 로그인한 사용자 프로필
+  const { data: myProfile } = useProfile();
+
+  // 팔로잉 상태
   const [isFollowing, setIsFollowing] = useState(false);
+  // 로컬 팔로워 수
+  const [localFollowerNum, setLocalFollowerNum] = useState<number | undefined>(profileData?.followerNum);
+
+  // 자신의 프로필인지 확인 (타입 변환 포함)
+  const isMyProfile = myProfile?.userId !== undefined && targetUserId !== undefined && Number(myProfile.userId) === Number(targetUserId);
+  console.log('isMyProfile', myProfile?.userId, targetUserId, Number(myProfile?.userId) === Number(targetUserId));
+  // 프로필 데이터가 변경될 때 로컬 팔로워 수 동기화
+  useEffect(() => {
+    setLocalFollowerNum(profileData?.followerNum);
+  }, [profileData?.followerNum]);
 
   const handleFollowClick = () => {
-    setIsFollowing((prev) => !prev);
-  };
+    // 자신의 프로필이면 alert 표시하고 종료
+    if (isMyProfile) {
+      alert('자신의 프로필은 팔로우할 수 없습니다.');
+      return;
+    }
 
+    if (!profileData?.nickname) return;
+
+    const nickname = profileData.nickname;
+    // 현재 팔로워 수
+    const currentFollowerNum = localFollowerNum || 0;
+
+    if (isFollowing) {
+      // 팔로우 취소
+      unfollow(nickname)
+        .then((response) => {
+          console.log('언팔로우 성공:', response);
+          setIsFollowing(false);
+          // 팔로워 수 즉시 감소
+          setLocalFollowerNum(Math.max(0, currentFollowerNum - 1));
+          // 프로필 데이터 다시 조회
+          if (onProfileUpdate) {
+            onProfileUpdate();
+          }
+        })
+        .catch((error) => {
+          console.error('언팔로우 실패:', error);
+        });
+    } else {
+      // 팔로우
+      follow(nickname)
+        .then((response) => {
+          console.log('팔로우 성공:', response);
+          setIsFollowing(true);
+          // 팔로워 수 즉시 증가
+          setLocalFollowerNum(currentFollowerNum + 1);
+          // 프로필 데이터 다시 조회
+          if (onProfileUpdate) {
+            onProfileUpdate();
+          }
+        })
+        .catch((error) => {
+          console.error('팔로우 실패:', error);
+        });
+    }
+  };
+  // 로딩 중일 때 표시
   if (isLoading) {
     return (
       <div className="flex flex-col justify-center items-center gap-4 py-8">
@@ -27,7 +88,7 @@ export default function SearchProfile({ profileData, isLoading, targetUserId }: 
       </div>
     );
   }
-
+  // 프로필 데이터가 없으면 표시하지 않음
   if (!profileData) {
     return (
       <div className="flex flex-col justify-center items-center gap-4 py-8">
@@ -60,10 +121,10 @@ export default function SearchProfile({ profileData, isLoading, targetUserId }: 
           </div>
           <div className="w-10 h-12 flex flex-col items-center">
             <div className="justify-center text-aqua-500 p2">팔로워</div>
-            <div className="justify-center text-aqua-500 h4-b">{profileData.followerNum || 0}</div>
+            <div className="justify-center text-aqua-500 h4-b">{localFollowerNum ?? profileData?.followerNum ?? 0}</div>
           </div>
         </div>
-        {targetUserId && (
+        {targetUserId && !isMyProfile && (
           <Button
             size="default"
             shape={isFollowing ? 'outline' : 'solid'}

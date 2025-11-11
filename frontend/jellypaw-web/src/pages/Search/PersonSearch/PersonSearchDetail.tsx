@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import BackHeader from '@/components/headers/BackHeader';
 import SearchProfile from './SearchProfile';
 import { Button } from '@/components/ui/button';
@@ -100,30 +100,46 @@ export default function PersonSearchDetail() {
   const [targetProfileData, setTargetProfileData] = useState<SearchUsersDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  // 프로필 조회 함수 (초기 로드용 - 로딩 상태 표시)
+  const fetchProfile = useCallback(() => {
     if (!personId) return;
-    // personId를 숫자로 변환
+
     const targetUserId = Number(personId);
-    // 로딩 상태 설정
     setIsLoading(true);
-    // 프로필 조회
-    console.log('targetUserId', targetUserId);
+
     searchUsersDetail(targetUserId)
       .then((response) => {
-        // 프로필 데이터 설정
-        console.log('targetProfileData', response);
         setTargetProfileData(response);
+        console.log('targetProfileData', response);
       })
       .catch((error) => {
-        // 프로필 조회 실패 시 오류 로깅
         console.error('프로필 조회 실패:', error);
         setTargetProfileData(null);
       })
       .finally(() => {
-        // 로딩 상태 초기화
         setIsLoading(false);
       });
   }, [personId]);
+
+  // 프로필 갱신 함수 (백그라운드 갱신용 - 로딩 상태 표시 안 함)
+  const refreshProfile = useCallback(() => {
+    if (!personId) return;
+
+    const targetUserId = Number(personId);
+    // 로딩 상태 변경 없이 백그라운드에서 조회
+    searchUsersDetail(targetUserId)
+      .then((response) => {
+        setTargetProfileData(response);
+      })
+      .catch((error) => {
+        console.error('프로필 갱신 실패:', error);
+        // 에러 발생해도 기존 데이터 유지
+      });
+  }, [personId]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const [activeCategory, setActiveCategory] = useState<number>(0);
 
@@ -144,7 +160,12 @@ export default function PersonSearchDetail() {
     <>
       <BackHeader title="" />
       {/* 프로필 */}
-      <SearchProfile profileData={targetProfileData} isLoading={isLoading} targetUserId={personId ? Number(personId) : undefined} />
+      <SearchProfile
+        profileData={targetProfileData}
+        isLoading={isLoading}
+        targetUserId={personId ? Number(personId) : undefined}
+        onProfileUpdate={refreshProfile}
+      />
       {/* 카테고리 */}
       <div className="flex flex-col gap-4 pt-4">
         <p className="text-aqua-500 h4-b">카테고리</p>
