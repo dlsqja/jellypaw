@@ -30,13 +30,13 @@ public class PlaceService {
 	}
 
 	// Place 조회
-	public Place getPlaceByCode(String code) {
-		return placeRepository.findByCode(code).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
+	public Place getPlaceById(Long placeId) {
+		return placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 	}
 
 	// Place 수정
-	public Place updatePlace(String code, PlaceUpdateRequest placeUpdateRequest) {
-		Place place = getPlaceByCode(code);
+	public Place updatePlace(Long placeId, PlaceUpdateRequest placeUpdateRequest) {
+		Place place = getPlaceById(placeId);
 		place.setTitle(placeUpdateRequest.getTitle());
 		place.setAddress(placeUpdateRequest.getAddress());
 		place.setOpeningHours(placeUpdateRequest.getOpeningHoursString(placeUpdateRequest.getOpeningHours()));
