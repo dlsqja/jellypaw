@@ -42,8 +42,8 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
-    networks:
-      - msa-net
+#    networks:
+#      - msa-net
     ports:
       - "9092:9092"
 
@@ -72,8 +72,8 @@ services:
       - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - msa-net
+#    networks:
+#      - msa-net
     healthcheck:
       test:
         ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
@@ -81,6 +81,24 @@ services:
       timeout: 10s
       retries: 5
 
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: jellypaw-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    # networks:
+    #   - msa-net
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
 volumes:
   mysql_data:
   elasticsearch_data:
+  redis_data:
