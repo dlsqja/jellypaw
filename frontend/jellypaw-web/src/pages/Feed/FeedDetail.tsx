@@ -100,7 +100,7 @@ export default function FeedDetail() {
           <div className="">
             <div className="flex justify-between items-center">
               <p className="text-aqua-500 p2-b">
-                {detailData?.boardUser?.nickname}
+                {detailData?.title}
                 <span className="text-aqua-500 p2 ml-2">{detailData?.content}</span>
               </p>
             </div>
