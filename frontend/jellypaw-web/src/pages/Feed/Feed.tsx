@@ -88,13 +88,8 @@ export default function Feed() {
         {filteredFeeds.map((feed, index) => (
           <Article
             key={index}
-            boardUser={feed.boardUser}
-            content={feed.content}
-            createdAt={feed.createdAt}
-            id={feed.id}
-            images={feed.images}
-            starRating={feed.starRating}
-            title={feed.title}
+            {...feed}
+            currentUserId={profileData?.userId ?? profileData?.id}
           />
         ))}
       </div>
