@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { IoClose } from 'react-icons/io5';
 import { Button } from '@/components/ui/button';
 import { deleteFeed } from '@/services/api/feed';
+import { getFeedDetail } from '@/services/api/feed';
+import { saveBoardToRedis } from '@/services/api/redis';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -211,18 +213,43 @@ export default function Article({
             </div>
 
             <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                tone="aqua"
-                shape="pillSolid"
-                size="default"
-                onClick={() => {
-                  setIsActionModalOpen(false);
-                  navigate(`/feed/${id}`);
-                }}
-              >
-                게시글 수정하기
-              </Button>
+              
+<Button
+  type="button"
+  tone="aqua"
+  shape="pillSolid"
+  size="default"
+  onClick={async (event) => {
+    event.stopPropagation();
+    setIsActionModalOpen(false);
+
+    if (!id) return;
+
+    try {
+      // 1. 게시글 상세 조회 (백엔드 기준 BoardResponse랑 거의 같을 거라 가정)
+      const detail = await getFeedDetail(Number(id));
+
+      // 2. Redis에 저장 (서버는 X-User-Id로 유저별로 매핑)
+      await saveBoardToRedis(detail);
+
+      // 3. RN(WebView) 쪽에 “수정 모드 열어” 메시지
+      if ((window as any).ReactNativeWebView) {
+        (window as any).ReactNativeWebView.postMessage(
+          JSON.stringify({
+            type: 'OPEN_FEED_EDIT',
+          }),
+        );
+      } else {
+        console.log('ReactNativeWebView 없음 - 웹 환경에서 실행 중');
+      }
+    } catch (e) {
+      console.error('수정 준비 실패', e);
+      alert('수정 정보를 준비하는 데 실패했습니다.');
+    }
+  }}
+>
+  게시글 수정하기
+</Button>
               <Button
                 type="button"
                 tone="red"

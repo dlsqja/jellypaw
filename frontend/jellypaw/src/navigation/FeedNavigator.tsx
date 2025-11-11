@@ -6,6 +6,8 @@ export type FeedStackParamList = {
   Feed: undefined;
 };
 
+
+
 // 피드 네비게이터
 export default function FeedNavigator() {
   return (
