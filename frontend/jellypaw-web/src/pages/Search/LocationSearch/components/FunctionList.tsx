@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FaPhone, FaMapMarkerAlt, FaComment, FaEdit } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,10 +13,17 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 
+// 기능 목록 컴포넌트 속성 인터페이스
 interface FunctionListProps {
+  // 전화번호 - 전화번호 모달에서 사용
   phone?: string;
+  // 장소 ID - 예약하기 페이지 이동 경로
+  locationId?: number;
+  // 장소 이름 - 예약하기 페이지에서 사용
+  locationTitle?: string;
 }
 
+// 기능 목록 배열
 const functionList = [
   {
     name: '기록하기',
@@ -36,14 +43,22 @@ const functionList = [
   },
 ];
 
-export default function FunctionList({ phone }: FunctionListProps) {
+// 기능 목록 컴포넌트
+export default function FunctionList({ phone, locationId, locationTitle }: FunctionListProps) {
   const [isPhoneDrawerOpen, setIsPhoneDrawerOpen] = useState(false);
   const navigate = useNavigate();
-  const { locationId } = useParams();
 
+  // 예약 버튼 클릭 함수
   const handleReservationClick = () => {
     if (locationId) {
-      navigate(`/search/location/${locationId}/reservation`);
+      // 장소 상세 정보에서 조회된 id 값과 이름으로 예약 페이지 이동
+      navigate(`/search/location/${locationId}/reservation`, {
+        state: {
+          locationTitle: locationTitle || '장소명 없음',
+        },
+      });
+    } else {
+      console.warn('예약하기를 제공하지 않는 장소입니다.');
     }
   };
 

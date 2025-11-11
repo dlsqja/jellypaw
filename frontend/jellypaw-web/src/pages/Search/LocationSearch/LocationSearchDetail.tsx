@@ -25,7 +25,6 @@ export default function LocationSearchDetail() {
     searchPlacesDetail(placeId)
       .then((response) => {
         setLocationData(response);
-        console.log('locationId', placeId);
         console.log('locationData', response);
       })
       .catch((error) => {
@@ -44,7 +43,7 @@ export default function LocationSearchDetail() {
         <BackHeader title="" />
         <div className="flex flex-col justify-center items-center gap-4 py-8">
           <Spinner className="size-8 text-aqua-500" />
-          <span className="text-gray-300 p2">장소 정보를 불러오는 중...</span>
+          <span className="text-gray-500 p2">장소 정보를 불러오는 중...</span>
         </div>
       </>
     );

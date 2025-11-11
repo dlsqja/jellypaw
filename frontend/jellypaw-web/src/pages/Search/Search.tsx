@@ -161,7 +161,17 @@ export default function Search() {
         {!hasKeyword &&
           recentSearches.map((item) => (
             <div key={item.id} className="flex flex-col mb-2">
-              <div className="flex items-center justify-between cursor-pointer" onClick={() => setSearchValue(item.keyword)}>
+              <div
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => {
+                  // 검색어를 input에 설정 (useEffect가 자동으로 검색 실행)
+                  setSearchValue(item.keyword);
+                  // 검색 타입에 따라 cursor 초기화 (장소 검색의 경우)
+                  if (item.type === 'place') {
+                    setCursor(0);
+                  }
+                }}
+              >
                 <IconText icon={LuClock3} label={item.keyword} iconTone="gray300" textStyle="p2" textTone="aqua500" />
                 <button
                   type="button"

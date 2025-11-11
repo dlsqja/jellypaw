@@ -5,6 +5,13 @@ import { Label } from '@radix-ui/react-label';
 
 interface Step2Props {
   onPrevious: () => void;
+  reservationData?: {
+    date: string;
+    time: number;
+    content: string;
+  };
+  onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 // 전화번호 포맷팅 함수 (010-0000-0000 형식)
@@ -25,12 +32,17 @@ const formatPhoneNumber = (value: string): string => {
   }
 };
 
-export default function Step2({ onPrevious }: Step2Props) {
+export default function Step2({ onPrevious, reservationData, onSubmit, isSubmitting = false }: Step2Props) {
+  const [guardianName, setGuardianName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
     setPhoneNumber(formatted);
+  };
+
+  const handleGuardianNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGuardianName(e.target.value);
   };
 
   return (
@@ -40,7 +52,7 @@ export default function Step2({ onPrevious }: Step2Props) {
         {/* 보호자 이름 입력 */}
         <div className="flex flex-col gap-2">
           <Label className="text-aqua-500 p2-b">보호자 이름 *</Label>
-          <Input placeholder="보호자 이름을 입력하세요" />
+          <Input placeholder="보호자 이름을 입력하세요" value={guardianName} onChange={handleGuardianNameChange} />
         </div>
 
         {/* 연락처 입력 */}
@@ -55,8 +67,8 @@ export default function Step2({ onPrevious }: Step2Props) {
         <Button shape="outline" tone="lightAqua" className="w-full" onClick={onPrevious}>
           이전
         </Button>
-        <Button shape="solid" tone="aqua" className="w-full">
-          예약 요청
+        <Button shape="solid" tone="aqua" className="w-full" onClick={onSubmit} disabled={isSubmitting}>
+          {isSubmitting ? '예약 요청 중...' : '예약 요청'}
         </Button>
       </div>
     </>

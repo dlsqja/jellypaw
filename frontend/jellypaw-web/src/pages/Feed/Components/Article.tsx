@@ -8,7 +8,9 @@ import { FaStar } from 'react-icons/fa6';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
-
+import { Button } from '@/components/ui/button';
+import { IoClose } from 'react-icons/io5';
+import { deleteFeed } from '@/services/api/feed';
 // 카테고리 아이콘
 import { IoCalendarClear } from 'react-icons/io5'; // 일상
 import { IoHeart } from 'react-icons/io5'; // 건강
@@ -37,7 +39,7 @@ export default function Article({
   visibility,
 }: GetFeedsResponse) {
   const navigate = useNavigate();
-
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   // 뱃지 날짜 형식 변화
   // 날짜 형식을 "25.01.15" 형식으로 변환 ("2025-11-11 05:20:20" -> "25.11.11")
   const formatDate = (dateString?: string): string => {
@@ -121,7 +123,7 @@ export default function Article({
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
-                {/* 프로필 사진*/}
+                {/* 프로필 사진 */}
                 {boardUser?.profileImg ? (
                   <img className="w-10 h-10 rounded-full object-cover " src={`${IMAGE_BASE_URL}${boardUser.profileImg}`} alt={boardUser.nickname} />
                 ) : (
@@ -135,6 +137,19 @@ export default function Article({
                   <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
                 </div>
               </div>
+              <button
+                type="button"
+                className="h-7 w-7 flex justify-center items-center cursor-pointer"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsActionModalOpen(true);
+                }}
+                aria-haspopup="dialog"
+                aria-expanded={isActionModalOpen}
+                aria-label="게시글 옵션 열기"
+              >
+                <MoreHorizontal className="h-5 w-5 text-gray-300" />
+              </button>
             </div>
           </div>
           {/* 게시물 내용 */}
@@ -207,7 +222,7 @@ export default function Article({
       </Card>
 
       {/* 게시글 수정 / 삭제 옵션 모달 */}
-      {/* {isActionModalOpen && (
+      {isActionModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           role="dialog"
@@ -263,7 +278,7 @@ export default function Article({
             </div>
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }

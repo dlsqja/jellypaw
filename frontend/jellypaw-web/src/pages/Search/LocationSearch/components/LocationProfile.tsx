@@ -8,12 +8,9 @@ import { IoInformationCircleOutline } from 'react-icons/io5';
 import { SlLocationPin } from 'react-icons/sl';
 import { TbWorld } from 'react-icons/tb';
 import { MdOutlinePhone } from 'react-icons/md';
-import { BsPersonFillCheck } from 'react-icons/bs';
 import type { SearchPlacesDetailResponse } from '@/types/search';
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-
-export default function LocationProfile({ title, address, phoneNumber, link, starRating, postCount }: SearchPlacesDetailResponse) {
+export default function LocationProfile({ id, title, address, phoneNumber, link, starRating, postCount }: SearchPlacesDetailResponse) {
   return (
     <>
       {/* 가게 기본 프로필 */}
@@ -34,18 +31,23 @@ export default function LocationProfile({ title, address, phoneNumber, link, sta
               <FaStar className="text-pink-300 me-0.5" /> {starRating?.toFixed(1) || ''}
             </Badge>
           )}
-          {!starRating && <span className="text-gray-300 p3">평점 정보가 없습니다</span>}
+          {!starRating && <span className="text-gray-300 p3"> 평점 정보가 없습니다</span>}
         </div>
       </div>
       {/* 기능 목록 */}
-      <FunctionList phone={phoneNumber || '전화번호 정보가 없습니다'} />
+      <FunctionList
+        phone={phoneNumber || '전화번호 정보가 없습니다'}
+        // 장소 상세 정보에서 조회된 id 값과 이름으로 예약 페이지 이동 경로
+        locationId={id}
+        locationTitle={title}
+      />
 
       {/* 기본 정보 카드 */}
       <Card className="p-6">
         <CardHeader>
           <div className="flex items-center gap-2">
             <IoInformationCircleOutline className="text-aqua-300 w-4 h-4" />
-            <div className="text-aqua-500 h6">기본정보</div>
+            <div className="text-aqua-500 h6">기본 정보</div>
           </div>
         </CardHeader>
         <CardContent>
