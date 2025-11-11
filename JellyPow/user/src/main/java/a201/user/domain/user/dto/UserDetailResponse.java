@@ -18,6 +18,7 @@ public class UserDetailResponse {
     private Integer followerNum;
     private Integer followingNum;
     private Long postCount;
+	private Boolean isFollowing;
     private Boolean isVisible;
 
     public static UserDetailResponse from(User user) {
