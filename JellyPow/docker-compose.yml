@@ -30,10 +30,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    ports:
-      - "9092:9092"
+
     networks:
       - msa-net
+    ports:
+      - "9092:9092"
 
   mongo:
     image: mongo:8
@@ -46,7 +47,7 @@ services:
     volumes:
       - ./mongo-data:/data/db
     networks:
-      - msa-net   # ✅ 추가
+      - msa-net # ✅ 추가
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -63,26 +64,30 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
       - msa-net
-    entrypoint:
-      - bash
-      - -c
-      - |
-        if [ ! -f /usr/share/elasticsearch/plugins/analysis-nori/.installed ]; then
-          bin/elasticsearch-plugin install -b analysis-nori
-          touch /usr/share/elasticsearch/plugins/analysis-nori/.installed
-        fi
-        /usr/local/bin/docker-entrypoint.sh eswrapper
     healthcheck:
       test:
-        [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: jellypaw-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    # networks:
+    #   - msa-net
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
       retries: 5
 
 volumes:
   mysql_data:
   elasticsearch_data:
-
-networks:
-  msa-net:
-    driver: bridge
