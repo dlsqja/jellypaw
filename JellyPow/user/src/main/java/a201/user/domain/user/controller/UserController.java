@@ -3,10 +3,12 @@ package a201.user.domain.user.controller;
 import a201.common.exception.CustomException;
 import a201.common.response.ApiResponse;
 import a201.user.domain.user.dto.UserRequest;
+import a201.user.domain.user.dto.UserDetailResponse;
 import a201.user.domain.user.dto.UserProfileResponse;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.entity.User;
 import a201.user.domain.user.service.UserService;
+import a201.user.domain.follow.service.FollowService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
     private final UserService userService;
+	private final FollowService followService;
 
     @Operation(summary = "프로필 수정", description = "사용자 프로필 정보를 수정합니다.")
 	@PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -45,6 +48,20 @@ public class UserController {
 		try {
 			User user = userService.getUserById(userId);
 			UserProfileResponse response = UserProfileResponse.from(user);
+			return ApiResponse.success(response);
+		} catch (CustomException e) {
+			return ApiResponse.error(e.getErrorCode());
+		}
+	}
+
+	@Operation(summary = "유저 상세 조회", description = "특정 사용자의 프로필 정보를 조회합니다.")
+	@GetMapping("/{targetUserId}")
+	public ApiResponse<UserDetailResponse> getUser(@RequestHeader("X-User-Id") Long userId,
+		@PathVariable Long targetUserId) {
+		try {
+			User user = userService.getUserById(targetUserId);
+			UserDetailResponse response = UserDetailResponse.from(user);
+			response.setIsVisible(true);
 			return ApiResponse.success(response);
 		} catch (CustomException e) {
 			return ApiResponse.error(e.getErrorCode());
