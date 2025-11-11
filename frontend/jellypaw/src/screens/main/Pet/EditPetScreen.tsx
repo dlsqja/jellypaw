@@ -15,21 +15,26 @@ import { useUpdatePetInfo, useUpdatePetImage, useDeletePet, useDeletePetImage } 
 import { getPetDetail, updatePetInfo, updatePetImage, deletePet } from '../../../services/api/pet';
 import type { PetSpecies, PetGender, getPetDetailResponse } from '../../../types/main/pet';
 
-import { API_BASE_URL } from '@env';
+import { API_BASE_URL, VITE_IMAGE_BASE_URL } from '@env';
 
 // 상대→절대 변환(상세의 photoUrl이 상대경로일 수 있음)
-const toAbsolute = (u?: string | null) => {
+const toImageUrl = (u?: string | null) => {
   if (!u || !u.trim()) return null;
-  if (/^(https?:)?\/\//i.test(u)) return u;
-  const base = (API_BASE_URL || '').replace(/\/+$/, '');
-  const path = u.replace(/^\/+/, '');
-  return `${base}/${path}`;
-};
+  const trimmed = u.trim();
 
-type RouteParams = {
-  petId: number;
-  initial?: getPetDetailResponse; // 선택: 프리필용
-};
+  // 이미 절대 URL이면 그대로
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const path = trimmed.replace(/^\/+/, '');
+
+  // 1순위: 이미지 베이스 URL
+  if (VITE_IMAGE_BASE_URL && VITE_IMAGE_BASE_URL.trim()) {
+    return (
+      VITE_IMAGE_BASE_URL.replace(/\/+$/, '') +
+      '/' +
+      path
+    );
+  }}
 
 const toSpecies = (label: '강아지' | '고양이' | '기타' | ''): PetSpecies | undefined =>
   label === '강아지' ? 'DOG' : label === '고양이' ? 'CAT' : undefined;
@@ -96,7 +101,7 @@ export default function EditPetScreen() {
     setGender(fromGender(initial.gender as PetGender));
     setAge(initial.age != null ? String(initial.age) : '');
     setWeight(initial.weight != null ? String(initial.weight) : '');
-    setPhotoUri(toAbsolute(initial.photoUrl) || null);
+    setPhotoUri(toImageUrl(initial.photoUrl) || null);
     setDeletePhoto(false);
   }, [initial]);
 
@@ -111,7 +116,7 @@ export default function EditPetScreen() {
         setGender(fromGender(d.gender as PetGender));
         setAge(d.age != null ? String(d.age) : '');
         setWeight(d.weight != null ? String(d.weight) : '');
-        setPhotoUri(toAbsolute(d.photoUrl) || null);
+        setPhotoUri(toImageUrl(d.photoUrl) || null);
         setDeletePhoto(false);
       } catch (e) {
         console.log('[EditPet] getPetDetail 실패', e);

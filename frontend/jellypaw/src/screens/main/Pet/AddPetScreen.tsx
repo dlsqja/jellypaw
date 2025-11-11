@@ -15,10 +15,13 @@ import {
   launchImageLibrary,
   ImagePickerResponse,
 } from 'react-native-image-picker'; 
+import { useQueryClient } from '@tanstack/react-query';
+import { petKeys } from '../../../services/queries/petKeys'; // 경로는 실제 위치에 맞게
+
 
 export default function AddPetScreen() {
   const nav = useNavigation<any>();
-
+  const qc = useQueryClient(); 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
   const [animalType, setAnimalType] =
@@ -31,49 +34,54 @@ export default function AddPetScreen() {
     useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
 
   const onSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('필수 입력', '이름을 입력해 주세요.');
-      return;
-    }
+  if (!name.trim()) {
+    Alert.alert('필수 입력', '이름을 입력해 주세요.');
+    return;
+  }
 
-    try {
-      const species =
-        animalType === '강아지'
-          ? 'DOG'
-          : animalType === '고양이'
-          ? 'CAT'
-          : undefined;
+  try {
+    const species =
+      animalType === '강아지'
+        ? 'DOG'
+        : animalType === '고양이'
+        ? 'CAT'
+        : undefined;
 
-      const genderEnum =
-        gender === '남자'
-          ? 'MALE'
-          : gender === '여자'
-          ? 'FEMALE'
-          : gender === '남자(중성화)'
-          ? 'MALE_NEUTERING'
-          : gender === '여자(중성화)'
-          ? 'FEMALE_NEUTERING'
-          : 'NON';
+    const genderEnum =
+      gender === '남자'
+        ? 'MALE'
+        : gender === '여자'
+        ? 'FEMALE'
+        : gender === '남자(중성화)'
+        ? 'MALE_NEUTERING'
+        : gender === '여자(중성화)'
+        ? 'FEMALE_NEUTERING'
+        : 'NON';
 
-      const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
-      const weightNum = weight.trim() ? parseFloat(weight.trim()) : undefined;
+    const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
+    const weightNum = weight.trim()
+      ? parseFloat(weight.trim())
+      : undefined;
 
-      await createPet({
-        name: name.trim(),
-        species,
-        gender: genderEnum,
-        age: Number.isFinite(ageNum as number) ? ageNum : undefined,
-        weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
-        photoUri, // 서비스단에서 FormData 처리
-      });
+    await createPet({
+      name: name.trim(),
+      species,
+      gender: genderEnum,
+      age: Number.isFinite(ageNum as number) ? ageNum : undefined,
+      weight: Number.isFinite(weightNum as number) ? weightNum : undefined,
+      photoUri,
+    });
 
-      Alert.alert('등록 완료', '반려동물이 등록되었습니다.');
-      nav.goBack();
-    } catch (e) {
-      console.log(e);
-      Alert.alert('오류', '등록 중 문제가 발생했어요.');
-    }
-  };
+    qc.invalidateQueries({ queryKey: petKeys.list() });
+
+    Alert.alert('등록 완료', '반려동물이 등록되었습니다.');
+    nav.goBack();
+  } catch (e) {
+    console.log(e);
+    Alert.alert('오류', '등록 중 문제가 발생했어요.');
+  }
+};
+
 
   const breedPlaceholder = useMemo(() => {
     if (animalType === '강아지') return '예: 골든 리트리버';

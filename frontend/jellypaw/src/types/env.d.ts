@@ -6,4 +6,5 @@ declare module '@env' {
   export const VITE_IMAGE_BASE_URL: string; 
   export const KAKAO_REST_API_KEY: string; 
   export const KAKAO_REDIRECT_URI: string; 
+  export const WEB_BASE_URL: string; 
 }
