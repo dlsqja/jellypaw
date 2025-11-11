@@ -7,9 +7,11 @@ import a201.common.event.BoardUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -100,8 +102,10 @@ public class BoardViewService {
         commentCount.setCount(commentCount.getCount()-cnt);
     }
 
-    public List<BoardView> getBoardsPaginated() {
-        List<BoardView> boardViews = boardViewRepository.findAll();
-        return boardViews;
+    public List<BoardView> getBoardsPaginated(Pageable pageable) {
+
+        Page<BoardView> boardPage = boardViewRepository.findAll(pageable);
+
+        return boardPage.getContent();
     }
 }
