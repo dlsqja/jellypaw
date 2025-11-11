@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
-@RequestMapping("/boards")
+@RequestMapping("/boardview")
 @RequiredArgsConstructor
 public class BoardViewController {
 
@@ -22,7 +22,7 @@ public class BoardViewController {
 
 
     @GetMapping
-    public ApiResponse<BoardSimpleListResponse> getBoardsPaginated(@RequestParam(defaultValue = "0") int page) {
+    public ApiResponse<BoardSimpleListResponse> getBoardsPaginated(@RequestHeader("X-User-id") Long userId, @RequestParam(defaultValue = "0") int page) {
 
         //최신 게시글을 기준으로 가져오려고 한다면
         //여기서 createAt으로만 정렬했을 때 생길 수 있는 문제
