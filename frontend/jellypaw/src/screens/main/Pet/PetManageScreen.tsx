@@ -166,12 +166,6 @@ const S = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyWrap: {
-    flex: 1,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   emptyTitle: {
     fontSize: 18,
     lineHeight: 26,
