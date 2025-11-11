@@ -36,3 +36,15 @@ export interface SearchPlacesResponse {
     postCount?: number;
   }[];
 }
+
+// 장소 검색 상세 조회 응답
+export interface SearchPlacesDetailResponse {
+  id?: number;
+  title?: string;
+  address?: string;
+  phoneNumber?: string;
+  link?: string;
+  starRating?: number;
+  openingHours?: string;
+  postCount?: number;
+}

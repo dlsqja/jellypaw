@@ -3,11 +3,44 @@ import { FiClock } from 'react-icons/fi';
 import { IoDocumentTextOutline } from 'react-icons/io5';
 
 interface LocationInfoProps {
-  runningTime: { id: number; name: string; start: string | '휴무'; end: string | '휴무' }[];
-  description: string;
+  openingHours: string;
 }
 
-export default function LocationInfo({ runningTime, description }: LocationInfoProps) {
+// 운영시간 문자열을 쉼표 기준으로 요일별로 파싱하는 함수
+const parseOpeningHours = (openingHours: string): { day: string; time: string }[] => {
+  if (!openingHours || !openingHours.trim()) {
+    return [];
+  }
+
+  // 쉼표로 구분
+  const lines = openingHours
+    .split(',')
+    .map((line) => line.trim())
+    .filter((line) => line);
+
+  return lines.map((line) => {
+    // "요일: 시간" 형식에서 요일과 시간 분리
+    const colonIndex = line.indexOf(':');
+    if (colonIndex !== -1) {
+      const day = line.substring(0, colonIndex).trim();
+      const time = line.substring(colonIndex + 1).trim();
+
+      return {
+        day,
+        time: time || '정보 없음',
+      };
+    }
+    // 콜론이 없는 경우 전체를 시간으로 처리
+    return {
+      day: '운영시간',
+      time: line,
+    };
+  });
+};
+
+export default function LocationInfo({ openingHours }: LocationInfoProps) {
+  const parsedHours = parseOpeningHours(openingHours);
+
   return (
     <div className="flex flex-col gap-4">
       <Card className="p-6">
@@ -19,27 +52,25 @@ export default function LocationInfo({ runningTime, description }: LocationInfoP
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2 mt-4">
-            <div className="flex flex-col gap-2">
-              {runningTime.map((time) => (
-                <div key={time.id}>
-                  <div className="flex justify-between">
-                    <p className="text-aqua-500 p2">{time.name}</p>
-                    {time.start === '휴무' ? (
-                      <p className="text-pink-400 p2-b">휴무</p>
-                    ) : (
-                      <p className="text-aqua-500 p2-b">
-                        {time.start} - {time.end}
-                      </p>
-                    )}
-                  </div>
+            {parsedHours.length > 0 ? (
+              parsedHours.map((item, index) => (
+                <div key={index} className="flex justify-between">
+                  <p className="text-aqua-500 p2">{item.day}</p>
+                  {item.time === '휴무' || item.time.toLowerCase().includes('휴무') ? (
+                    <p className="text-pink-400 p2-b">휴무</p>
+                  ) : (
+                    <p className="text-aqua-500 p2-b">{item.time}</p>
+                  )}
                 </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              <p className="text-aqua-500 p2">{openingHours || '운영시간 정보가 없습니다'}</p>
+            )}
           </div>
         </CardContent>
       </Card>
       {/* 소개 */}
-      <Card className="p-6">
+      {/* <Card className="p-6">
         <CardHeader>
           <div className="flex items-center gap-2 mb-4">
             <IoDocumentTextOutline className="text-aqua-300 w-4 h-4" />
@@ -47,9 +78,9 @@ export default function LocationInfo({ runningTime, description }: LocationInfoP
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-aqua-500 p2">{description}</p>
+          <p className="text-aqua-500 p2">소개글 들어오는 곳</p>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }
