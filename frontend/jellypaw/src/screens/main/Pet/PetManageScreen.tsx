@@ -1,6 +1,6 @@
 // src/screens/pet/PetManageScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Image } from 'react-native';
 import { theme } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
@@ -59,30 +59,35 @@ export default function PetManageScreen({ navigation }: any) {
 
   const isEmpty = !isListLoading && pets.length === 0;
 
-  // ✅ 여기서 early return (모든 hook 호출 *후*)
   if (isEmpty) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
-        <Header title="동물관리" />
-        <View style={S.emptyWrap}>
-          <Text weight="bold" style={S.emptyTitle}>
-            현재 등록된 반려동물이 없습니다.
-          </Text>
-          <Text style={S.emptySubtitle}>
-            반려동물을 등록하고 건강 정보와 일상을 관리해 보세요.
-          </Text>
-          <Button
-            title="동물 추가하기"
-            shape="pillSolid"
-            size="lg"
-            tone="aqua"
-            onPress={() => navigation.navigate('AddPet')}
-            style={S.emptyButton}
-          />
-        </View>
+  return (
+    <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+      <Header title="동물관리" />
+      <View style={S.emptyWrap}>
+        <Image
+          source={require('../../../../assets/images/pets/no_pet.png')}
+          style={S.emptyImage}
+          resizeMode="contain"
+        />
+        <Text weight="bold" style={S.emptyTitle}>
+          현재 등록된 반려동물이 없습니다.
+        </Text>
+        <Text style={S.emptySubtitle}>
+          반려동물을 등록하고 건강과 일상을 관리해 보세요.
+        </Text>
+        <Button
+          title="동물 추가하기"
+          shape="pillSolid"
+          size="lg"
+          tone="aqua"
+          onPress={() => navigation.navigate('AddPet')}
+          style={S.emptyButton}
+        />
       </View>
-    );
-  }
+    </View>
+  );
+}
+
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
@@ -184,4 +189,17 @@ const S = StyleSheet.create({
     paddingHorizontal: 32,
     height: 52,
   },
+  emptyWrap: {
+  flex: 1,
+  paddingHorizontal: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+emptyImage: {
+  width: 140,
+  height: 140,
+  marginBottom: 24,
+},
+
 });
+
