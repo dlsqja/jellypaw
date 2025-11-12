@@ -238,9 +238,13 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
     }
     
     # 색상 패드 크기 (실제 기준 색상표 크기에 맞춤)
-    # 기준 색상표 패드는 실제 패드보다 작을 수 있으므로 더 작게 설정
-    pad_width = 35  # 45 → 35로 축소
-    pad_height = 35  # 45 → 35로 축소
+    # 외곽 박스 크기 (디버깅용 표시, 실제 추출 영역과는 별개)
+    pad_width = 50  # 외곽 박스 크기 (디버깅용)
+    pad_height = 50  # 외곽 박스 크기 (디버깅용)
+    
+    # 실제 색상 추출 영역 크기 (고정, 중앙 영역만 사용)
+    extract_width = 25  # 실제 추출 영역 너비
+    extract_height = 25  # 실제 추출 영역 높이
     
     # 추출된 기준 색상표
     extracted_references = {}
@@ -274,18 +278,18 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
                 cv2.putText(debug_image, str(value), (x_min, y_min - 3), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1)
             
-            # ROI 추출 (중앙 60%만 사용하여 배경 제거)
-            # margin을 더 크게 하여 중앙 영역만 추출
-            margin_ratio = 0.2  # 15% → 20%로 증가 (더 작은 영역 추출)
-            margin_x = int((x_max - x_min) * margin_ratio)
-            margin_y = int((y_max - y_min) * margin_ratio)
+            # ROI 추출 (중앙 고정 크기 영역만 사용하여 배경 제거)
+            # 외곽 박스 크기와 관계없이 항상 동일한 크기의 중앙 영역만 추출
+            center_x = (x_min + x_max) // 2
+            center_y = (y_min + y_max) // 2
             
-            y_min_margin = max(0, y_min + margin_y)
-            y_max_margin = min(warped_image.shape[0], y_max - margin_y)
-            x_min_margin = max(0, x_min + margin_x)
-            x_max_margin = min(warped_image.shape[1], x_max - margin_x)
+            # 고정 크기의 중앙 영역 계산
+            x_min_extract = max(0, center_x - extract_width // 2)
+            x_max_extract = min(warped_image.shape[1], center_x + extract_width // 2)
+            y_min_extract = max(0, center_y - extract_height // 2)
+            y_max_extract = min(warped_image.shape[0], center_y + extract_height // 2)
             
-            roi = warped_image[y_min_margin:y_max_margin, x_min_margin:x_max_margin]
+            roi = warped_image[y_min_extract:y_max_extract, x_min_extract:x_max_extract]
             
             if roi.size == 0:
                 print(f"[WARNING] {test_name} - {value} ROI 추출 실패 (x={x}, y={row_y})", 
