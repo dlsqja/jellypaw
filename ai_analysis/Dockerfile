@@ -31,7 +31,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 7. AI 스크립트, 모델 및 기타 파일 복사
-COPY yolo_model/analyze_corrected.py /app/ 
+COPY yolo_model/analyze_corrected_improved.py /app/ 
 COPY yolo_model/weights /app/weights/ 
 COPY yolo_model/digital_reference_colors_hex.json /app/
 COPY api_server.py /app/

@@ -498,6 +498,8 @@ def analyze_image_pipeline(image_path):
     
     # 4. YOLO 모델 로드
     model_path = os.path.join(os.path.dirname(__file__), 'weights', 'best.pt') 
+    # Docker 빌드할때는 아래 경로, 위에 주석처리
+    # model_path = os.path.join('/app', 'weights', 'best.pt')
     model = YOLO(model_path)
     
     # 5. YOLO 추론 (검사 스틱의 패드 찾기)
