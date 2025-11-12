@@ -13,6 +13,7 @@ import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetai
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
 import LocationSearchDetail from '@/pages/Search/LocationSearch/LocationSearchDetail';
 import FunctionReservation from '@/pages/Search/LocationSearch/components/Function_reservation';
+import Verify from '@/pages/Mypage/Verify';
 
 const mainRoutes = {
   path: '/',
@@ -61,6 +62,10 @@ const mainRoutes = {
     {
       path: '/mypage/edit-profile',
       element: <EditProfile />,
+    },
+    {
+      path: '/mypage/verify',
+      element: <Verify />,
     },
   ],
 };

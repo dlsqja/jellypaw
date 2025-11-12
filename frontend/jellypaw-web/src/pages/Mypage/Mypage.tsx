@@ -7,6 +7,7 @@ import MyReservation from './MyReservation/MyReservation';
 import { IoSettingsOutline, IoClose } from 'react-icons/io5';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { FaPaw } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -21,6 +22,7 @@ export default function Mypage() {
   const [showDrawer, setShowDrawer] = useState(false);
   const { data: profileData } = useProfile();
   console.log('profileData', profileData);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isDrawerOpen) {
@@ -58,13 +60,16 @@ export default function Mypage() {
 
         {showDrawer && (
           <aside
-            className={`fixed top-0 right-[460px] z-50 h-full w-full max-w-[280px] overflow-y-auto bg-gray-100 p-4 shadow-[0_0_24px_rgba(0,0,0,0.15)] transition-all duration-520 ease-in-out ${
-              isDrawerOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-            }`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mypage-settings-title"
-          >
+  className={`fixed top-0 right-0 z-50 h-full
+    w-[88vw] max-w-[320px] md:w-full md:max-w-[280px]
+    overflow-y-auto bg-gray-100 p-4 shadow-[0_0_24px_rgba(0,0,0,0.15)]
+    transition-transform duration-500 ease-in-out
+    ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="mypage-settings-title"
+>
+
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
               <h2 id="mypage-settings-title" className="text-aqua-500 h5-b">
                 설정
@@ -90,14 +95,25 @@ export default function Mypage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 py-4 justify-center items-center">
-              <button type="button" className="text-left text-red-500 p2-b">
-                로그아웃
-              </button>
-              <button type="button" className="text-left text-gray-300 p2">
-                회원 탈퇴
-              </button>
-            </div>
+  <div className="flex flex-col gap-4 py-4 justify-center items-center">
+<button
+      type="button"
+      className="text-left text-aqua-500 p2-b"
+      onClick={() => {
+        setIsDrawerOpen(false);
+        setTimeout(() => navigate('/mypage/verify'), 300);
+      }}
+    >    인증 받기
+  </button>
+
+  <button type="button" className="text-left text-red-500 p2-b">
+    로그아웃
+  </button>
+  <button type="button" className="text-left text-gray-300 p2">
+    회원 탈퇴
+  </button>
+</div>
+
           </aside>
         )}
       </div>
