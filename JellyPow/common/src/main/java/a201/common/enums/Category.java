@@ -11,10 +11,11 @@ public enum Category {
     DINING("외식"),
     TOY("장난감"),
     TRAVEL("여행"),
+    BEAUTY("뷰티"),
     ETC("기타");
 
     private final String korean;
-
+//HEALTH, DINING, BEAUTY, FOOD, TOY, TRAVEL, ETC
     Category(String description) {
         this.korean = description;
     }

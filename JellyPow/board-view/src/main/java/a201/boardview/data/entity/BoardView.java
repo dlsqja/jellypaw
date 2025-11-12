@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -62,6 +63,11 @@ public class BoardView {
     @JsonIgnore
     @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
     private ViewCount viewCount;
+
+    @OneToMany(mappedBy = "boardView", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ImageView> images = new ArrayList<>();
+
 
     public void initializeCounts() {
         this.comment = CommentCount.builder().boardId(this).build();

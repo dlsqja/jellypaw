@@ -17,9 +17,12 @@ public class PlaceEventConsumer {
 
     @KafkaListener(topics = "place-available-topic", groupId = "reservation-service")
     public void handlePlaceReservationTimetableCreate(String message) {
+        log.info("Place 예약 가능 시간 테이블 생성 이벤트 수신: {}", message);
+        
         try {
             PlaceEvent event = JsonUtil.fromJsonString(message, PlaceEvent.class);
             availableTimeService.createInitialAvailableTimes(event.getPlaceId());
+            log.info("예약 가능 시간 테이블 생성 완료: placeId={}", event.getPlaceId());
         } catch (Exception e) {
             log.error("예약 가능 시간 테이블 생성 이벤트 처리 실패: {}", message, e);
         }

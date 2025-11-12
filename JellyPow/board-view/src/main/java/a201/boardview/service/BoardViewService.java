@@ -7,9 +7,12 @@ import a201.common.event.BoardUpdateEvent;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -35,6 +38,8 @@ public class BoardViewService {
         BoardUser findUser =  boardUserRepository.findById(boardCreateEvent.getUserId()).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
 
 
+
+
         BoardView boardView = BoardView.builder()
                 .id(boardCreateEvent.getId())
                 .userId(findUser)
@@ -46,6 +51,18 @@ public class BoardViewService {
                 .visibility(boardCreateEvent.getVisibility())
                 .starRating(boardCreateEvent.getStarRating())
                 .build();
+
+        if (boardCreateEvent.getImageUrls() != null) {
+            for (String url : boardCreateEvent.getImageUrls()) {
+                ImageView imageView = ImageView.builder()
+                        .boardView(boardView)
+                        .imageLink(url)
+                        .build();
+
+                boardView.getImages().add(imageView);
+            }
+        }
+
 
         boardView.initializeCounts();
 
@@ -63,6 +80,18 @@ public class BoardViewService {
         boardView.setPlaceId(boardUpdateEvent.getPlaceId());
         boardView.setStarRating(boardUpdateEvent.getStarRating());
         boardView.setVisibility(boardUpdateEvent.getVisibility());
+
+        boardView.getImages().clear();
+
+        if (boardUpdateEvent.getImageUrls() != null) {
+            for (String url : boardUpdateEvent.getImageUrls()) {
+                ImageView imageView = ImageView.builder()
+                        .boardView(boardView)
+                        .imageLink(url)
+                        .build();
+                boardView.getImages().add(imageView);
+            }
+        }
 
         boardViewRepository.save(boardView);
 
@@ -97,5 +126,12 @@ public class BoardViewService {
     public void removeComment(Long boardId,int cnt) {
         CommentCount commentCount = commentRepository.findByBoardId_Id(boardId);
         commentCount.setCount(commentCount.getCount()-cnt);
+    }
+
+    public List<BoardView> getBoardsPaginated(Pageable pageable) {
+
+        Page<BoardView> boardPage = boardViewRepository.findAll(pageable);
+
+        return boardPage.getContent();
     }
 }

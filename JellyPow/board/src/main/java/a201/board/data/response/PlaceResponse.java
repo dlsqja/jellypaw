@@ -21,7 +21,7 @@ public class PlaceResponse {
 
 	public static PlaceResponse from(Place place) {
 		return PlaceResponse.builder()
-				.id(place.getUserId())
+				.id(place.getId())
 				.title(place.getTitle())
 				.address(place.getAddress())
 				.openingHours(place.getOpeningHours())
