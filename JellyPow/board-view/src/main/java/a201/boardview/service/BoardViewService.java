@@ -50,8 +50,19 @@ public class BoardViewService {
                 .createdAt(boardCreateEvent.getCreatedAt())
                 .visibility(boardCreateEvent.getVisibility())
                 .starRating(boardCreateEvent.getStarRating())
-                .thumbnail(boardCreateEvent.getThumbnail())
                 .build();
+
+        if (boardCreateEvent.getImageUrls() != null) {
+            for (String url : boardCreateEvent.getImageUrls()) {
+                ImageView imageView = ImageView.builder()
+                        .boardView(boardView)
+                        .imageLink(url)
+                        .build();
+
+                boardView.getImages().add(imageView);
+            }
+        }
+
 
         boardView.initializeCounts();
 
@@ -69,7 +80,18 @@ public class BoardViewService {
         boardView.setPlaceId(boardUpdateEvent.getPlaceId());
         boardView.setStarRating(boardUpdateEvent.getStarRating());
         boardView.setVisibility(boardUpdateEvent.getVisibility());
-        boardView.setThumbnail(boardUpdateEvent.getThumbnail());
+
+        boardView.getImages().clear();
+
+        if (boardUpdateEvent.getImageUrls() != null) {
+            for (String url : boardUpdateEvent.getImageUrls()) {
+                ImageView imageView = ImageView.builder()
+                        .boardView(boardView)
+                        .imageLink(url)
+                        .build();
+                boardView.getImages().add(imageView);
+            }
+        }
 
         boardViewRepository.save(boardView);
 

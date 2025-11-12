@@ -64,8 +64,9 @@ public class BoardView {
     @OneToOne(mappedBy = "boardId", cascade = CascadeType.ALL)
     private ViewCount viewCount;
 
-    @Column(length = 200)
-    private String thumbnail;
+    @OneToMany(mappedBy = "boardView", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImageView> images = new ArrayList<>();
+
 
     public void initializeCounts() {
         this.comment = CommentCount.builder().boardId(this).build();
