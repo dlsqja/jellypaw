@@ -42,6 +42,6 @@ public class Place {
 	private BigDecimal starRating;
 
 	@Column(name = "post_count", nullable = true)
-	private Long postCount;
+	private Long postCount = 0L;
 
 }

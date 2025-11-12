@@ -73,4 +73,10 @@ public class PlaceService {
 			return placeRepository.findFirst10ByTitleContainingAndIdGreaterThan(title, cursor);
 		}
 	}
+
+	@Transactional
+	public void deletePlace(Long placeId) {
+		Place place = getPlaceById(placeId);
+		placeRepository.delete(place);
+	}
 }

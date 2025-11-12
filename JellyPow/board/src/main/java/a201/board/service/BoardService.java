@@ -129,17 +129,25 @@ public class BoardService {
         boardCreateEvent.setUserId(boardUser.getId());
 
         kafkaTemplate.send("board-create-topic", JsonUtil.toJsonString(boardCreateEvent));
-
     }
 
-    public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest) {
+    public void updatePost(Long userId, Long postId, BoardUpdateRequest postRequest, PlaceCreateRequest placeRequest) {
 
         Board board = boardRepository.getBoardById(postId);
+		Long oldPlaceId = board.getPlaceId();
+
+		Place place = null;
+		if (oldPlaceId != null) {
+			place = placeService.getPlaceById(oldPlaceId);
+			if (placeRequest != null && !placeRequest.getPlaceCode().equals(place.getCode())) {
+				place = placeService.createPlace(placeRequest);
+			}
+		}
 
         board.setCategory(postRequest.getCategory());
         board.setTitle(postRequest.getTitle());
         board.setContent(postRequest.getContent());
-        board.setPlaceId(postRequest.getPlaceId());
+        board.setPlaceId(place != null ? place.getId() : null);
         board.setStarRating(postRequest.getStarRating());
         board.setVisibility(postRequest.getVisibility());
 
@@ -186,7 +194,7 @@ public class BoardService {
                 .category(board.getCategory())
                 .title(board.getTitle())
                 .content(board.getContent())
-                .placeId(board.getPlaceId())
+                .placeId(place != null ? place.getId() : null)
                 .starRating(board.getStarRating())
                 .visibility(board.getVisibility())
                 .thumbnail(thumbnail)
@@ -198,6 +206,10 @@ public class BoardService {
     public void deletePost(Long userId, Long postId) {
 
         Board board = boardRepository.getBoardById(postId);
+		Long oldPlaceId = board.getPlaceId();
+		if (oldPlaceId != null) {
+			placeService.deletePlace(oldPlaceId);
+		}
 
         List<Image> images = board.getImages();
         if(images!=null){
