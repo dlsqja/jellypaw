@@ -6,7 +6,7 @@ import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
 import { getFeedDetail, getComments } from '@/services/api/feed';
 import { useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 import { FaPaw } from 'react-icons/fa';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
@@ -15,12 +15,13 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 export default function FeedDetail() {
   const { boardId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const feedFromState = (location.state as { feed?: GetFeedDetailResponse } | undefined)?.feed ?? null;
 
   const [detailData, setDetailData] = useState<GetFeedDetailResponse | null>(feedFromState);
   const [comments, setComments] = useState<GetCommentsResponse[]>([]);
   const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // 전달된 게시글 데이터가 있으면 그대로 사용, 없으면 백업으로 상세 조회
@@ -37,6 +38,9 @@ export default function FeedDetail() {
 
   useEffect(() => {
     if (!carouselApi) return;
+    if ((detailData?.images?.length ?? 0) <= 1) {
+      return;
+    }
 
     setCurrentSlide(carouselApi.selectedScrollSnap());
     const handler = () => setCurrentSlide(carouselApi.selectedScrollSnap());
@@ -132,7 +136,15 @@ export default function FeedDetail() {
         <CardHeader className="py-4">
           <div className="flex items-center justify-between gap-3">
             {/* 프로필 이미지 */}
-            <div className="flex items-center gap-3">
+            {/* 클릭 시 프로필 페이지로 이동 */}
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => {
+                if (detailData?.boardUser?.id) {
+                  navigate(`/search/person/${detailData.boardUser.id}`);
+                }
+              }}
+            >
               {/* 프로필 이미지가 있으면 이미지 표시, 없으면 기본 이미지 표시(발자국) */}
               {detailData?.boardUser?.profileImg ? (
                 <img
@@ -156,30 +168,38 @@ export default function FeedDetail() {
 
         {/* 댓글 입력창과의 간격을 위해 padding 추가 */}
         <CardContent className="pb-2">
-          {/* 게시글 이미지 */}
+          {/* 게시글 이미지 없으면  이미지 표시 안함 */}
           {detailData?.images && detailData.images.length > 0 ? (
-            <Carousel className="w-full" setApi={setCarouselApi}>
-              <CarouselContent>
-                {detailData.images.map((image, index) => (
-                  <CarouselItem key={image ?? index}>
-                    <div className="w-full h-96 relative rounded-[12px] overflow-hidden">
-                      <img
-                        className="w-full h-full rounded-[12px] object-cover"
-                        src={`${IMAGE_BASE_URL}${image}`}
-                        alt={`게시글 이미지 ${index + 1}`}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {detailData.images.length > 1 && (
-                <div className="flex justify-center gap-1 mt-3">
-                  {detailData.images.map((_, index) => (
-                    <div key={index} className={`w-2 h-2 rounded-full ${index === currentSlide ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+            // 이미지가 1개면 이미지 표시
+            detailData.images.length === 1 ? (
+              <div className="w-full h-96 relative rounded-[12px] overflow-hidden">
+                <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${detailData.images[0]}`} alt="게시글 이미지" />
+              </div>
+            ) : (
+              // 이미지가 여러개면 캐러셀 표시
+              <Carousel className="w-full" setApi={setCarouselApi}>
+                <CarouselContent>
+                  {detailData.images.map((image, index) => (
+                    <CarouselItem key={image ?? index}>
+                      <div className="w-full h-96 relative rounded-[12px] overflow-hidden">
+                        <img
+                          className="w-full h-full rounded-[12px] object-cover"
+                          src={`${IMAGE_BASE_URL}${image}`}
+                          alt={`게시글 이미지 ${index + 1}`}
+                        />
+                      </div>
+                    </CarouselItem>
                   ))}
-                </div>
-              )}
-            </Carousel>
+                </CarouselContent>
+                {detailData.images.length > 1 && (
+                  <div className="flex justify-center gap-1 mt-3">
+                    {detailData.images.map((_, index) => (
+                      <div key={index} className={`w-2 h-2 rounded-full ${index === currentSlide ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+                    ))}
+                  </div>
+                )}
+              </Carousel>
+            )
           ) : (
             <div className="w-full h-96 rounded-[12px] bg-gray-200 flex justify-center items-center">
               <FaPaw className="w-12 h-12 text-gray-300" />
