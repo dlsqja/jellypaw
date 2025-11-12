@@ -261,41 +261,55 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
 
             <div className="flex flex-col gap-2">
               <Button
-                type="button"
-                tone="aqua"
-                shape="pillSolid"
-                size="default"
-                onClick={async (event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(false);
+  type="button"
+  tone="aqua"
+  shape="pillSolid"
+  size="default"
+  onClick={async (event) => {
+    event.stopPropagation();
+    setIsActionModalOpen(false);
 
-                  if (!id) return;
+    if (!id) {
+      console.log('[feed:web] edit clicked but no id');
+      return;
+    }
 
-                  try {
-                    // 1. 게시글 상세 조회 (백엔드 기준 BoardResponse랑 거의 같을 거라 가정)
-                    const detail = await getFeedDetail(Number(id));
+    try {
+      console.log('[feed:web] EDIT_START', { id });
 
-                    // 2. Redis에 저장 (서버는 X-User-Id로 유저별로 매핑)
-                    await saveBoardToRedis(detail);
+      // 1. 게시글 상세 조회
+      const detail = await getFeedDetail(Number(id));
+      console.log('[feed:web] getFeedDetail SUCCESS', {
+        id: detail?.id,
+        title: detail?.title,
+        hasImages: Array.isArray(detail?.images),
+      });
 
-                    // 3. RN(WebView) 쪽에 “수정 모드 열어” 메시지
-                    if ((window as any).ReactNativeWebView) {
-                      (window as any).ReactNativeWebView.postMessage(
-                        JSON.stringify({
-                          type: 'OPEN_FEED_EDIT',
-                        }),
-                      );
-                    } else {
-                      console.log('ReactNativeWebView 없음 - 웹 환경에서 실행 중');
-                    }
-                  } catch (e) {
-                    console.error('수정 준비 실패', e);
-                    alert('수정 정보를 준비하는 데 실패했습니다.');
-                  }
-                }}
-              >
-                게시글 수정하기
-              </Button>
+      // 2. Redis에 저장
+      await saveBoardToRedis(detail);
+      console.log('[feed:web] saveBoardToRedis DONE');
+
+      // 3. RN(WebView)에 “수정 모드 열어” 메시지
+      if ((window as any).ReactNativeWebView) {
+        const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
+        console.log('[feed:web] postMessage to RN', msg);
+        (window as any).ReactNativeWebView.postMessage(msg);
+      } else {
+        console.log('[feed:web] ReactNativeWebView 없음 - 웹 환경에서 실행 중');
+      }
+    } catch (e: any) {
+      console.error('[feed:web] EDIT_FLOW_ERROR', {
+        message: e?.message,
+        status: e?.response?.status,
+        data: e?.response?.data,
+      });
+      alert('수정 정보를 준비하는 데 실패했습니다.');
+    }
+  }}
+>
+  게시글 수정하기
+</Button>
+
               <Button
                 type="button"
                 tone="red"

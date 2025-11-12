@@ -1,4 +1,3 @@
-// services/api/redis.ts
 import apiClient from '@/lib/axios';
 
 interface ApiResponse<T> {
@@ -10,7 +9,10 @@ interface ApiResponse<T> {
 // 토큰에서 userId 뽑는 헬퍼 (기존 로직은 안 건드리고 여기서만 사용)
 const getUserIdFromToken = (): string | null => {
   const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) return null;
+  if (!accessToken) {
+    console.log('[redis:web] no accessToken in localStorage');
+    return null;
+  }
 
   try {
     const [, payloadBase64] = accessToken.split('.');
@@ -19,11 +21,11 @@ const getUserIdFromToken = (): string | null => {
     );
     const payload = JSON.parse(payloadJson);
 
-    // 백엔드 JWT payload 키에 맞춰서 사용 (userId / id / sub 중 실제 쓰는 값)
     const userId = payload.userId || payload.id || payload.sub;
+    console.log('[redis:web] decoded userId from token =', userId);
     return userId ? String(userId) : null;
   } catch (e) {
-    console.error('fail to decode accessToken for X-User-Id', e);
+    console.error('[redis:web] fail to decode accessToken for X-User-Id', e);
     return null;
   }
 };
@@ -32,20 +34,44 @@ const getUserIdFromToken = (): string | null => {
 export const saveBoardToRedis = async (payload: any): Promise<void> => {
   const userId = getUserIdFromToken();
   if (!userId) {
-    console.error('X-User-Id 없음 - redis 저장 불가');
+    console.error('[redis:web] X-User-Id 없음 - redis 저장 불가');
     throw new Error('로그인 정보를 확인할 수 없습니다.');
   }
 
-  const res = await apiClient.post<ApiResponse<void>>(
-    '/redis/save',
-    payload,
-    {
-      headers: {
-        'X-User-Id': userId,
-      },
+  console.log('[redis:web] saveBoardToRedis START', {
+    url: '/redis/save',
+    userId,
+    payloadSample: {
+      boardId: payload?.id || payload?.boardId,
+      title: payload?.title,
+      hasImages: Array.isArray(payload?.images),
     },
-  );
-  console.log('redis save success', res.data);
-};
+  });
 
-// (RN에서만 쓰는 getRedisBoard는 다른 파일이니까 웹에 필요 없으면 생략)
+  try {
+    const res = await apiClient.post<ApiResponse<void>>(
+      '/redis/save',
+      payload,
+      {
+        headers: {
+          'X-User-Id': userId,
+        },
+      },
+    );
+
+    console.log('[redis:web] saveBoardToRedis SUCCESS', {
+      status: res.status,
+      code: res.data?.code,
+      message: res.data?.message,
+    });
+  } catch (err: any) {
+    console.error('[redis:web] saveBoardToRedis ERROR', {
+      message: err?.message,
+      status: err?.response?.status,
+      data: err?.response?.data,
+      url: err?.config?.url,
+      headers: err?.config?.headers,
+    });
+    throw err;
+  }
+};
