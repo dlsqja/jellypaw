@@ -178,11 +178,11 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
             {"value": "500", "x_offset": 200},   # 오른쪽 3번째
             {"value": "1000", "x_offset": 255}   # 오른쪽 4번째
         ],
-        "Bilirubin": [  # 좌1, 우3
+        "Bilirubin": [  # 좌1, 우3 (우측이 다른 항목보다 1칸 더 오른쪽)
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
-            {"value": "+", "x_offset": 90},      # 오른쪽 1번째
-            {"value": "++", "x_offset": 145},    # 오른쪽 2번째
-            {"value": "+++", "x_offset": 200}    # 오른쪽 3번째
+            {"value": "+", "x_offset": 145},     # 오른쪽 1번째 (90 → 145)
+            {"value": "++", "x_offset": 200},    # 오른쪽 2번째 (145 → 200)
+            {"value": "+++", "x_offset": 255}    # 오른쪽 3번째 (200 → 255)
         ],
         "Ketones": [  # 좌1, 우4
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
@@ -200,12 +200,13 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
             {"value": "1.050", "x_offset": 310}, # 오른쪽 5번째
             {"value": "1.060", "x_offset": 365}  # 오른쪽 6번째
         ],
-        "Blood": [  # 좌1, 우2 + 특수2 = 총 5개
+        "Blood": [  # 좌1, 우3 + 특수2 = 총 6개
             {"value": "neg", "x_offset": -130},        # 왼쪽 1번째
             {"value": "+10", "x_offset": 90},          # 오른쪽 1번째
             {"value": "++50", "x_offset": 145},        # 오른쪽 2번째
-            {"value": "Non-Hem+10", "x_offset": 200},  # 특수1 (점박이)
-            {"value": "Non-Hem++50", "x_offset": 255}  # 특수2 (점박이)
+            {"value": "+++250", "x_offset": 200},      # 오른쪽 3번째
+            {"value": "Non-Hem+10", "x_offset": 255},  # 특수1 (점박이)
+            {"value": "Non-Hem++50", "x_offset": 310}  # 특수2 (점박이)
         ],
         "pH": [  # 좌1, 우5
             {"value": "5", "x_offset": -130},    # 왼쪽 1번째
@@ -237,8 +238,9 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
     }
     
     # 색상 패드 크기 (실제 기준 색상표 크기에 맞춤)
-    pad_width = 45
-    pad_height = 45
+    # 기준 색상표 패드는 실제 패드보다 작을 수 있으므로 더 작게 설정
+    pad_width = 35  # 45 → 35로 축소
+    pad_height = 35  # 45 → 35로 축소
     
     # 추출된 기준 색상표
     extracted_references = {}
@@ -265,19 +267,23 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
             x_min = max(0, x - pad_width // 2)
             x_max = min(warped_image.shape[1], x + pad_width // 2)
             
-            # 디버깅: 파란색 사각형 표시
+            # 디버깅: 파란색 사각형 표시 (외곽 박스)
             if debug_image is not None:
                 cv2.rectangle(debug_image, (x_min, y_min), (x_max, y_max), (255, 0, 0), 2)
                 # 값 표시 (선택)
                 cv2.putText(debug_image, str(value), (x_min, y_min - 3), 
                            cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 0, 0), 1)
             
-            # ROI 추출 (중앙 70% 사용)
-            margin = int(pad_width * 0.15)
-            y_min_margin = max(0, y_min + margin)
-            y_max_margin = min(warped_image.shape[0], y_max - margin)
-            x_min_margin = max(0, x_min + margin)
-            x_max_margin = min(warped_image.shape[1], x_max - margin)
+            # ROI 추출 (중앙 60%만 사용하여 배경 제거)
+            # margin을 더 크게 하여 중앙 영역만 추출
+            margin_ratio = 0.2  # 15% → 20%로 증가 (더 작은 영역 추출)
+            margin_x = int((x_max - x_min) * margin_ratio)
+            margin_y = int((y_max - y_min) * margin_ratio)
+            
+            y_min_margin = max(0, y_min + margin_y)
+            y_max_margin = min(warped_image.shape[0], y_max - margin_y)
+            x_min_margin = max(0, x_min + margin_x)
+            x_max_margin = min(warped_image.shape[1], x_max - margin_x)
             
             roi = warped_image[y_min_margin:y_max_margin, x_min_margin:x_max_margin]
             
@@ -396,12 +402,13 @@ def calculate_delta_e(lab1, lab2):
     return float(delta_e)
 
 def perform_diagnosis(class_name, measured_lab, extracted_references, digital_reference):
-    """측정된 LAB 값과 사용자 이미지에서 추출한 기준 색상을 비교"""
+    """측정된 LAB 값과 사용자 이미지에서 추출한 기준 색상을 비교 (근사치 판단 포함)"""
     if class_name not in extracted_references:
         return {
             "result": "진단 불가 (기준 색상 없음)",
             "delta_e": None,
-            "matched_value": None
+            "matched_value": None,
+            "is_approximate": False
         }
 
     reference_colors = extracted_references[class_name]
@@ -409,6 +416,7 @@ def perform_diagnosis(class_name, measured_lab, extracted_references, digital_re
     best_match = None
     min_delta_e = float('inf')
     
+    # 모든 기준 색상과 비교하여 가장 유사한 색상 찾기
     for ref in reference_colors:
         ref_lab = ref['lab']
         delta_e = calculate_delta_e(measured_lab, ref_lab)
@@ -417,15 +425,35 @@ def perform_diagnosis(class_name, measured_lab, extracted_references, digital_re
             min_delta_e = delta_e
             best_match = ref
     
+    # 근사치 판단 임계값 설정
+    # Delta E < 20: 매우 유사 (근사치로 판단)
+    # Delta E 20-40: 유사 (근사치로 판단, 신뢰도 중간)
+    # Delta E > 40: 다름 (근사치 아님, 신뢰도 낮음)
+    APPROXIMATE_THRESHOLD = 40.0
+    HIGH_CONFIDENCE_THRESHOLD = 20.0
+    
+    is_approximate = min_delta_e < APPROXIMATE_THRESHOLD
+    confidence = "high" if min_delta_e < HIGH_CONFIDENCE_THRESHOLD else "medium" if min_delta_e < APPROXIMATE_THRESHOLD else "low"
+    
     metadata = get_metadata_from_digital_reference(class_name, best_match['value'], digital_reference)
     
-    return {
+    result_dict = {
         "matched_value": best_match['value'],
         "delta_e": round(min_delta_e, 2),
         "result": metadata.get('result', 'unknown'),
         "is_normal": metadata.get('is_normal', False),
-        "severity": metadata.get('severity', 'N/A')
+        "severity": metadata.get('severity', 'N/A'),
+        "is_approximate": is_approximate,
+        "confidence": confidence
     }
+    
+    # Delta E가 임계값을 초과하면 경고 추가
+    if min_delta_e >= APPROXIMATE_THRESHOLD:
+        result_dict["warning"] = f"Delta E가 높습니다 ({min_delta_e:.2f}). 결과 신뢰도가 낮을 수 있습니다."
+        print(f"[WARNING] {class_name}: Delta E={min_delta_e:.2f} (임계값 초과, 근사치 아님)", 
+              file=sys.stderr)
+    
+    return result_dict
 
 def get_metadata_from_digital_reference(class_name, value, digital_reference):
     """디지털 기준표에서 메타데이터 추출"""
@@ -537,6 +565,15 @@ def analyze_image_pipeline(image_path):
         temp_detections,
         debug_image  # 디버깅 이미지 전달
     )
+    
+    # 📌 7-1. 기준 색상표에도 동일한 보정 적용
+    print("--- [INFO] 기준 색상표에 색상 보정 적용 시작 ---", file=sys.stderr)
+    for test_name in extracted_references:
+        for color_info in extracted_references[test_name]:
+            original_lab = color_info['lab']
+            corrected_lab = apply_color_correction(original_lab, color_correction)
+            color_info['lab'] = corrected_lab
+    print("--- [INFO] 기준 색상표 색상 보정 완료 ---", file=sys.stderr)
     
     # 8. 최종 진단 수행
     pad_results = []
