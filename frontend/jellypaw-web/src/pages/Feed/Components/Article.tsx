@@ -27,24 +27,79 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/com
 import { debugToRN } from '@/lib/utils';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title }: GetFeedsResponse) {
+// 날짜 포맷팅 함수 (YY.MM.DD 형식)
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return '';
+  const datePart = dateString.split(' ')[0];
+  const [year, month, day] = datePart.split('-');
+  if (year && month && day) {
+    const shortYear = year.slice(-2);
+    return `${shortYear}.${month}.${day}`;
+  }
+  return datePart;
+};
+
+// 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
+const formatRelativeTime = (dateString?: string): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}분 전`;
+    }
+    const diffHours = Math.floor(diffMinutes / 60);
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+
+    if (isToday && diffHours < 24) {
+      return `${diffHours}시간 전`;
+    }
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 1) {
+      return '오늘';
+    } else if (diffDays < 30) {
+      return `${diffDays}일 전`;
+    } else if (diffDays < 365) {
+      const diffMonths = Math.floor(diffDays / 30);
+      return `${diffMonths}개월 전`;
+    } else {
+      const diffYears = Math.floor(diffDays / 365);
+      return `${diffYears}년 전`;
+    }
+  } catch (error) {
+    console.error('날짜 파싱 오류:', error);
+    return formatDate(dateString);
+  }
+};
+
+// 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
+interface ArticleProps extends GetFeedsResponse {
+  currentUserId?: number | null;
+}
+
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title, currentUserId }: ArticleProps) {
   const navigate = useNavigate();
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  // 이미지 슬라이더 관련 상태 관리
+
+  // 🔹 내 게시글인지 여부
+  const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
+
   useEffect(() => {
-    if (!api) {
-      return;
-    }
-    // 현재 선택된 스냅 인덱스 설정
+    if (!api) return;
+
     setCurrent(api.selectedScrollSnap());
 
-    // 스냅 인덱스 변경 시 상태 업데이트
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
+
+  if (!id) return null; // id 없으면 방어적으로 렌더 안 함
 
   // 게시글 컴포넌트 반환
   return (
@@ -77,25 +132,28 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                 <div className="ml-3 flex flex-col">
                   {/* 프로필 이름, 게시글 생성 시간*/}
                   <div className="text-aqua-500 p2-b ">{boardUser?.nickname}</div>
-                  <div className="text-aqua-500 p3">{createdAt}</div>
+                  <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
                 </div>
               </div>
-              {/* ... */}
-              <button
-                type="button"
-                className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(true);
-                }}
-                aria-haspopup="dialog"
-                aria-expanded={isActionModalOpen}
-                aria-label="게시글 옵션 열기"
-              >
-                <MoreHorizontal className="h-5 w-5 text-gray-300" />
-              </button>
+              {/* 🔹 내 글일 때만 ... 버튼 노출 */}
+              {isOwner && (
+                <button
+                  type="button"
+                  className="h-7 w-7 flex justify-center items-center cursor-pointer"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsActionModalOpen(true);
+                  }}
+                  aria-haspopup="dialog"
+                  aria-expanded={isActionModalOpen}
+                  aria-label="게시글 옵션 열기"
+                >
+                  <MoreHorizontal className="h-5 w-5 text-gray-300" />
+                </button>
+              )}
             </div>
           </div>
+
           {/* 게시물 내용 */}
           <CardContent>
             <div className="flex flex-col gap-4">
@@ -106,7 +164,7 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                     <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{createdAt}</Badge>
+                    <Badge>{formatDate(createdAt)}</Badge>
                     <Badge variant="pink">
                       <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
@@ -190,51 +248,51 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
 
             <div className="flex flex-col gap-2">
               <Button
-  type="button"
-  tone="aqua"
-  shape="pillSolid"
-  size="default"
-  onClick={async (event) => {
-    event.stopPropagation();
-    setIsActionModalOpen(false);
+                type="button"
+                tone="aqua"
+                shape="pillSolid"
+                size="default"
+                onClick={async (event) => {
+                  event.stopPropagation();
+                  setIsActionModalOpen(false);
 
-    if (!id) {
-      debugToRN('EDIT_CLICK_NO_ID', {});
-      return;
-    }
+                  if (!id) {
+                    debugToRN('EDIT_CLICK_NO_ID', {});
+                    return;
+                  }
 
-    try {
-      debugToRN('EDIT_FLOW_START', { id });
+                  try {
+                    debugToRN('EDIT_FLOW_START', { id });
 
-      const detail = await getFeedDetail(Number(id));
-      debugToRN('EDIT_FLOW_DETAIL_OK', {
-        id: detail?.id,
-        title: detail?.title,
-        hasImages: Array.isArray(detail?.images),
-      });
+                    const detail = await getFeedDetail(Number(id));
+                    debugToRN('EDIT_FLOW_DETAIL_OK', {
+                      id: detail?.id,
+                      title: detail?.title,
+                      hasImages: Array.isArray(detail?.images),
+                    });
 
-      await saveBoardToRedis(detail);
-      debugToRN('EDIT_FLOW_REDIS_OK', {});
+                    await saveBoardToRedis(detail);
+                    debugToRN('EDIT_FLOW_REDIS_OK', {});
 
-      if ((window as any).ReactNativeWebView) {
-        const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
-        debugToRN('EDIT_FLOW_POSTMSG', { msg });
-        (window as any).ReactNativeWebView.postMessage(msg);
-      } else {
-        debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
-      }
-    } catch (e: any) {
-      debugToRN('EDIT_FLOW_ERROR', {
-        message: e?.message,
-        status: e?.response?.status,
-        data: e?.response?.data,
-      });
-      alert('수정 정보를 준비하는 데 실패했습니다.');
-    }
-  }}
->
-  게시글 수정하기
-</Button>
+                    if ((window as any).ReactNativeWebView) {
+                      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
+                      debugToRN('EDIT_FLOW_POSTMSG', { msg });
+                      (window as any).ReactNativeWebView.postMessage(msg);
+                    } else {
+                      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
+                    }
+                  } catch (e: any) {
+                    debugToRN('EDIT_FLOW_ERROR', {
+                      message: e?.message,
+                      status: e?.response?.status,
+                      data: e?.response?.data,
+                    });
+                    alert('수정 정보를 준비하는 데 실패했습니다.');
+                  }
+                }}
+              >
+                게시글 수정하기
+              </Button>
 
               <Button
                 type="button"
