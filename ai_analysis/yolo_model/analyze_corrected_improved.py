@@ -8,6 +8,7 @@ from ultralytics import YOLO
 import numpy as np
 from json import JSONEncoder
 import logging
+from datetime import datetime
 
 logging.getLogger('ultralytics').setLevel(logging.WARNING)
 
@@ -25,6 +26,23 @@ class NumpyEncoder(json.JSONEncoder):
         elif isinstance(obj, (np.ndarray,)):
             return obj.tolist()
         return json.JSONEncoder.default(self, obj)
+
+# ======================================================================
+# 질병 정보 데이터 로드
+# ======================================================================
+def load_disease_info_data():
+    """
+    검사 항목별 양성 시 의심되는 질환 정보 로드
+    """
+    script_dir = os.path.dirname(__file__)
+    disease_path = os.path.join(script_dir, 'urine_test_with_diseases.json')
+
+    if not os.path.exists(disease_path):
+        raise FileNotFoundError(f"질병 정보 파일이 없습니다: {disease_path}")
+
+    with open(disease_path, 'r', encoding='utf-8') as f:
+        print("--- [Load] 질병 정보 데이터 로드 성공. ---", file=sys.stderr)
+        return json.load(f)
 
 # ======================================================================
 # 디지털 기준 색상표 데이터 로드
@@ -459,6 +477,110 @@ def perform_diagnosis(class_name, measured_lab, extracted_references, digital_re
     
     return result_dict
 
+
+def get_suspected_conditions(test_name, diagnosis, disease_info_data):
+    """
+    진단 결과를 기반으로 의심되는 질환 목록 반환
+    """
+    if disease_info_data is None:
+        return []
+
+    disease_entry = disease_info_data.get(test_name)
+    if not disease_entry:
+        return []
+
+    disease_info = disease_entry.get('disease_info', {})
+    if not disease_info:
+        return []
+
+    result_key = diagnosis.get('result')
+    severity_key = diagnosis.get('severity')
+    is_normal = diagnosis.get('is_normal', False)
+
+    # 1. 결과(result)에 직접 매핑
+    if result_key and result_key in disease_info:
+        return disease_info[result_key].get('conditions', [])
+
+    # 2. 중증도(severity) 매핑
+    if severity_key and severity_key in disease_info:
+        return disease_info[severity_key].get('conditions', [])
+
+    # 3. 양성계열에 대한 포괄 키
+    if not is_normal:
+        # SG 등에서 high/low로 나뉘는 경우
+        if severity_key:
+            if 'high' in disease_info and 'high' in severity_key:
+                return disease_info['high'].get('conditions', [])
+            if 'low' in disease_info and 'low' in severity_key:
+                return disease_info['low'].get('conditions', [])
+
+        if 'positive' in disease_info:
+            return disease_info['positive'].get('conditions', [])
+
+    # 4. 기본적으로 질환 정보가 없으면 빈 리스트
+    return []
+
+
+def build_frontend_summary(pad_results, disease_info_data):
+    """
+    프론트엔드에서 사용하기 쉬운 형태로 검사 결과 가공
+    """
+    summary_list = []
+
+    for pad in pad_results:
+        class_name = pad['class']
+        test_name = class_name.replace("pad_", "")
+
+        # 이름 매핑 (SG 등)
+        name_mapping = {
+            "SG": "Specific_Gravity",
+        }
+        if test_name in name_mapping:
+            test_name = name_mapping[test_name]
+
+        diagnosis = pad.get('diagnosis', {})
+        disease_entry = disease_info_data.get(test_name, {}) if disease_info_data else {}
+
+        summary_list.append({
+            "test_code": test_name,
+            "test_name_ko": disease_entry.get('test_name_ko'),
+            "test_name_en": disease_entry.get('test_name_en'),
+            "unit": disease_entry.get('unit'),
+            "matched_value": diagnosis.get('matched_value'),
+            "result": diagnosis.get('result'),
+            "is_normal": diagnosis.get('is_normal'),
+            "severity": diagnosis.get('severity'),
+            "delta_e": diagnosis.get('delta_e'),
+            "is_approximate": diagnosis.get('is_approximate', False),
+            "confidence": diagnosis.get('confidence'),
+            "suspected_conditions": get_suspected_conditions(test_name, diagnosis, disease_info_data)
+        })
+
+    return summary_list
+
+
+def save_full_analysis_result(full_result):
+    """
+    상세 분석 결과 파일로 저장
+    """
+    try:
+        base_dir = os.path.dirname(__file__)
+        output_dir = os.path.join(base_dir, "results")
+        os.makedirs(output_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"analysis_detail_{timestamp}.json"
+        file_path = os.path.join(output_dir, filename)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(full_result, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
+
+        print(f"--- [Save] 상세 분석 결과 저장: {file_path} ---", file=sys.stderr)
+        return file_path
+    except Exception as e:
+        print(f"[WARNING] 상세 결과 저장 실패: {e}", file=sys.stderr)
+        return None
+
 def get_metadata_from_digital_reference(class_name, value, digital_reference):
     """디지털 기준표에서 메타데이터 추출"""
     if class_name not in digital_reference:
@@ -480,8 +602,9 @@ def get_metadata_from_digital_reference(class_name, value, digital_reference):
 # 메인 분석 파이프라인
 # ----------------------------------------------------------------------
 def analyze_image_pipeline(image_path):
-    # 0. 디지털 기준표 로드
+    # 0. 디지털 기준표 및 질병 정보 로드
     digital_reference = load_digital_reference_data()
+    disease_info_data = load_disease_info_data()
 
     # 1. 파일 로드
     image = cv2.imread(image_path)
@@ -621,7 +744,9 @@ def analyze_image_pipeline(image_path):
     print("[DEBUG] 시각화 이미지 저장: debug_visualization_output.png", file=sys.stderr)
     
     # 10. 최종 결과
-    final_result = {
+    frontend_summary = build_frontend_summary(pad_results, disease_info_data)
+
+    full_result = {
         "status": "SUCCESS",
         "image_info": {
             "warped_size": f"{W_warped}x{H_warped}"
@@ -634,10 +759,21 @@ def analyze_image_pipeline(image_path):
             test: len(colors) for test, colors in extracted_references.items()
         },
         "analysis_count": len(pad_results),
-        "detections": pad_results
+        "detections": pad_results,
+        "frontend_summary": frontend_summary
     }
-    
-    return final_result
+    detail_file_path = save_full_analysis_result(full_result)
+
+    frontend_response = {
+        "status": "SUCCESS",
+        "analysis_count": len(frontend_summary),
+        "summary": frontend_summary
+    }
+
+    if detail_file_path:
+        frontend_response["detail_saved_path"] = detail_file_path
+
+    return frontend_response
 
 # ----------------------------------------------------------------------
 # 스크립트 실행
@@ -651,9 +787,9 @@ if __name__ == "__main__":
 
     try:
         result_data = analyze_image_pipeline(image_path)
-        print(json.dumps(result_data, indent=4, cls=NumpyEncoder))
+        print(json.dumps(result_data, indent=4, ensure_ascii=False, cls=NumpyEncoder))
         
     except Exception as e:
         error_output = {"status": "ERROR", "message": str(e), "path": image_path}
-        print(json.dumps(error_output), file=sys.stderr)
+        print(json.dumps(error_output, ensure_ascii=False), file=sys.stderr)
         sys.exit(1)
