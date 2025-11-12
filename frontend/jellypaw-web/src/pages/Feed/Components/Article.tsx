@@ -78,7 +78,7 @@ const formatRelativeTime = (dateString?: string): string => {
 
 // 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
 interface ArticleProps extends GetFeedsResponse {
-  currentUserId?: number;
+  currentUserId?: number | null;
 }
 
 export default function Article({ boardUser, content, createdAt, id, images, starRating, title, category, currentUserId }: ArticleProps) {
