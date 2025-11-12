@@ -55,7 +55,7 @@ public class CommentService {
     }
 
     public List<CommentResponse> getCommentsByPost(Long postId,Long userId) {
-        List<Comment> comments = commentRepository.findAllByBoard_Id(postId);
+        List<Comment> comments = commentRepository.findAllByBoard_IdAndParentIsNull(postId);
 
 
         return comments.stream()
