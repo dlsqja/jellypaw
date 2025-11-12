@@ -2,6 +2,18 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getMyProfile } from '@/services/api/mypage';
 import type { GetProfileResponse } from '@/types/mypage';
 
+const defaultProfileData: GetProfileResponse = {
+  userId: 0,
+  nickname: '',
+  description: '',
+  profileImg: '',
+  backgroundImg: '',
+  followerNum: 0,
+  followingNum: 0,
+  postCount: 0,
+  role: 'USER',
+};
+
 // 프로필 쿼리 키
 export const profileQueryKeys = {
   // 모든 프로필 관련 쿼리의 기본 키 배열
@@ -18,6 +30,7 @@ export const useProfile = () => {
     queryKey: profileQueryKeys.detail(),
     // 쿼리 함수: getMyProfile API를 호출하여 프로필 데이터를 가져옴
     queryFn: getMyProfile,
+    placeholderData: defaultProfileData,
   });
 };
 
