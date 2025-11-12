@@ -7,13 +7,7 @@ import { palette, theme } from '../system/variants';
 
 const defaultPetImage = require('../../../assets/images/pets/반려동물1.png');
 
-function InfoChip({
-  title,
-  caption,
-}: {
-  title: string | number;
-  caption: string;
-}) {
+function InfoChip({ title, caption }: { title: string | number; caption: string }) {
   return (
     <View style={S.chip}>
       <Text weight="semiBold" style={S.chipTitle}>
@@ -35,40 +29,22 @@ type Props = {
   onEdit?: () => void;
 };
 
-export default function PetSummaryCard({
-  avatarUri,
-  name,
-  kind,
-  registeredAt,
-  age,
-  weight,
-  sex,
-  onEdit,
-}: Props) {
-  const hasValidUri =
-    typeof avatarUri === 'string' && avatarUri.trim().length > 0;
+export default function PetSummaryCard({ avatarUri, name, kind, registeredAt, age, weight, sex, onEdit }: Props) {
+  const hasValidUri = typeof avatarUri === 'string' && avatarUri.trim().length > 0;
 
-  const source = hasValidUri
-    ? { uri: avatarUri as string }
-    : defaultPetImage;
+  const source = hasValidUri ? { uri: avatarUri as string } : defaultPetImage;
 
   return (
     <View style={S.card}>
       <View style={{ paddingBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image
-            source={source}
-            defaultSource={defaultPetImage}
-            style={S.avatar}
-          />
+          <Image source={source} defaultSource={defaultPetImage} style={S.avatar} />
           <View style={{ paddingLeft: 16 }}>
             <Text weight="bold" style={S.title}>
               {name}
             </Text>
             <Text style={S.sub}>{kind}</Text>
-            {!!registeredAt && (
-              <Text style={S.meta}>등록일: {registeredAt}</Text>
-            )}
+            {!!registeredAt && <Text style={S.meta}>등록일: {registeredAt}</Text>}
           </View>
         </View>
       </View>
