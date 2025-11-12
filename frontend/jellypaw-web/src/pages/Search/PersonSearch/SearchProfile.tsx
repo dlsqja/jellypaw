@@ -29,8 +29,13 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
 
   // 프로필 데이터가 변경될 때 로컬 팔로워 수 동기화
   useEffect(() => {
+    console.log('profileData', profileData);
     setLocalFollowerNum(profileData?.followerNum);
   }, [profileData?.followerNum]);
+
+  useEffect(() => {
+    setIsFollowing(profileData?.isFollowing ?? false);
+  }, [profileData?.isFollowing]);
 
   const handleFollowClick = () => {
     // 자신의 프로필이면 alert 표시하고 종료
@@ -49,7 +54,7 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
       // 팔로우 취소
       unfollow(nickname)
         .then((response) => {
-          console.log('언팔로우 성공:', response);
+          console.log('팔로우 취소:', response);
           setIsFollowing(false);
           // 팔로워 수 즉시 감소
           setLocalFollowerNum(Math.max(0, currentFollowerNum - 1));
@@ -59,7 +64,7 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
           }
         })
         .catch((error) => {
-          console.error('언팔로우 실패:', error);
+          console.error('팔로우 취소 실패:', error);
         });
     } else {
       // 팔로우

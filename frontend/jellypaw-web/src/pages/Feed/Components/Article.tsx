@@ -235,9 +235,6 @@ export default function Article({
                   <span className="ttext-aqua-500 p2-b">{commentCount}</span>
                 </button>
               </div>
-              <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">
-                <Share2 className="h-5 w-5 text-aqua-500" />
-              </button>
             </div>
           </CardContent>
         </CardHeader>

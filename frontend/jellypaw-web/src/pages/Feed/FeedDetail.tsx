@@ -200,11 +200,7 @@ export default function FeedDetail() {
                 )}
               </Carousel>
             )
-          ) : (
-            <div className="w-full h-96 rounded-[12px] bg-gray-200 flex justify-center items-center">
-              <FaPaw className="w-12 h-12 text-gray-300" />
-            </div>
-          )}
+          ) : null}
 
           {/* 액션 바 및 본문 */}
           {/* 본문 */}
@@ -229,9 +225,6 @@ export default function FeedDetail() {
                 <span className="text-aqua-500 p2-b">{detailData?.commentCount || 0}</span>
               </button>
             </div>
-            <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer ">
-              <Share2 className="h-5 w-5 text-aqua-500" />
-            </button>
           </div>
 
           {/* 댓글 */}

@@ -167,7 +167,7 @@ export default function PersonSearchDetail() {
         onProfileUpdate={refreshProfile}
       />
       {/* 카테고리 */}
-      <div className="flex flex-col gap-4 pt-4">
+      <div className="flex flex-col gap-4 mt-4">
         <p className="text-aqua-500 h4-b">카테고리</p>
         <div className="grid grid-cols-3 gap-3">
           {categoriesData.map((category, index) => (
@@ -177,18 +177,17 @@ export default function PersonSearchDetail() {
               shape={activeCategory === index ? 'solid' : 'outline'}
               tone={activeCategory === index ? 'aqua' : 'white'}
               borderTone="gray"
-              className={`rounded-[16px] py-2 h-full ${activeCategory === index ? 'border-0' : 'border-2'}`}
+              className={`rounded-[16px] h-full ${activeCategory === index ? 'border-0' : 'border-2'}`}
               onClick={() => setActiveCategory(index)}
             >
               <div className="inline-flex flex-col items-center">
-                <span className={`h5 ${activeCategory === index ? 'text-white' : 'text-gray-300'}`}>{category.label}</span>
+                <span className={`p2 ${activeCategory === index ? 'text-white' : 'text-gray-300'}`}>{category.label}</span>
                 {/* 카테고리별 게시글 수 계산한 값으로 표시 */}
-                <span className={`h3-b ${activeCategory === index ? 'text-white' : 'text-aqua-500'}`}>{getCategoryCount(category.label)}</span>
+                <span className={`h4-b ${activeCategory === index ? 'text-white' : 'text-aqua-500'}`}>{getCategoryCount(category.label)}</span>
               </div>
             </Button>
           ))}
         </div>
-        {/* 게시글 */}
         <p className="text-aqua-500 h4-b">{categoriesData[activeCategory].label} 게시글</p>
         <div className="mb-4">
           <Card>

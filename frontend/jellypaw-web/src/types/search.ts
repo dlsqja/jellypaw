@@ -12,14 +12,16 @@ export interface SearchUsersResponse {
 }
 // 유저 검색 상세 조회
 export interface SearchUsersDetailResponse {
-  nickname?: string;
-  description?: string;
-  profileImg?: string;
   backgroundImg?: string;
+  description?: string;
   followerNum?: number;
   followingNum?: number;
-  postCount?: number;
+  isFollowing?: boolean;
   isVisible?: boolean;
+  nickname?: string;
+  postCount?: number;
+  profileImg?: string;
+  userId?: number;
 }
 // 장소 검색 응답
 export interface SearchPlacesResponse {

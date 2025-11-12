@@ -15,7 +15,7 @@ export default function MyProfile() {
       <CardHeader className="pb-0">
         <div className="h-18 flex justify-start items-center gap-4">
           {profileData?.profileImg ? (
-            <img className="w-16 h-16 max-w-16" src={`${IMAGE_BASE_URL}${profileData?.profileImg}`} alt="프로필" />
+            <img className="w-16 h-16 max-w-16 object-cover rounded-full" src={`${IMAGE_BASE_URL}${profileData?.profileImg}`} alt="프로필" />
           ) : (
             <div className="w-16 h-16 p-3 rounded-full outline outline-2 outline-offset-[-2px] outline-aqua-300 flex flex-col justify-center items-center">
               <FaPaw className="w-14 h-14 text-aqua-300" />

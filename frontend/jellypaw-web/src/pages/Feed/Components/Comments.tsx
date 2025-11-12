@@ -7,6 +7,7 @@ import type { GetCommentsResponse } from '@/types/feed';
 import { Button } from '@/components/ui/button';
 import { IoClose } from 'react-icons/io5';
 import { deleteComment } from '@/services/api/feed';
+import { useProfile } from '@/hooks/queries/ProfileQuery';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -18,15 +19,80 @@ interface CommentProps extends GetCommentsResponse {
 }
 
 export default function Comment({ id, userId, content, createdAt, replyCount, replies, onReply, onEdit, boardId, onDeleteSuccess }: CommentProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const { data: myProfile } = useProfile();
 
+  // 내 유저 아이디
+  const myUserId = myProfile?.userId ?? null;
+
+  // 내 댓글인지 여부
+  const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
+  // 댓글 작성 시간 포맷팅
+  const formattedCreatedAt = (() => {
+    if (!createdAt) {
+      return '';
+    }
+
+    try {
+      const createdDate = new Date(createdAt);
+      const now = new Date();
+      const diffMs = now.getTime() - createdDate.getTime();
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+      // 60분 이내인 경우
+      if (diffMinutes < 60) {
+        return `${diffMinutes}분 전`;
+      }
+
+      // 24시간 이내인 경우
+      const diffHours = Math.floor(diffMinutes / 60);
+      const isToday =
+        createdDate.getFullYear() === now.getFullYear() && createdDate.getMonth() === now.getMonth() && createdDate.getDate() === now.getDate();
+
+      if (isToday && diffHours < 24) {
+        return `${diffHours}시간 전`;
+      }
+
+      // 1일 이내인 경우
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays < 1) {
+        return '오늘';
+      }
+
+      // 1일 이상인 경우
+      return `${diffDays}일 전`;
+    } catch (error) {
+      return createdAt;
+    }
+  })();
+
+  // 댓글 수정
   const handleEdit = () => {
     if (onEdit) {
       onEdit(id ?? null);
       return;
     }
     alert('댓글 수정 기능이 준비 중입니다.');
+  };
+
+  // 댓글 삭제
+  const handleRemove = async () => {
+    setIsActionModalOpen(false);
+    const confirmed = window.confirm('정말 댓글을 삭제하시겠습니까?\n삭제된 댓글은 복구할 수 없습니다.');
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await deleteComment(Number(id), Number(boardId));
+      if (onDeleteSuccess) {
+        onDeleteSuccess();
+      } else {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('댓글 삭제에 실패했습니다.', error);
+      alert('댓글 삭제에 실패했습니다.');
+    }
   };
 
   return (
@@ -48,21 +114,23 @@ export default function Comment({ id, userId, content, createdAt, replyCount, re
               <div className="text-aqua-500 p2-b">{userId.nickname}</div>
               {/* 댓글 작성 시간, 더보기 버튼 */}
               <div className="flex justify-start items-center gap-2">
-                <div className="text-gray-300 p3">{createdAt}</div>
-                {/* ... 버튼 */}
-                <button
-                  type="button"
-                  className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsActionModalOpen(true);
-                  }}
-                  aria-haspopup="dialog"
-                  aria-expanded={isActionModalOpen}
-                  aria-label="댓글 옵션 열기"
-                >
-                  <MoreHorizontal className="h-5 w-5 text-gray-300" />
-                </button>
+                <div className="text-gray-300 p3">{formattedCreatedAt}</div>
+                {/* ... 버튼 (내 댓글일 때만) */}
+                {isOwner && (
+                  <button
+                    type="button"
+                    className="h-7 w-7 flex justify-center items-center cursor-pointer"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setIsActionModalOpen(true);
+                    }}
+                    aria-haspopup="dialog"
+                    aria-expanded={isActionModalOpen}
+                    aria-label="댓글 옵션 열기"
+                  >
+                    <MoreHorizontal className="h-5 w-5 text-gray-300" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="text-aqua-500 p2">{content || ''}</div>
@@ -116,29 +184,7 @@ export default function Comment({ id, userId, content, createdAt, replyCount, re
                 댓글 수정하기
               </Button>
 
-              <Button
-                type="button"
-                tone="red"
-                shape="pillSolid"
-                size="default"
-                onClick={async () => {
-                  setIsActionModalOpen(false);
-                  const confirmed = window.confirm('정말 댓글을 삭제하시겠습니까?\n삭제된 댓글은 복구할 수 없습니다.');
-                  if (!confirmed) {
-                    return;
-                  }
-                  try {
-                    if (!id || !boardId) {
-                      throw new Error('삭제에 필요한 정보가 부족합니다.');
-                    }
-                    await deleteComment(Number(id), Number(boardId));
-                    onDeleteSuccess?.();
-                  } catch (error) {
-                    console.error('댓글 삭제에 실패했습니다.', error);
-                    alert('댓글 삭제에 실패했습니다.');
-                  }
-                }}
-              >
+              <Button type="button" tone="red" shape="pillSolid" size="default" onClick={handleRemove}>
                 댓글 삭제하기
               </Button>
             </div>
