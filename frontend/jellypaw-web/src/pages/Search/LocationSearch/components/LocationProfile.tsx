@@ -10,7 +10,7 @@ import { TbWorld } from 'react-icons/tb';
 import { MdOutlinePhone } from 'react-icons/md';
 import type { SearchPlacesDetailResponse } from '@/types/search';
 
-export default function LocationProfile({ id, title, address, phoneNumber, link, starRating, postCount }: SearchPlacesDetailResponse) {
+export default function LocationProfile({ id, title, address, phoneNumber, link, starRating, postCount, openingHours }: SearchPlacesDetailResponse) {
   return (
     <>
       {/* 가게 기본 프로필 */}
@@ -39,6 +39,7 @@ export default function LocationProfile({ id, title, address, phoneNumber, link,
         // 장소 상세 정보에서 조회된 id 값과 이름으로 예약 페이지 이동 경로
         locationId={id}
         locationTitle={title}
+        openingHours={openingHours}
       />
 
       {/* 기본 정보 카드 */}

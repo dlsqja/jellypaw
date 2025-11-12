@@ -7,8 +7,6 @@ import { searchPlacesDetail } from '@/services/api/search';
 import type { SearchPlacesDetailResponse } from '@/types/search';
 import { Spinner } from '@/components/ui/spinner';
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
-
 export default function LocationSearchDetail() {
   const { locationId } = useParams();
   const [locationData, setLocationData] = useState<SearchPlacesDetailResponse | null>(null);

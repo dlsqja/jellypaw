@@ -21,6 +21,8 @@ interface FunctionListProps {
   locationId?: number;
   // 장소 이름 - 예약하기 페이지에서 사용
   locationTitle?: string;
+  // 운영시간 - 예약하기 페이지에서 사용
+  openingHours?: string;
 }
 
 // 기능 목록 배열
@@ -44,7 +46,7 @@ const functionList = [
 ];
 
 // 기능 목록 컴포넌트
-export default function FunctionList({ phone, locationId, locationTitle }: FunctionListProps) {
+export default function FunctionList({ phone, locationId, locationTitle, openingHours }: FunctionListProps) {
   const [isPhoneDrawerOpen, setIsPhoneDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -55,6 +57,7 @@ export default function FunctionList({ phone, locationId, locationTitle }: Funct
       navigate(`/search/location/${locationId}/reservation`, {
         state: {
           locationTitle: locationTitle || '장소명 없음',
+          openingHours: openingHours || '',
         },
       });
     } else {

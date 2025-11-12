@@ -22,6 +22,7 @@ export default function Function_reservation() {
   const { locationId } = useParams();
   const navigate = useNavigate();
   const locationTitle = (location.state as { locationTitle?: string })?.locationTitle || '장소명 없음';
+  const openingHours = (location.state as { openingHours?: string })?.openingHours || '';
 
   // 예약 데이터 상태 관리
   const [reservationData, setReservationData] = useState<ReservationData>({
@@ -41,7 +42,7 @@ export default function Function_reservation() {
     setReservationData(ReservationSubmitData);
     setIsStep2(true);
   };
-  console.log('reservationData', reservationData);
+
   // 예약 요청 핸들러
   const handleReservationSubmit = async () => {
     if (!locationId || !reservationData.date || !reservationData.content) {
@@ -94,6 +95,7 @@ export default function Function_reservation() {
       {/* Content */}
       {!isStep2 && (
         <Step1Content
+          openingHours={openingHours}
           onNext={(step1Data) => {
             handleStep1Next(step1Data);
           }}
