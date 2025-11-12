@@ -21,6 +21,7 @@ export default function Feed() {
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
+      console.log('profileData', profileData);
       getFollowers(profileData.nickname).then((followers) => {
         console.log('followers', followers);
         setFollowings(followers || []); // null이면 빈 배열로 설정
@@ -107,7 +108,7 @@ export default function Feed() {
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
         {filteredFeeds.map((feed, index) => (
-          <Article key={index} {...feed} currentUserId={profileData?.userId ?? profileData?.id} />
+          <Article key={index} {...feed} currentUserId={profileData?.userId ?? profileData?.userId} />
         ))}
       </div>
     </>

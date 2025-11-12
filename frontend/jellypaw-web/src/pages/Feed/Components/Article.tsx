@@ -14,17 +14,78 @@ import { IoClose } from 'react-icons/io5';
 import { deleteFeed } from '@/services/api/feed';
 import { getFeedDetail } from '@/services/api/feed';
 import { saveBoardToRedis } from '@/services/api/redis';
+import {
+  IoCalendarClear,
+  IoHeart,
+  IoRestaurant,
+  IoCut,
+  IoFastFood,
+  IoGameController,
+  IoLocation,
+  IoEllipsisHorizontalCircleSharp,
+} from 'react-icons/io5';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
+// 날짜 포맷팅 함수 (YY.MM.DD 형식)
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return '';
+  const datePart = dateString.split(' ')[0];
+  const [year, month, day] = datePart.split('-');
+  if (year && month && day) {
+    const shortYear = year.slice(-2);
+    return `${shortYear}.${month}.${day}`;
+  }
+  return datePart;
+};
+
+// 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
+const formatRelativeTime = (dateString?: string): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMinutes < 60) {
+      return `${diffMinutes}분 전`;
+    }
+    const diffHours = Math.floor(diffMinutes / 60);
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+
+    if (isToday && diffHours < 24) {
+      return `${diffHours}시간 전`;
+    }
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 1) {
+      return '오늘';
+    } else if (diffDays < 30) {
+      return `${diffDays}일 전`;
+    } else if (diffDays < 365) {
+      const diffMonths = Math.floor(diffDays / 30);
+      return `${diffMonths}개월 전`;
+    } else {
+      const diffYears = Math.floor(diffDays / 365);
+      return `${diffYears}년 전`;
+    }
+  } catch (error) {
+    console.error('날짜 파싱 오류:', error);
+    return formatDate(dateString);
+  }
+};
+
 // 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
 interface ArticleProps extends GetFeedsResponse {
-  currentUserId?: number;
+  currentUserId?: number | null;
 }
 
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title, currentUserId }: ArticleProps) {
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title, category, currentUserId }: ArticleProps) {
   const navigate = useNavigate();
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
 
   // 🔹 내 게시글인지 여부
   const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
@@ -120,7 +181,7 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{createdAt}</Badge>
+                    <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(createdAt)}</Badge>
                     <Badge variant="pink">
                       <FaStar className="text-pink-300 me-0.5" />
                       {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
@@ -200,41 +261,55 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
 
             <div className="flex flex-col gap-2">
               <Button
-                type="button"
-                tone="aqua"
-                shape="pillSolid"
-                size="default"
-                onClick={async (event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(false);
+  type="button"
+  tone="aqua"
+  shape="pillSolid"
+  size="default"
+  onClick={async (event) => {
+    event.stopPropagation();
+    setIsActionModalOpen(false);
 
-                  if (!id) return;
+    if (!id) {
+      console.log('[feed:web] edit clicked but no id');
+      return;
+    }
 
-                  try {
-                    // 1. 게시글 상세 조회 (백엔드 기준 BoardResponse랑 거의 같을 거라 가정)
-                    const detail = await getFeedDetail(Number(id));
+    try {
+      console.log('[feed:web] EDIT_START', { id });
 
-                    // 2. Redis에 저장 (서버는 X-User-Id로 유저별로 매핑)
-                    await saveBoardToRedis(detail);
+      // 1. 게시글 상세 조회
+      const detail = await getFeedDetail(Number(id));
+      console.log('[feed:web] getFeedDetail SUCCESS', {
+        id: detail?.id,
+        title: detail?.title,
+        hasImages: Array.isArray(detail?.images),
+      });
 
-                    // 3. RN(WebView) 쪽에 “수정 모드 열어” 메시지
-                    if ((window as any).ReactNativeWebView) {
-                      (window as any).ReactNativeWebView.postMessage(
-                        JSON.stringify({
-                          type: 'OPEN_FEED_EDIT',
-                        }),
-                      );
-                    } else {
-                      console.log('ReactNativeWebView 없음 - 웹 환경에서 실행 중');
-                    }
-                  } catch (e) {
-                    console.error('수정 준비 실패', e);
-                    alert('수정 정보를 준비하는 데 실패했습니다.');
-                  }
-                }}
-              >
-                게시글 수정하기
-              </Button>
+      // 2. Redis에 저장
+      await saveBoardToRedis(detail);
+      console.log('[feed:web] saveBoardToRedis DONE');
+
+      // 3. RN(WebView)에 “수정 모드 열어” 메시지
+      if ((window as any).ReactNativeWebView) {
+        const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
+        console.log('[feed:web] postMessage to RN', msg);
+        (window as any).ReactNativeWebView.postMessage(msg);
+      } else {
+        console.log('[feed:web] ReactNativeWebView 없음 - 웹 환경에서 실행 중');
+      }
+    } catch (e: any) {
+      console.error('[feed:web] EDIT_FLOW_ERROR', {
+        message: e?.message,
+        status: e?.response?.status,
+        data: e?.response?.data,
+      });
+      alert('수정 정보를 준비하는 데 실패했습니다.');
+    }
+  }}
+>
+  게시글 수정하기
+</Button>
+
               <Button
                 type="button"
                 tone="red"

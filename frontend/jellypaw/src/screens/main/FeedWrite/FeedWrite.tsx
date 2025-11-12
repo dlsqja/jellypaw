@@ -149,49 +149,59 @@ export default function FeedWrite({ route, navigation }: Props) {
   };
 
     React.useEffect(() => {
-    if (mode !== 'edit') {
-      // 작성 모드 기본 상태
-      setImages([
-        require('../../../../assets/images/pets/반려동물1.png'),
-        require('../../../../assets/images/pets/반려동물2.png'),
-        require('../../../../assets/images/pets/반려동물3.png'),
-      ]);
-      return;
-    }
+  console.log('[FeedWrite] mode =', mode);
 
-    (async () => {
-      try {
-        const data = await getRedisBoard();
-        if (!data) {
-          Alert.alert('알림', '수정할 게시글 정보를 찾을 수 없습니다.');
-          navigation.goBack();
-          return;
-        }
+  if (mode !== 'edit') {
+    console.log('[FeedWrite] create mode init');
+    setImages([
+      require('../../../../assets/images/pets/반려동물1.png'),
+      require('../../../../assets/images/pets/반려동물2.png'),
+      require('../../../../assets/images/pets/반려동물3.png'),
+    ]);
+    return;
+  }
 
-        setBoardId(data.boardId);
-        setTitle(data.title);
-        setContent(data.content);
-        setRating(data.starRating || 0);
-        setImages((data.images || []).map(url => `${VITE_IMAGE_BASE_URL}${url}`));
+  (async () => {
+    try {
+      console.log('[FeedWrite] edit mode: call getRedisBoard');
+      const data = await getRedisBoard();
+      console.log('[FeedWrite] getRedisBoard result', data);
 
-        if (data.place) {
-          setLocation(data.place.title || '');
-          setSelectedPlace({
-            place_id: data.place.placeCode || '',
-            name: data.place.title || '',
-            address: data.place.address || '',
-            phone_number: data.place.phoneNumber || '',
-            website: data.place.link || '',
-            opening_hours: { weekday_text: [] },
-          });
-        }
-      } catch (e) {
-        console.error(e);
-        Alert.alert('오류', '게시글 정보를 불러오지 못했어요.');
+      if (!data) {
+        Alert.alert('알림', '수정할 게시글 정보를 찾을 수 없습니다.');
         navigation.goBack();
+        return;
       }
-    })();
-  }, [mode, navigation]);
+
+      setBoardId(data.boardId);
+      setTitle(data.title);
+      setContent(data.content);
+      setRating(data.starRating || 0);
+      setImages((data.images || []).map((url) => `${VITE_IMAGE_BASE_URL}${url}`));
+
+      if (data.place) {
+        setLocation(data.place.title || '');
+        setSelectedPlace({
+          place_id: data.place.placeCode || '',
+          name: data.place.title || '',
+          address: data.place.address || '',
+          phone_number: data.place.phoneNumber || '',
+          website: data.place.link || '',
+          opening_hours: { weekday_text: data.place.openingHours || [] },
+        });
+      }
+    } catch (e: any) {
+      console.log('[FeedWrite] getRedisBoard failed', {
+        message: e?.message,
+        status: e?.response?.status,
+        data: e?.response?.data,
+      });
+      Alert.alert('오류', '게시글 정보를 불러오지 못했어요.');
+      navigation.goBack();
+    }
+  })();
+}, [mode, navigation]);
+
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
