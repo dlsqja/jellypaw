@@ -10,6 +10,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,7 +34,7 @@ public class BoardCreateEvent {
 
     private BigDecimal starRating;
 
-    private String thumbnail;
+    private List<String> imageUrls;
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
