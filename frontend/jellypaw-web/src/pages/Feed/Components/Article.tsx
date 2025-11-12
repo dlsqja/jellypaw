@@ -80,7 +80,19 @@ interface ArticleProps extends GetFeedsResponse {
   currentUserId?: number | null;
 }
 
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title, currentUserId }: ArticleProps) {
+export default function Article({
+  boardUser,
+  content,
+  createdAt,
+  id,
+  images,
+  starRating,
+  title,
+  currentUserId,
+  commentCount,
+  category,
+  likeCount,
+}: ArticleProps) {
   const navigate = useNavigate();
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
@@ -109,7 +121,22 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
         role="button"
         tabIndex={0}
         onClick={() => {
-          navigate(`/feed/${id}`);
+          // 게시글 상세 페이지로 이동 시 게시글 데이터를 전달
+          navigate(`/feed/${id}`, {
+            state: {
+              feed: {
+                boardUser,
+                content,
+                createdAt,
+                id,
+                images,
+                starRating,
+                title,
+                commentCount,
+                likeCount,
+              },
+            },
+          });
         }}
       >
         {/* 프로필 헤더 */}
@@ -157,16 +184,38 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
           {/* 게시물 내용 */}
           <CardContent>
             <div className="flex flex-col gap-4">
-              {/* 제목, 평점, 게시글 생성일*/}
+              {/* 제목, 평점, 날짜 */}
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
-                    <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
+                    <IconText
+                      icon={
+                        category === 'DAILY'
+                          ? IoCalendarClear
+                          : category === 'HEALTH'
+                          ? IoHeart
+                          : category === 'DINING'
+                          ? IoRestaurant
+                          : category === 'BEAUTY'
+                          ? IoCut
+                          : category === 'FOOD'
+                          ? IoFastFood
+                          : category === 'TOY'
+                          ? IoGameController
+                          : category === 'TRAVEL'
+                          ? IoLocation
+                          : IoEllipsisHorizontalCircleSharp
+                      }
+                      label={title}
+                      size="md"
+                      textStyle="h6-b"
+                    />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{formatDate(createdAt)}</Badge>
+                    <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(createdAt)}</Badge>
                     <Badge variant="pink">
-                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
+                      <FaStar className="text-pink-300 me-0.5" />
+                      {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
                   </div>
                 </div>
@@ -212,11 +261,11 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
               <div className="flex items-center">
                 <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
                   <Heart className="h-5 w-5 text-pink-300" />
-                  <span className="text-aqua-500 p2-b">{0}</span>
+                  <span className="text-aqua-500 p2-b">{likeCount}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
-                  <span className="ttext-aqua-500 p2-b">{0}</span>
+                  <span className="ttext-aqua-500 p2-b">{commentCount}</span>
                 </button>
               </div>
               <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">

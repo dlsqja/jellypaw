@@ -14,9 +14,10 @@ interface CommentProps extends GetCommentsResponse {
   onReply?: (commentId: number | null) => void;
   onEdit?: (commentId: number | null) => void;
   boardId?: number | null;
+  onDeleteSuccess?: () => void;
 }
 
-export default function Comment({ id, userId, content, createdAt, replyCount, replies, onReply, onEdit, boardId }: CommentProps) {
+export default function Comment({ id, userId, content, createdAt, replyCount, replies, onReply, onEdit, boardId, onDeleteSuccess }: CommentProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
@@ -122,17 +123,19 @@ export default function Comment({ id, userId, content, createdAt, replyCount, re
                 size="default"
                 onClick={async () => {
                   setIsActionModalOpen(false);
-                  const confirmed = window.confirm('정말 게시글을 삭제하시겠습니까?\n삭제된 게시글은 복구할 수 없습니다.');
+                  const confirmed = window.confirm('정말 댓글을 삭제하시겠습니까?\n삭제된 댓글은 복구할 수 없습니다.');
                   if (!confirmed) {
                     return;
                   }
-                  setIsActionModalOpen(false);
                   try {
-                    const response = await deleteComment(Number(id), Number(boardId ?? 0));
-                    console.log('댓글이 삭제되었습니다.', response);
-                    window.location.reload();
+                    if (!id || !boardId) {
+                      throw new Error('삭제에 필요한 정보가 부족합니다.');
+                    }
+                    await deleteComment(Number(id), Number(boardId));
+                    onDeleteSuccess?.();
                   } catch (error) {
                     console.error('댓글 삭제에 실패했습니다.', error);
+                    alert('댓글 삭제에 실패했습니다.');
                   }
                 }}
               >

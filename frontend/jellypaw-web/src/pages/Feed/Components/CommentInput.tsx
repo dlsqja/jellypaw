@@ -12,15 +12,18 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 // 댓글 입력창 컴포넌트 속성
 interface CommentInputProps {
   parentId: number | null;
+  onOptimisticSubmit?: () => void;
   onSubmitSuccess?: () => void;
+  onSubmitError?: () => void;
   onCancelReply?: () => void;
 }
 
 // 댓글 입력창 컴포넌트
-export default function CommentInput({ parentId, onSubmitSuccess, onCancelReply }: CommentInputProps) {
+export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuccess, onSubmitError, onCancelReply }: CommentInputProps) {
   const { data: profileData } = useProfile();
   const profileImageUrl = profileData?.profileImg ? `${IMAGE_BASE_URL}${profileData.profileImg}` : null;
   const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { boardId } = useParams();
 
   // 댓글 입력창 컴포넌트 속성 변경 시 댓글 내용 초기화
@@ -44,11 +47,31 @@ export default function CommentInput({ parentId, onSubmitSuccess, onCancelReply 
     if (!trimmedContent) {
       return;
     }
-    // 댓글 달기
-    await createComment(Number(boardId), parentId ?? null, trimmedContent);
-    onSubmitSuccess?.();
-    onCancelReply?.();
-    setContent('');
+    if (isSubmitting) {
+      return;
+    }
+
+    onOptimisticSubmit?.();
+    setIsSubmitting(true);
+
+    try {
+      // 댓글 작성 호출
+      await createComment(Number(boardId), parentId ?? null, trimmedContent);
+      // 댓글 작성 성공 호출
+      onSubmitSuccess?.();
+      // 댓글 작성 취소 호출
+      onCancelReply?.();
+      // 댓글 입력 내용 초기화
+      setContent('');
+    } catch (error) {
+      console.error('댓글 작성 실패:', error);
+      // 댓글 작성 실패 호출
+      onSubmitError?.();
+      alert('댓글 작성에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      // 댓글 작성 중 상태 초기화
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -69,7 +92,7 @@ export default function CommentInput({ parentId, onSubmitSuccess, onCancelReply 
               placeholder={parentId ? '대댓글을 입력하세요...' : '댓글을 입력하세요...'}
               className="h-8 flex-1 border-0 bg-transparent px-0 py-0 p2-b text-aqua-500 placeholder:text-gray-300 placeholder:p2-b focus-visible:ring-0"
             />
-            <Button tone="aqua" shape="pillSolid" size="sm" onClick={handleCommentSubmit} disabled={!content.trim()}>
+            <Button tone="aqua" shape="pillSolid" size="sm" onClick={handleCommentSubmit} disabled={isSubmitting || !content.trim()}>
               게시
             </Button>
           </div>
