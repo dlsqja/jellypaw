@@ -27,8 +27,10 @@ export const getComments = async (boardId: number): Promise<GetCommentsResponse[
 
 // 댓글 생성
 export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse> => {
-  const response = await apiClient.post<ApiResponse<GetCommentsResponse>>(`/comments/${boardId}`, { parent, content });
-  return response.data.data;
+  console.log('boardId:', boardId, 'parent:', parent, 'content:', content);
+  const response = await apiClient.post<GetCommentsResponse>(`/comments/${boardId}`, { parent, content });
+  console.log('response:', response.data);
+  return response.data;
 };
 
 // 게시글 수정

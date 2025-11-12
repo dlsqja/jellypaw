@@ -18,33 +18,27 @@ interface CommentProps extends GetCommentsResponse {
   onDeleteSuccess?: () => void;
 }
 
-export default function Comment({ id, userId, content, createdAt, replyCount, replies, onReply, onEdit, boardId, onDeleteSuccess }: CommentProps) {
+export default function Comment({ id, userId, content, createdAt, childs, onReply, onEdit, boardId, onDeleteSuccess }: CommentProps) {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const { data: myProfile } = useProfile();
 
-  // 내 유저 아이디
   const myUserId = myProfile?.userId ?? null;
 
-  // 내 댓글인지 여부
-  const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
-  // 댓글 작성 시간 포맷팅
-  const formattedCreatedAt = (() => {
-    if (!createdAt) {
+  const getRelativeTime = (dateString?: string) => {
+    if (!dateString) {
       return '';
     }
 
     try {
-      const createdDate = new Date(createdAt);
+      const createdDate = new Date(dateString);
       const now = new Date();
       const diffMs = now.getTime() - createdDate.getTime();
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-      // 60분 이내인 경우
       if (diffMinutes < 60) {
         return `${diffMinutes}분 전`;
       }
 
-      // 24시간 이내인 경우
       const diffHours = Math.floor(diffMinutes / 60);
       const isToday =
         createdDate.getFullYear() === now.getFullYear() && createdDate.getMonth() === now.getMonth() && createdDate.getDate() === now.getDate();
@@ -53,18 +47,20 @@ export default function Comment({ id, userId, content, createdAt, replyCount, re
         return `${diffHours}시간 전`;
       }
 
-      // 1일 이내인 경우
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       if (diffDays < 1) {
         return '오늘';
       }
 
-      // 1일 이상인 경우
       return `${diffDays}일 전`;
     } catch (error) {
-      return createdAt;
+      return dateString;
     }
-  })();
+  };
+
+  const formattedCreatedAt = getRelativeTime(createdAt);
+
+  const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
 
   // 댓글 수정
   const handleEdit = () => {
@@ -140,14 +136,45 @@ export default function Comment({ id, userId, content, createdAt, replyCount, re
                 <Heart className="h-4 w-4 text-gray-300" />
                 {/* {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>} */}
               </button>
-              <button type="button" className="flex items-center gap-1 cursor-pointer" onClick={() => onReply?.(id ?? null)}>
+              <button
+                type="button"
+                className="flex items-center gap-1 cursor-pointer"
+                onClick={() => {
+                  console.log('parentid:', id);
+                  onReply?.(id ?? null);
+                }}
+              >
                 <MessageCircle className="h-4 w-4 text-gray-300" />
                 <span className="text-gray-300 p3-b">답글 달기</span>
               </button>
             </div>
           </div>
-
           {/* 대댓글 자리 */}
+          {Array.isArray(childs) && childs.length > 0 && (
+            <div className="mt-3 flex flex-col gap-2 pl-4 w-full">
+              {childs.map((child) => {
+                const childTime = getRelativeTime(child.createdAt);
+                return (
+                  <div key={child.id ?? `${child.userId.id}-${child.createdAt}`} className="flex items-start gap-2 w-full">
+                    {child.userId.profileImg ? (
+                      <img className="w-8 h-8 rounded-full" src={`${IMAGE_BASE_URL}${child.userId.profileImg}`} alt={child.userId.nickname} />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full p-1 border-2 border-aqua-300 flex justify-center items-center">
+                        <FaPaw className="w-8 h-8 text-aqua-300" />
+                      </div>
+                    )}
+                    <div className="flex-1 bg-gray-200 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                      <div className="flex justify-between items-center">
+                        <div className="text-aqua-500 p2-b">{child.userId.nickname}</div>
+                        <div className="text-gray-300 p3">{childTime}</div>
+                      </div>
+                      <div className="text-aqua-500 p2 mt-1">{child.content || ''}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

@@ -29,24 +29,15 @@ export interface GetFeedDetailResponse extends GetFeedsResponse {
 
 // 댓글 조회 응답
 export interface GetCommentsResponse {
+  childs?: GetCommentsResponse[];
+  content?: string;
+  createdAt?: string;
   id?: number;
-  parent?: number;
   userId: {
     id: number;
     nickname: string;
     profileImg: string;
   };
-  content?: string;
-  createdAt?: string;
-  replyCount?: number;
-  replies?: [];
-}
-
-// 댓글 작성 요청
-// parent가 null 이면 댓글, 아니면 대댓글
-export interface CreateCommentRequest {
-  parent?: number | null;
-  content?: string;
 }
 
 // 게시글 삭제 응답

@@ -56,7 +56,16 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
 
     try {
       // 댓글 작성 호출
-      await createComment(Number(boardId), parentId ?? null, trimmedContent);
+      if (parentId) {
+        console.log('대댓글 작성 시도:', parentId);
+        await createComment(Number(boardId), Number(parentId), trimmedContent);
+        console.log('대댓글 작성 성공:', { boardId, parentId, content: trimmedContent });
+      } else {
+        console.log('댓글 작성 시도');
+        await createComment(Number(boardId), null, trimmedContent);
+        console.log('댓글 작성 성공:', { boardId, content: trimmedContent });
+      }
+
       // 댓글 작성 성공 호출
       onSubmitSuccess?.();
       // 댓글 작성 취소 호출
