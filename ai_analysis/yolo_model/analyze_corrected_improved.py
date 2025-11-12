@@ -496,9 +496,28 @@ def analyze_image_pipeline(image_path):
     # 📌 Y좌표 기준으로 정렬 (위에서 아래로)
     temp_detections = sorted(temp_detections, key=lambda x: x['center_y'])
     
-    print(f"[INFO] YOLO 탐지 결과 정렬 완료: {len(temp_detections)}개 패드", file=sys.stderr)
+    # 📌 올바른 순서로 클래스 이름 재할당
+    correct_order = [
+        "pad_Urobilinogen",
+        "pad_Glucose", 
+        "pad_Bilirubin",
+        "pad_Ketones",
+        "pad_SG",
+        "pad_Blood",
+        "pad_pH",
+        "pad_Protein",
+        "pad_Nitrite",
+        "pad_Leukocytes"
+    ]
+    
+    print(f"[INFO] YOLO 탐지 결과 정렬 및 재매핑: {len(temp_detections)}개 패드", file=sys.stderr)
     for i, det in enumerate(temp_detections):
-        print(f"  {i+1}. {det['class']} (Y={det['center_y']})", file=sys.stderr)
+        original_class = det['class']
+        if i < len(correct_order):
+            det['class'] = correct_order[i]
+            print(f"  {i+1}. {original_class} → {det['class']} (Y={det['center_y']})", file=sys.stderr)
+        else:
+            print(f"  {i+1}. {det['class']} (Y={det['center_y']}) [범위 초과]", file=sys.stderr)
     
     # 디버깅 이미지에 표시
     debug_image = processed_image.copy()
