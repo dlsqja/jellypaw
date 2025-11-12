@@ -1,6 +1,5 @@
 // 게시글 전체 목록 조회 응답
 export interface GetFeedsResponse {
-  likeCount?: number;
   boardUser?: {
     id?: number;
     nickname?: string;
@@ -12,8 +11,9 @@ export interface GetFeedsResponse {
   createdAt?: string;
   id?: number;
   images?: string[] | null;
+  likeCount?: number;
+  placeId?: number | null;
   starRating?: number;
-  thumbnail?: string;
   title?: string;
   viewCount?: number;
   visibility?: string;

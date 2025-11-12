@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MdRestaurant } from 'react-icons/md';
@@ -23,7 +23,6 @@ import {
   IoLocation,
   IoEllipsisHorizontalCircleSharp,
 } from 'react-icons/io5';
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import { debugToRN } from '@/lib/utils';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -95,21 +94,9 @@ export default function Article({
 }: ArticleProps) {
   const navigate = useNavigate();
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [api, setApi] = useState<CarouselApi>();
-  const [current, setCurrent] = useState(0);
 
   // 🔹 내 게시글인지 여부
   const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
-
-  useEffect(() => {
-    if (!api) return;
-
-    setCurrent(api.selectedScrollSnap());
-
-    api.on('select', () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
 
   if (!id) return null; // id 없으면 방어적으로 렌더 안 함
 
@@ -226,34 +213,14 @@ export default function Article({
                 </div>
               </div>
 
-              {/* 이미지 슬라이더 - carousel 사용 */}
-              <Carousel setApi={setApi} className="w-full relative">
-                <CarouselContent>
-                  {images &&
-                    images.map((url, index) => (
-                      <CarouselItem key={index}>
-                        <div className="w-77 h-64 relative rounded-[12px]">
-                          <img
-                            className="w-77 h-64 rounded-[12px] object-cover"
-                            src={`${IMAGE_BASE_URL}${url}`}
-                            alt={`${title} - 이미지 ${index + 1}`}
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                </CarouselContent>
-                {/* 이미지 인디케이터 */}
-                {images && images.length > 1 && (
-                  <div className="pt-3 flex justify-center">
-                    <div className="flex gap-1">
-                      {images &&
-                        images.map((_, index) => (
-                          <div key={index} className={`w-2 h-2 rounded-full ${index === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
-                        ))}
-                    </div>
+              {/* 대표 이미지 (첫 번째 이미지) */}
+              {images && images.length > 0 && (
+                <div className="w-full">
+                  <div className="w-77 h-64 relative rounded-[12px] overflow-hidden">
+                    <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
                   </div>
-                )}
-              </Carousel>
+                </div>
+              )}
             </div>
 
             {/* 액션 바 */}
