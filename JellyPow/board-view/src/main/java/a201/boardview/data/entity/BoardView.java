@@ -65,6 +65,7 @@ public class BoardView {
     private ViewCount viewCount;
 
     @OneToMany(mappedBy = "boardView", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ImageView> images = new ArrayList<>();
 
 
