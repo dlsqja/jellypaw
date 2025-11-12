@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios';
-import type { GetFeedsResponse, GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
+import type { GetFeedsResponse, GetFeedDetailResponse, GetCommentsResponse, DeleteFeedResponse, DeleteCommentResponse } from '@/types/feed';
 
 interface ApiResponse<T> {
   code: number;
@@ -39,7 +39,7 @@ export const createComment = async (boardId: number, parent: number | null, cont
 
 // 게시글 삭제
 export const deleteFeed = async (boardId: number): Promise<any> => {
-  const response = await apiClient.delete<ApiResponse<any>>(`/boards/${boardId}`);
+  const response = await apiClient.delete<ApiResponse<DeleteFeedResponse>>(`/boards/${boardId}`);
   return response.data.data;
 };
 
@@ -50,7 +50,7 @@ export const deleteFeed = async (boardId: number): Promise<any> => {
 // };
 
 // 댓글 삭제
-// export const deleteComment = async (comment_id: number): Promise<any> => {
-//   const response = await apiClient.delete<any>(`/comments/${comment_id}`);
-//   return response.data;
-// };
+export const deleteComment = async (commentId: number, boardId: number): Promise<any> => {
+  const response = await apiClient.delete<DeleteCommentResponse>(`/comments/${boardId}/${commentId}`);
+  return response.data;
+};

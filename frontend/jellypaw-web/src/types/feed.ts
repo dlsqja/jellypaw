@@ -55,3 +55,10 @@ export interface DeleteFeedResponse {
   message: string;
   data: any;
 }
+
+// 댓글 삭제 응답
+export interface DeleteCommentResponse {
+  code: number;
+  message: string;
+  data: any;
+}
