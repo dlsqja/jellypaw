@@ -10,7 +10,7 @@ import { TbWorld } from 'react-icons/tb';
 import { MdOutlinePhone } from 'react-icons/md';
 import type { SearchPlacesDetailResponse } from '@/types/search';
 
-export default function LocationProfile({ id, title, address, phoneNumber, link, starRating, postCount }: SearchPlacesDetailResponse) {
+export default function LocationProfile({ id, title, address, phoneNumber, link, starRating, postCount, openingHours }: SearchPlacesDetailResponse) {
   return (
     <>
       {/* 가게 기본 프로필 */}
@@ -24,7 +24,6 @@ export default function LocationProfile({ id, title, address, phoneNumber, link,
         {/* 이름 */}
         <div className="text-aqua-500 h4-b text-center">{title || '장소명 없음'}</div>
         {/* 평점 */}
-
         <div className="flex items-center justify-center">
           {starRating && starRating > 0 && (
             <Badge variant="pink">
@@ -40,6 +39,7 @@ export default function LocationProfile({ id, title, address, phoneNumber, link,
         // 장소 상세 정보에서 조회된 id 값과 이름으로 예약 페이지 이동 경로
         locationId={id}
         locationTitle={title}
+        openingHours={openingHours}
       />
 
       {/* 기본 정보 카드 */}
@@ -62,13 +62,13 @@ export default function LocationProfile({ id, title, address, phoneNumber, link,
               <span className="text-aqua-500 p2">{phoneNumber || '전화번호 정보가 없습니다'}</span>
             </div>
             <div className="flex gap-3 items-center">
-              <TbWorld className="text-aqua-500 w-3.5 h-3.5" />
+              <TbWorld className="text-aqua-500 w-3.5 h-3.5 flex-shrink-0" />
               {link ? (
                 <a
                   href={link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-aqua-300 p2 hover:text-aqua-500 underline cursor-pointer"
+                  className="text-aqua-300 p2 hover:text-aqua-500 underline cursor-pointer break-all line-clamp-1"
                 >
                   {link}
                 </a>

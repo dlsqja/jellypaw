@@ -26,7 +26,7 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
 
   // 자신의 프로필인지 확인 (타입 변환 포함)
   const isMyProfile = myProfile?.userId !== undefined && targetUserId !== undefined && Number(myProfile.userId) === Number(targetUserId);
-  console.log('isMyProfile', myProfile?.userId, targetUserId, Number(myProfile?.userId) === Number(targetUserId));
+
   // 프로필 데이터가 변경될 때 로컬 팔로워 수 동기화
   useEffect(() => {
     setLocalFollowerNum(profileData?.followerNum);

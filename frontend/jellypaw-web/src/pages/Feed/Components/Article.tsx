@@ -1,4 +1,3 @@
-// Article.tsx
 import { useState, useEffect } from 'react';
 import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -9,8 +8,8 @@ import { FaStar } from 'react-icons/fa6';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { IoClose } from 'react-icons/io5';
+import { Button } from '@/components/ui/button';
 import { deleteFeed } from '@/services/api/feed';
 import { getFeedDetail } from '@/services/api/feed';
 import { saveBoardToRedis } from '@/services/api/redis';
@@ -28,80 +27,26 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/com
 import { debugToRN } from '@/lib/utils';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-// 날짜 포맷팅 함수 (YY.MM.DD 형식)
-const formatDate = (dateString?: string): string => {
-  if (!dateString) return '';
-  const datePart = dateString.split(' ')[0];
-  const [year, month, day] = datePart.split('-');
-  if (year && month && day) {
-    const shortYear = year.slice(-2);
-    return `${shortYear}.${month}.${day}`;
-  }
-  return datePart;
-};
-
-// 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
-const formatRelativeTime = (dateString?: string): string => {
-  if (!dateString) return '';
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMinutes < 60) {
-      return `${diffMinutes}분 전`;
-    }
-    const diffHours = Math.floor(diffMinutes / 60);
-    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-
-    if (isToday && diffHours < 24) {
-      return `${diffHours}시간 전`;
-    }
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays < 1) {
-      return '오늘';
-    } else if (diffDays < 30) {
-      return `${diffDays}일 전`;
-    } else if (diffDays < 365) {
-      const diffMonths = Math.floor(diffDays / 30);
-      return `${diffMonths}개월 전`;
-    } else {
-      const diffYears = Math.floor(diffDays / 365);
-      return `${diffYears}년 전`;
-    }
-  } catch (error) {
-    console.error('날짜 파싱 오류:', error);
-    return formatDate(dateString);
-  }
-};
-
-// 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
-interface ArticleProps extends GetFeedsResponse {
-  currentUserId?: number | null;
-}
-
-export default function Article({ boardUser, content, createdAt, id, images, starRating, title, category, currentUserId }: ArticleProps) {
+export default function Article({ boardUser, content, createdAt, id, images, starRating, title }: GetFeedsResponse) {
   const navigate = useNavigate();
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
-
-  // 🔹 내 게시글인지 여부
-  const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
-
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  // 이미지 슬라이더 관련 상태 관리
   useEffect(() => {
-    if (!api) return;
-
+    if (!api) {
+      return;
+    }
+    // 현재 선택된 스냅 인덱스 설정
     setCurrent(api.selectedScrollSnap());
 
+    // 스냅 인덱스 변경 시 상태 업데이트
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
     });
   }, [api]);
 
-  if (!id) return null; // id 없으면 방어적으로 렌더 안 함
-
+  // 게시글 컴포넌트 반환
   return (
     <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
       <Card
@@ -117,103 +62,87 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
-                {/* 프로필 사진 */}
+                {/* 프로필 사진*/}
                 {boardUser?.profileImg ? (
-                  <img className="w-10 h-10 rounded-full object-cover " src={`${IMAGE_BASE_URL}${boardUser.profileImg}`} alt={boardUser.nickname} />
+                  <img
+                    className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300"
+                    src={`${IMAGE_BASE_URL}${boardUser.profileImg}`}
+                    alt={boardUser.nickname}
+                  />
                 ) : (
-                  <div className="w-10 h-10 rounded-full p-1.5 flex justify-center items-center">
+                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
                     <FaPaw className="w-10 h-10 text-aqua-300" />
                   </div>
                 )}
                 <div className="ml-3 flex flex-col">
+                  {/* 프로필 이름, 게시글 생성 시간*/}
                   <div className="text-aqua-500 p2-b ">{boardUser?.nickname}</div>
-                  <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
+                  <div className="text-aqua-500 p3">{createdAt}</div>
                 </div>
               </div>
-
-              {/* 🔹 내 글일 때만 ... 버튼 노출 */}
-              {isOwner && (
-                <button
-                  type="button"
-                  className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsActionModalOpen(true);
-                  }}
-                  aria-haspopup="dialog"
-                  aria-expanded={isActionModalOpen}
-                  aria-label="게시글 옵션 열기"
-                >
-                  <MoreHorizontal className="h-5 w-5 text-gray-300" />
-                </button>
-              )}
+              {/* ... */}
+              <button
+                type="button"
+                className="h-7 w-7 flex justify-center items-center cursor-pointer"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIsActionModalOpen(true);
+                }}
+                aria-haspopup="dialog"
+                aria-expanded={isActionModalOpen}
+                aria-label="게시글 옵션 열기"
+              >
+                <MoreHorizontal className="h-5 w-5 text-gray-300" />
+              </button>
             </div>
           </div>
-
           {/* 게시물 내용 */}
           <CardContent>
             <div className="flex flex-col gap-4">
-              {/* 제목, 평점, 날짜 */}
+              {/* 제목, 평점, 게시글 생성일*/}
               <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center">
-                    <IconText
-                      icon={
-                        category === 'DAILY'
-                          ? IoCalendarClear
-                          : category === 'HEALTH'
-                          ? IoHeart
-                          : category === 'DINING'
-                          ? IoRestaurant
-                          : category === 'BEAUTY'
-                          ? IoCut
-                          : category === 'FOOD'
-                          ? IoFastFood
-                          : category === 'TOY'
-                          ? IoGameController
-                          : category === 'TRAVEL'
-                          ? IoLocation
-                          : IoEllipsisHorizontalCircleSharp
-                      }
-                      label={title}
-                      size="md"
-                      textStyle="h6-b"
-                    />
+                    <IconText icon={MdRestaurant} label={title} size="md" textStyle="h6-b" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(createdAt)}</Badge>
+                    <Badge>{createdAt}</Badge>
                     <Badge variant="pink">
-                      <FaStar className="text-pink-300 me-0.5" />
-                      {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
+                      <FaStar className="text-pink-300 me-0.5"></FaStar> {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
                     </Badge>
                   </div>
                 </div>
 
-                {/* 본문 */}
+                {/* 본문 내용 */}
                 <div className="h-15">
                   <div className="text-aqua-500 p2 line-clamp-3">{content}</div>
                 </div>
               </div>
 
-              {/* 이미지 슬라이더 */}
+              {/* 이미지 슬라이더 - carousel 사용 */}
               <Carousel setApi={setApi} className="w-full relative">
                 <CarouselContent>
-                  {images?.map((url, idx) => (
-                    <CarouselItem key={idx}>
-                      <div className="w-77 h-64 relative rounded-[12px]">
-                        <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${url}`} alt={`${title} - 이미지 ${idx + 1}`} />
-                      </div>
-                    </CarouselItem>
-                  ))}
+                  {images &&
+                    images.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <div className="w-77 h-64 relative rounded-[12px]">
+                          <img
+                            className="w-77 h-64 rounded-[12px] object-cover"
+                            src={`${IMAGE_BASE_URL}${url}`}
+                            alt={`${title} - 이미지 ${index + 1}`}
+                          />
+                        </div>
+                      </CarouselItem>
+                    ))}
                 </CarouselContent>
-
-                {/* 인디케이터 */}
+                {/* 이미지 인디케이터 */}
                 {images && images.length > 1 && (
                   <div className="pt-3 flex justify-center">
                     <div className="flex gap-1">
-                      {images.map((_, idx) => (
-                        <div key={idx} className={`w-2 h-2 rounded-full ${idx === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
-                      ))}
+                      {images &&
+                        images.map((_, index) => (
+                          <div key={index} className={`w-2 h-2 rounded-full ${index === current ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+                        ))}
                     </div>
                   </div>
                 )}
@@ -224,12 +153,12 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
             <div className="h-10 border-t border-gray-200 flex justify-between items-center pt-2">
               <div className="flex items-center">
                 <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
-                  <Heart className="h-5 w-5" />
+                  <Heart className="h-5 w-5 text-pink-300" />
                   <span className="text-aqua-500 p2-b">{0}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
-                  <MessageCircle className="h-5 w-5" />
-                  <span className="text-aqua-500 p2-b">{0}</span>
+                  <MessageCircle className="h-5 w-5 text-gray-600" />
+                  <span className="ttext-aqua-500 p2-b">{0}</span>
                 </button>
               </div>
               <button type="button" className="h-7 w-7 flex justify-center items-center cursor-pointer hover:opacity-70">
@@ -240,8 +169,8 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
         </CardHeader>
       </Card>
 
-      {/* 🔹 내 글 + 모달 오픈 상태일 때만 */}
-      {isOwner && isActionModalOpen && (
+      {/* 게시글 수정 / 삭제 옵션 모달 */}
+      {isActionModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
           role="dialog"
@@ -256,7 +185,7 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
           >
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-aqua-500 h6-b">게시글 관리</h3>
-              <IoClose className="w-5 h-5 text-aqua-500 cursor-pointer" onClick={() => setIsActionModalOpen(false)} />
+              <IoClose className="w-5 h-5 text-aqau-500 cursor-pointer" onClick={() => setIsActionModalOpen(false)} />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -314,8 +243,9 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
                 size="default"
                 onClick={async () => {
                   const confirmed = window.confirm('정말 게시글을 삭제하시겠습니까?\n삭제된 게시글은 복구할 수 없습니다.');
-                  if (!confirmed) return;
-
+                  if (!confirmed) {
+                    return;
+                  }
                   setIsActionModalOpen(false);
                   try {
                     const response = await deleteFeed(Number(id));
