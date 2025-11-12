@@ -1,20 +1,18 @@
 // src/layouts/AuthorizedWebView.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import WebView, { WebViewProps, WebViewMessageEvent } from 'react-native-webview';
-import { getAccessToken } from '../lib/tokenStorage';
+import { getAccessToken, clearTokens } from '../lib/tokenStorage';
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type Props = WebViewProps & {
-  uri: string;
-};
-
+type Props = WebViewProps & { uri: string };
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function AuthorizedWebView({ uri, ...rest }: Props) {
   const [token, setToken] = useState<string | null>(null);
   const navigation = useNavigation<RootNav>();
+  const webRef = useRef<WebView>(null); // ← 추가
 
   useEffect(() => {
     (async () => {
@@ -48,9 +46,8 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
     [token],
   );
 
-  const handleMessage = (event: WebViewMessageEvent) => {
+  const handleMessage = async (event: WebViewMessageEvent) => {
     const raw = event.nativeEvent.data;
-
     try {
       const msg = JSON.parse(raw);
 
@@ -60,18 +57,35 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
       }
 
       if (msg.type === 'OPEN_FEED_EDIT') {
-        console.log('[WEB MSG] OPEN_FEED_EDIT 수신');
-
-        // FeedWrite는 FeedWriteStack 안에 있으므로 이렇게 들어가야 함
         navigation.navigate('FeedWriteStack', {
           screen: 'FeedWrite',
-          params: {
-            mode: 'edit',
-            // FeedWriteStackParamList 타입 만족용 (edit에선 안 써도 됨)
-            categoryId: 0,
-            categoryName: '',
-            categoryValue: '',
-          },
+          params: { mode: 'edit', categoryId: 0, categoryName: '', categoryValue: '' },
+        });
+        return;
+      }
+
+      // ✅ 로그아웃 처리
+      if (msg.type === 'LOGOUT_REQUEST') {
+        console.log('[WEB MSG] LOGOUT_REQUEST');
+
+        // 1) 네이티브 토큰 제거
+        await clearTokens();
+        setToken(null);
+
+        // 2) 웹뷰 스토리지 정리 + /auth로 이동
+        webRef.current?.injectJavaScript(`
+          try {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.replace('/auth');
+          } catch(e) {}
+          true;
+        `);
+
+        // 3) 네비게이션 초기화 → 카카오 로그인 화면
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'AuthStack' }],
         });
 
         return;
@@ -87,6 +101,7 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
 
   return (
     <WebView
+      ref={webRef}                 // ← 추가
       source={{ uri }}
       sharedCookiesEnabled
       thirdPartyCookiesEnabled
