@@ -25,7 +25,7 @@ import {
   IoEllipsisHorizontalCircleSharp,
 } from 'react-icons/io5';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
-
+import { debugToRN } from '@/lib/utils';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 // 날짜 포맷팅 함수 (YY.MM.DD 형식)
@@ -270,35 +270,32 @@ export default function Article({ boardUser, content, createdAt, id, images, sta
     setIsActionModalOpen(false);
 
     if (!id) {
-      console.log('[feed:web] edit clicked but no id');
+      debugToRN('EDIT_CLICK_NO_ID', {});
       return;
     }
 
     try {
-      console.log('[feed:web] EDIT_START', { id });
+      debugToRN('EDIT_FLOW_START', { id });
 
-      // 1. 게시글 상세 조회
       const detail = await getFeedDetail(Number(id));
-      console.log('[feed:web] getFeedDetail SUCCESS', {
+      debugToRN('EDIT_FLOW_DETAIL_OK', {
         id: detail?.id,
         title: detail?.title,
         hasImages: Array.isArray(detail?.images),
       });
 
-      // 2. Redis에 저장
       await saveBoardToRedis(detail);
-      console.log('[feed:web] saveBoardToRedis DONE');
+      debugToRN('EDIT_FLOW_REDIS_OK', {});
 
-      // 3. RN(WebView)에 “수정 모드 열어” 메시지
       if ((window as any).ReactNativeWebView) {
         const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
-        console.log('[feed:web] postMessage to RN', msg);
+        debugToRN('EDIT_FLOW_POSTMSG', { msg });
         (window as any).ReactNativeWebView.postMessage(msg);
       } else {
-        console.log('[feed:web] ReactNativeWebView 없음 - 웹 환경에서 실행 중');
+        debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
       }
     } catch (e: any) {
-      console.error('[feed:web] EDIT_FLOW_ERROR', {
+      debugToRN('EDIT_FLOW_ERROR', {
         message: e?.message,
         status: e?.response?.status,
         data: e?.response?.data,
