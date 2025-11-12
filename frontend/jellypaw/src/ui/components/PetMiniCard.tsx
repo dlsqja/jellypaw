@@ -15,33 +15,24 @@ type PetMiniCardProps = {
   onPress?: () => void;
 };
 
-export function PetMiniCard({
-  name,
-  species = '강아지',
-  avatarUri,
-  selected,
-  onPress,
-}: PetMiniCardProps) {
+export function PetMiniCard({ name, species = '강아지', avatarUri, selected, onPress }: PetMiniCardProps) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={[S.card, selected ? S.cardSelected : S.cardDefault]}
-    >
+    <Pressable onPress={onPress} style={[S.card, selected ? S.cardSelected : S.cardDefault]}>
       <View style={S.avatarContainer}>
         <View style={S.avatarWrap}>
           <Image
-            source={
-              typeof avatarUri === 'string' && avatarUri.trim().length > 0
-                ? { uri: avatarUri }
-                : defaultPetImage
-            }
+            source={typeof avatarUri === 'string' && avatarUri.trim().length > 0 ? { uri: avatarUri } : defaultPetImage}
             defaultSource={defaultPetImage}
             style={S.avatar}
           />
         </View>
       </View>
-      <Text style={S.name}>{name}</Text>
-      <Text style={S.species}>{species}</Text>
+      <Text style={S.name} numberOfLines={1} ellipsizeMode="tail">
+        {name}
+      </Text>
+      <Text style={S.species} numberOfLines={1} ellipsizeMode="tail">
+        {species}
+      </Text>
     </Pressable>
   );
 }

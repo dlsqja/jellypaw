@@ -35,7 +35,7 @@ const toImageUrl = (u?: string | null) => {
 
   // 1순위: 이미지 베이스 URL
   if (VITE_IMAGE_BASE_URL && VITE_IMAGE_BASE_URL.trim()) {
-    return String(VITE_IMAGE_BASE_URL).replace(/\/+$/, '') + '/' + path;
+    return VITE_IMAGE_BASE_URL.replace(/\/+$/, '') + '/' + path;
   }
 
   return null;
