@@ -20,6 +20,7 @@ export default function Mypage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const { data: profileData } = useProfile();
+  console.log('profileData', profileData);
 
   useEffect(() => {
     if (isDrawerOpen) {

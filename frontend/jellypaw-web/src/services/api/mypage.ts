@@ -4,7 +4,6 @@ import type { GetProfileResponse, EditProfileRequest } from '@/types/mypage';
 // 내 프로필 조회
 export const getMyProfile = async (): Promise<GetProfileResponse> => {
   const response = await apiClient.get('/users/profile');
-  console.log(response);
   return response.data.data ?? {};
 };
 
