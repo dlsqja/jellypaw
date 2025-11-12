@@ -1,3 +1,5 @@
+# analyze_corrected.py
+
 import sys
 import os
 import json
@@ -5,6 +7,9 @@ import cv2
 from ultralytics import YOLO
 import numpy as np
 from json import JSONEncoder
+import logging
+
+logging.getLogger('ultralytics').setLevel(logging.WARNING)
 
 # JSON 직렬화 불가능한 NumPy 타입을 표준 Python 타입으로 변환하는 클래스
 class NumpyEncoder(json.JSONEncoder):
@@ -117,20 +122,13 @@ def perform_warp_perspective(image):
 # 📌 [새로 추가] 사용자 이미지에서 기준 색상표 추출
 # ======================================================================
 def extract_reference_colors_from_image(warped_image, digital_reference):
-    """
-    보정된 이미지에서 기준 색상표의 색상들을 추출합니다.
     
-    Args:
-        warped_image: 투시 변환된 이미지
-        digital_reference: 디지털 기준표 (좌표 정보 포함)
-    
-    Returns:
-        각 검사 항목별 기준 색상 LAB 값
-    """
     print("--- [OpenCV] 사용자 이미지에서 기준 색상표 추출 시작 ---", file=sys.stderr)
     
-    # 기준 색상표 위치 (상대 좌표, 이전에 추출한 정보 사용)
-    # 각 검사 항목별 오른쪽 색상 팔레트 위치
+    # --- 1. [수정] 변수 정의를 맨 앞으로 이동 ---
+    pad_width = 20
+    pad_height = 20
+    
     reference_palette_positions = {
         "Urobilinogen": {"row_y": 65, "colors": [
             {"value": "0.1", "x": 180},
@@ -198,13 +196,10 @@ def extract_reference_colors_from_image(warped_image, digital_reference):
         ]}
     }
     
-    # 색상 패드 크기
-    pad_width = 20
-    pad_height = 20
-    
     # 추출된 기준 색상표
     extracted_references = {}
     
+    # --- 2. [수정] 디버깅 사각형 로직을 이 위치로 이동 ---
     for test_name, positions in reference_palette_positions.items():
         row_y = positions["row_y"]
         test_colors = []
@@ -213,6 +208,12 @@ def extract_reference_colors_from_image(warped_image, digital_reference):
             x = color_info["x"]
             value = color_info["value"]
             
+            # 📌 [디버깅] 추출되는 영역에 파란색 사각형 표시 (BGR: 파란색)
+            cv2.rectangle(warped_image, 
+                          (x, row_y), 
+                          (x + pad_width, row_y + pad_height), 
+                          (255, 0, 0), 2) 
+
             # ROI 추출 (중앙 70% 사용)
             margin = int(pad_width * 0.15)
             roi = warped_image[
@@ -417,6 +418,8 @@ def analyze_image_pipeline(image_path):
     
     # 4. YOLO 모델 로드
     model_path = os.path.join(os.path.dirname(__file__), 'weights', 'best.pt') 
+    # Docker용 경로
+    # model_path = os.path.join('/app', 'weights', 'best.pt')
     model = YOLO(model_path)
     
     # 5. YOLO 추론 (검사 스틱의 패드 찾기)
@@ -424,7 +427,11 @@ def analyze_image_pipeline(image_path):
     
     # 6. 탐지 결과 처리 및 진단
     pad_results = []
-    
+    # analyze_corrected.py 파일 수정 (주요 부분만)
+
+    # 6-1. 디버깅용 이미지 생성
+    debug_image = processed_image.copy()
+
     for r in results:
         boxes = r.boxes.xywhn.cpu().numpy() 
         confidences = r.boxes.conf.cpu().numpy()
@@ -451,6 +458,16 @@ def analyze_image_pipeline(image_path):
             # 픽셀 좌표 변환
             x_min, y_min, x_max, y_max = normalize_to_pixel_coords(box_norm, W_warped, H_warped)
             
+            # 6-1. 디버깅용
+            # 📌 (1) 패드 영역 시각화
+            box_pixel = [x_min, y_min, x_max, y_max]
+            cv2.rectangle(debug_image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 2) # 빨간색 테두리
+            cv2.putText(debug_image, test_name, (x_min, y_min - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+
+            # 📌 (2) 색상 추출 중앙 70% 영역 시각화 (선택 사항)
+            # extract_lab_color 함수의 ROI 계산 로직을 이용하여 
+            # 중앙 70% 영역에 다른 색상(예: 초록색) 테두리 추가 가능.
+
             # 패드 색상 추출
             measured_lab = extract_lab_color(processed_image, [x_min, y_min, x_max, y_max])
             
@@ -487,7 +504,11 @@ def analyze_image_pipeline(image_path):
         "analysis_count": len(pad_results),
         "detections": pad_results
     }
-    
+        # ----------------------------------------------------------------------
+    # [추가] 6-1. 최종 결과 직전에 디버깅 이미지 저장
+    # ----------------------------------------------------------------------
+    # (analyze_image_pipeline 함수 맨 끝)
+    cv2.imwrite("debug_visualization_output.png", debug_image) # 디버깅 이미지 저장
     return final_result
 
 # ----------------------------------------------------------------------
