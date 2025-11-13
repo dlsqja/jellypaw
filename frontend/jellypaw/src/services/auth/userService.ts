@@ -1,6 +1,7 @@
 // src/services/auth/userService.ts
 import apiClient from '../../lib/apiClient';
-import type { ApiResponse, KakaoLoginResponse } from '../../types/auth';
+import { ApiResponse } from '../../types/common/api';
+import type { KakaoLoginResponse } from '../../types/auth';
 
 // 내 정보 조회
 export async function getMe() {

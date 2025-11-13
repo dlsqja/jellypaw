@@ -12,8 +12,9 @@ import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
-import { createFeed, updateFeed } from '../../../services/api/feedWrite';
+import { createFeed, updateFeed, getFeeds } from '../../../services/api/feedWrite';
 import { getRedisBoard } from '../../../services/api/redis';
+import { FeedListItem } from '../../../types/main/feedList';
 import type { FeedWriteRequest, FeedWritePlaceRequest } from '../../../types/main/feedWrite';
 import { theme } from '../../../ui/system/variants';
 import Feather from 'react-native-vector-icons/Feather';
@@ -30,9 +31,9 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [location, setLocation] = useState('');
   const [rating, setRating] = useState<number>(0);
   const [images, setImages] = useState<(string | number)[]>([
-    require('../../../../assets/images/pets/반려동물1.png'),
-    require('../../../../assets/images/pets/반려동물2.png'),
-    require('../../../../assets/images/pets/반려동물3.png'),
+    // require('../../../../assets/images/pets/반려동물1.png'),
+    // require('../../../../assets/images/pets/반려동물2.png'),
+    // require('../../../../assets/images/pets/반려동물3.png'),
   ]);
   const [showPlaceSearchModal, setShowPlaceSearchModal] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<PlaceDetails | null>(null);
@@ -158,9 +159,9 @@ export default function FeedWrite({ route, navigation }: Props) {
   if (mode !== 'edit') {
     console.log('[FeedWrite] create mode init');
     setImages([
-      require('../../../../assets/images/pets/반려동물1.png'),
-      require('../../../../assets/images/pets/반려동물2.png'),
-      require('../../../../assets/images/pets/반려동물3.png'),
+    //   require('../../../../assets/images/pets/반려동물1.png'),
+    //   require('../../../../assets/images/pets/반려동물2.png'),
+    //   require('../../../../assets/images/pets/반려동물3.png'),
     ]);
     return;
   }
@@ -267,38 +268,59 @@ export default function FeedWrite({ route, navigation }: Props) {
       },
     },
   ]);
-} else {
-  const created = await createFeed({
-    ...boardRequest,
-    newImages: newLocalImageUris,
-    placeRequest,
-  });
+    } else {
+    await createFeed({
+      ...boardRequest,
+      newImages: newLocalImageUris,
+      placeRequest,
+    });
 
-  const createdBoardId =
-    typeof created === 'number'
-      ? created
-      : created && typeof created === 'object' && 'id' in created
-      ? (created as any).id
-      : undefined;
+    let createdBoardId: number | undefined;
 
-  Alert.alert('성공', '게시글이 작성되었습니다.', [
-    {
-      text: '확인',
-      onPress: () => {
-        const parentNav = navigation.getParent(); // RootStack
+    try {
+      const boards: FeedListItem[] = await getFeeds();
+      const trimmedTitle = title.trim();
+      const trimmedContent = content.trim();
 
-        if (createdBoardId) {
-          parentNav?.navigate('FeedStack', {
-            screen: 'Feed',
-            params: { boardId: createdBoardId },
-          });
-        } else {
-          parentNav?.navigate('FeedStack');
-        }
+      const candidate = (boards || [])
+        .filter(
+          (b) =>
+            (b.title || '').trim() === trimmedTitle &&
+            (b.content || '').trim() === trimmedContent,
+        )
+        .sort((a, b) => {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return tb - ta; // 최신순
+        })[0];
+
+      createdBoardId = candidate?.id;
+      console.log('[FeedWrite] inferred createdBoardId from list =', createdBoardId);
+    } catch (e) {
+      console.log('[FeedWrite] getFeeds failed', e);
+    }
+
+    Alert.alert('성공', '게시글이 작성되었습니다.', [
+      {
+        text: '확인',
+        onPress: () => {
+          const parentNav = navigation.getParent();
+
+          if (createdBoardId) {
+            parentNav?.navigate('FeedStack', {
+              screen: 'Feed',
+              params: { boardId: createdBoardId },
+            });
+          } else {
+            // boardId 못 찾으면 그냥 피드 메인으로
+            parentNav?.navigate('FeedStack');
+          }
+        },
       },
-    },
-  ]);
-}
+    ]);
+  }
+
+
 
 
   } catch (error: any) {

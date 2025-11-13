@@ -190,6 +190,31 @@ export default function FeedDetail() {
     };
   }, [boardId]);
 
+<<<<<<< Updated upstream
+=======
+
+  useEffect(() => {
+  if (detailData || !boardId) return;
+
+  (async () => {
+    try {
+      console.log('[WEB] no state feed, fetch list via getFeeds');
+      const feeds = await getFeeds();
+      const matched = feeds.find((f) => f.id === Number(boardId));
+
+      if (!matched) {
+        console.log('[WEB] feed not found in list for boardId', boardId);
+        return;
+      }
+
+      setDetailData(matched as GetFeedDetailResponse);
+    } catch (e) {
+      console.error('[WEB] getFeeds in FeedDetail failed', e);
+    }
+  })();
+}, [detailData, boardId]);
+
+>>>>>>> Stashed changes
   // 댓글 새로고침
   const refreshComments = () => {
     if (!boardId) {
