@@ -34,7 +34,7 @@ const slotIndexToTimeString = (slot: number): string | null => {
 export default function Step1({ onNext, openingHours }: Step1Props) {
   const parsedWorkingHours = parseWorkingHours(openingHours);
   const parsedWorkingHoursSlots = parseWorkingHoursToSlots(parsedWorkingHours);
-  console.log('parsedWorkingHoursSlots', parsedWorkingHoursSlots);
+  // console.log('parsedWorkingHoursSlots', parsedWorkingHoursSlots);
 
   // 요일별 시간 슬롯 옵션 생성
   const timeOptionsByDay = useMemo(() => {
@@ -149,7 +149,10 @@ export default function Step1({ onNext, openingHours }: Step1Props) {
   const handleNext = () => {
     const dateString = formatDate(selectedDate);
     const timeSlotValue = selectedTime !== null ? selectedTime : timeOptions.length > 0 ? timeOptions[0].slot : 0;
-
+    console.log('dateString', dateString);
+    console.log('timeSlotValue', timeSlotValue);
+    console.log('requestDetails', requestDetails);
+    // 다음 버튼 클릭 시 데이터 전송
     onNext({
       date: dateString,
       time: timeSlotValue,

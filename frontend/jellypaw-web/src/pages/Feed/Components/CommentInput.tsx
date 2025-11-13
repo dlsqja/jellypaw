@@ -5,6 +5,7 @@ import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { FaPaw } from 'react-icons/fa';
 import { useEffect, useState, useRef } from 'react';
 import { createComment } from '@/services/api/feed';
+import type { GetCommentsResponse } from '@/types/feed';
 import { useParams } from 'react-router-dom';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
@@ -13,7 +14,7 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 interface CommentInputProps {
   parentId: number | null;
   onOptimisticSubmit?: () => void;
-  onSubmitSuccess?: () => void;
+  onSubmitSuccess?: (comment: GetCommentsResponse | GetCommentsResponse[]) => void;
   onSubmitError?: () => void;
   onCancelReply?: () => void;
 }
@@ -64,18 +65,19 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
 
     try {
       // 댓글 작성 호출
+      let response;
       if (parentId) {
         console.log('대댓글 작성 시도:', parentId);
-        await createComment(Number(boardId), Number(parentId), trimmedContent);
-        console.log('대댓글 작성 성공:', { boardId, parentId, content: trimmedContent });
+        response = await createComment(Number(boardId), Number(parentId), trimmedContent);
+        console.log('대댓글 작성 성공:', response);
       } else {
         console.log('댓글 작성 시도');
-        await createComment(Number(boardId), null, trimmedContent);
-        console.log('댓글 작성 성공:', { boardId, content: trimmedContent });
+        response = await createComment(Number(boardId), null, trimmedContent);
+        console.log('댓글 작성 성공:', response);
       }
 
-      // 댓글 작성 성공 호출
-      onSubmitSuccess?.();
+      // 댓글 작성 성공 호출 (response 전달)
+      onSubmitSuccess?.(response);
       // 댓글 작성 취소 호출
       onCancelReply?.();
       // 댓글 입력 내용 초기화

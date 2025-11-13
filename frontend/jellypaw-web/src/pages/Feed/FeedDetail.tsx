@@ -141,6 +141,51 @@ export default function FeedDetail() {
     });
   };
 
+  // 댓글 작성 성공 시 댓글 리스트 업데이트
+  const handleCommentSubmitSuccess = (newComment: GetCommentsResponse | GetCommentsResponse[]) => {
+    if (!newComment) return;
+
+    // API는 GetCommentsResponse[] 배열을 반환
+    let comments: GetCommentsResponse[] = [];
+
+    if (Array.isArray(newComment)) {
+      // 배열인 경우 직접 사용
+      comments = newComment;
+    } else {
+      // 단일 객체인 경우 배열로 변환
+      comments = [newComment];
+    }
+
+    if (comments.length === 0) return;
+    const comment = comments[0];
+    if (!comment || !comment.id) return;
+
+    // 대댓글인 경우 (parentId가 있음)
+    if (replyTargetId) {
+      setComments((prevComments) =>
+        prevComments.map((prevComment) => {
+          if (prevComment.id === replyTargetId) {
+            // 해당 댓글의 childs 배열에 새 대댓글 추가
+            return {
+              ...prevComment,
+              childs: [...(prevComment.childs || []), comment],
+            };
+          }
+          return prevComment;
+        }),
+      );
+      // 댓글 수 증가
+      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
+    } else {
+      // 일반 댓글인 경우 최상위에 추가
+      setComments((prevComments) => [comment, ...prevComments]);
+      // 댓글 수 증가
+      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
+    }
+    // 답글 대상 초기화
+    setReplyTargetId(null);
+  };
+
   // 답글 선택
   const handleReplySelect = (commentId: number | null) => {
     setReplyTargetId((prev) => (prev === commentId ? null : commentId));
@@ -348,7 +393,7 @@ export default function FeedDetail() {
               ))}
           </div>
           {/* 댓글 입력창 */}
-          <CommentInput parentId={replyTargetId} onSubmitSuccess={refreshComments} onCancelReply={() => setReplyTargetId(null)} />
+          <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} />
         </CardContent>
       </Card>
 

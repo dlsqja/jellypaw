@@ -54,6 +54,7 @@ export default function Function_reservation() {
 
     try {
       createReservation(Number(locationId), reservationData);
+      console.log('예약 요청 성공:', reservationData);
       alert('예약 요청이 완료되었습니다.');
       // 성공하면 마이페이지로 이동
       navigate('/mypage');

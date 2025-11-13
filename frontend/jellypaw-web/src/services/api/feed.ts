@@ -8,6 +8,7 @@ import type {
   AddLikeResponse,
   CancelLikeResponse,
   GetUserFeedsResponse,
+  CreateCommentResponse,
 } from '@/types/feed';
 
 interface ApiResponse<T> {
@@ -35,9 +36,9 @@ export const getComments = async (boardId: number): Promise<GetCommentsResponse[
 };
 
 // 댓글 생성 - parentid가 null이면 댓글, 아니면 대댓글
-export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse> => {
-  const response = await apiClient.post<GetCommentsResponse>(`/comments/${boardId}`, { parent, content });
-  return response.data;
+export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse[]> => {
+  const response = await apiClient.post<ApiResponse<GetCommentsResponse[]>>(`/comments/${boardId}`, { parent, content });
+  return response.data.data;
 };
 
 // 게시글 삭제

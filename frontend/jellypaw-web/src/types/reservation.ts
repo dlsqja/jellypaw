@@ -13,3 +13,8 @@ export interface ReservationResponse {
   time: number;
   content: string;
 }
+
+// 예약 데이터 조회 응답
+export interface GetReservationResponse {
+  reservations: ReservationResponse[];
+}

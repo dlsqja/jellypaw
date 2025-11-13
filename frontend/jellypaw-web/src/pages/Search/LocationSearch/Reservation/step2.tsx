@@ -36,11 +36,13 @@ export default function Step2({ onPrevious, reservationData, onSubmit, isSubmitt
   const [guardianName, setGuardianName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
+  // 연락처 입력 핸들러
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatPhoneNumber(e.target.value);
     setPhoneNumber(formatted);
   };
 
+  // 보호자 이름 입력 핸들러
   const handleGuardianNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGuardianName(e.target.value);
   };
