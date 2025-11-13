@@ -46,7 +46,21 @@ public class AnalysisService {
      * - Spring Data MongoDB의 메서드 네이밍: findByUserIdAndPetId
      */
     public List<AnalysisDocument> getAnalysisList(Long userId, Long petId) {
-        return analysisRepository.findByUserIdAndPetIdOrderByCreatedAtDesc(userId, petId);
+		// return analysisRepository.findByUserIdAndPetIdOrderByCreatedAtDesc(userId, petId);
+        log.info("분석 결과 조회 요청: userId={} (type: {}), petId={} (type: {})", 
+                userId, userId != null ? userId.getClass().getSimpleName() : "null",
+                petId, petId != null ? petId.getClass().getSimpleName() : "null");
+        
+        List<AnalysisDocument> documents = analysisRepository.findByUserIdAndPetIdOrderByCreatedAtDesc(userId, petId);
+        
+        log.info("조회된 분석 결과 개수: {}", documents.size());
+        if (documents.isEmpty()) {
+            // 디버깅: 전체 데이터 확인
+            long totalCount = analysisRepository.count();
+            log.warn("조회 결과가 비어있습니다. MongoDB 전체 문서 개수: {}", totalCount);
+        }
+        
+        return documents;
     }
 
     /**
