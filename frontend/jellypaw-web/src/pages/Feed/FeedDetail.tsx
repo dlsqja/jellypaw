@@ -171,48 +171,21 @@ export default function FeedDetail() {
   };
 
   // 댓글 작성 성공 시 댓글 리스트 업데이트
-  const handleCommentSubmitSuccess = (newComment: GetCommentsResponse | GetCommentsResponse[]) => {
-    if (!newComment) return;
-
-    // API는 GetCommentsResponse[] 배열을 반환
-    let comments: GetCommentsResponse[] = [];
-
-    if (Array.isArray(newComment)) {
-      // 배열인 경우 직접 사용
-      comments = newComment;
-    } else {
-      // 단일 객체인 경우 배열로 변환
-      comments = [newComment];
+  const handleCommentSubmitSuccess = (newComments: GetCommentsResponse[]) => {
+    if (!newComments || !Array.isArray(newComments) || newComments.length === 0) {
+      // response가 없거나 빈 배열이면 새로고침만 수행
+      refreshComments();
+      return;
     }
 
-    if (comments.length === 0) return;
-    const comment = comments[0];
-    if (!comment || !comment.id) return;
-
-    // 대댓글인 경우 (parentId가 있음)
-    if (replyTargetId) {
-      setComments((prevComments) =>
-        prevComments.map((prevComment) => {
-          if (prevComment.id === replyTargetId) {
-            // 해당 댓글의 childs 배열에 새 대댓글 추가
-            return {
-              ...prevComment,
-              childs: [...(prevComment.childs || []), comment],
-            };
-          }
-          return prevComment;
-        }),
-      );
-      // 댓글 수 증가
-      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
-    } else {
-      // 일반 댓글인 경우 최상위에 추가
-      setComments((prevComments) => [comment, ...prevComments]);
-      // 댓글 수 증가
-      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
-    }
+    // response로 받은 댓글 리스트로 교체
+    setComments(newComments);
+    // 댓글 수 업데이트
+    setDetailData((prev) => (prev ? { ...prev, commentCount: newComments.length } : null));
     // 답글 대상 초기화
     setReplyTargetId(null);
+    // 새로고침
+    refreshComments();
   };
 
   // 답글 선택

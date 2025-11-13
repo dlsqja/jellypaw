@@ -171,11 +171,8 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
             </div>
             <div className="text-aqua-500 p2">{content || ''}</div>
             {/* 댓글 작성 시간, 좋아요, 댓글 보기, 댓글 달기 */}
-            <div className="flex justify-start items-center gap-4 ml-1 mt-1">
-              <button type="button" className="flex items-center gap-1 cursor-pointer">
-                <Heart className="h-4 w-4 text-gray-300" />
-                {/* {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>} */}
-              </button>
+            <div className="flex mt-1">
+              <button type="button" className="cursor-pointer"></button>
               <button
                 type="button"
                 className="flex items-center gap-1 cursor-pointer"
