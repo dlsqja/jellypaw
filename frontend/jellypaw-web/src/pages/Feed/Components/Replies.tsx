@@ -1,5 +1,6 @@
 import { Heart, MoreHorizontal } from 'lucide-react';
 
+// 대댓글 컴포넌트 인터페이스
 interface RepliesProps {
   profileImageUrl: string;
   name: string;

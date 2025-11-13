@@ -62,7 +62,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
 
   const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
 
-  // 댓글 수정
+  // 댓글 수정 함수 - 준비중
   const handleEdit = () => {
     if (onEdit) {
       onEdit(id ?? null);
@@ -71,7 +71,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
     alert('댓글 수정 기능이 준비 중입니다.');
   };
 
-  // 댓글 삭제
+  // 댓글 삭제 함수
   const handleRemove = async () => {
     setIsActionModalOpen(false);
     const confirmed = window.confirm('정말 댓글을 삭제하시겠습니까?\n삭제된 댓글은 복구할 수 없습니다.');
