@@ -251,29 +251,56 @@ export default function FeedWrite({ route, navigation }: Props) {
       : {};
 
     if (mode === 'edit' && boardId) {
-      await updateFeed(boardId, {
-        ...boardRequest,
-        newImages: newLocalImageUris,
-        placeRequest,
-      });
+  await updateFeed(boardId, {
+    ...boardRequest,
+    newImages: newLocalImageUris,
+    placeRequest,
+  });
 
-      DeviceEventEmitter.emit('FEED_UPDATED', { boardId });
+  DeviceEventEmitter.emit('FEED_UPDATED', { boardId });
 
-      Alert.alert('완료', '게시글이 수정되었습니다.', [
-        { text: '확인', onPress: () => navigation.goBack() },
-      ]);
-    } else {
-      // create 모드는 removeImages 필요 없음. newLocalImageUris만 사용
-      await createFeed({
-        ...boardRequest,
-        newImages: newLocalImageUris,
-        placeRequest,
-      });
+  Alert.alert('완료', '게시글이 수정되었습니다.', [
+    {
+      text: '확인',
+      onPress: () => {
+        navigation.goBack();
+      },
+    },
+  ]);
+} else {
+  const created = await createFeed({
+    ...boardRequest,
+    newImages: newLocalImageUris,
+    placeRequest,
+  });
 
-      Alert.alert('성공', '게시글이 작성되었습니다.', [
-        { text: '확인', onPress: () => navigation.goBack() },
-      ]);
-    }
+  const createdBoardId =
+    typeof created === 'number'
+      ? created
+      : created && typeof created === 'object' && 'id' in created
+      ? (created as any).id
+      : undefined;
+
+  Alert.alert('성공', '게시글이 작성되었습니다.', [
+    {
+      text: '확인',
+      onPress: () => {
+        const parentNav = navigation.getParent(); // RootStack
+
+        if (createdBoardId) {
+          parentNav?.navigate('FeedStack', {
+            screen: 'Feed',
+            params: { boardId: createdBoardId },
+          });
+        } else {
+          parentNav?.navigate('FeedStack');
+        }
+      },
+    },
+  ]);
+}
+
+
   } catch (error: any) {
     console.error(error);
     Alert.alert('오류', error?.message || '요청 처리에 실패했습니다.');

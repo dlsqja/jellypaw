@@ -60,10 +60,11 @@ validImageUris.forEach((uri) => {
   console.log('form', form);
   const response = await apiClient.post<ApiResponse<any>>('/boards', form, {
     headers: { Accept: 'application/json' },
-    transformRequest: (data) => {
-      return data;
-    },
+    transformRequest: (data) => data,
+
   });
+
+  const data = response.data.data as any;
 
   // 200(성공) 아닌 경우
   if (response.data?.code && response.data.code !== 200) {
@@ -76,7 +77,7 @@ validImageUris.forEach((uri) => {
     error.config = response.config;
     throw error;
   }
-  return response.data.data;
+  return typeof data === 'object' && data !== null && 'id' in data ? data.id : data;
 };
 
 export const updateFeed = async (
