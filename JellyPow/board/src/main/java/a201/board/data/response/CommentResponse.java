@@ -28,7 +28,7 @@ public class CommentResponse {
                 .createdAt(comment.getCreatedAt())
                 .build();
 
-        if(comment.getParent()!=null) {
+        if(comment.getChildren()!=null) {
             commentResponse.childs = comment.getChildren().stream()
                     .map(CommentResponse::of)
                     .toList();

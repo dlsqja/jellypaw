@@ -28,7 +28,7 @@ public class CommentService {
     private final BoardUserRepository boardUserRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void createComment(Long postId, Long userId,CommentRequest commentRequest) {
+    public List<CommentResponse> createComment(Long postId, Long userId,CommentRequest commentRequest) {
 
         Board board = boardRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("Post Not Found"));
         BoardUser boardUser = boardUserRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User Not Found"));
@@ -52,10 +52,18 @@ public class CommentService {
                 .type("add")
                 .build();
         kafkaTemplate.send("board-comment-topic", JsonUtil.toJsonString(commentEvent));
+
+        List<Comment> comments = commentRepository.findAllByBoard_IdAndParentIsNull(postId);
+
+
+        return comments.stream()
+                .map(CommentResponse::of)
+                .toList();
+
     }
 
     public List<CommentResponse> getCommentsByPost(Long postId,Long userId) {
-        List<Comment> comments = commentRepository.findAllByBoard_Id(postId);
+        List<Comment> comments = commentRepository.findAllByBoard_IdAndParentIsNull(postId);
 
 
         return comments.stream()

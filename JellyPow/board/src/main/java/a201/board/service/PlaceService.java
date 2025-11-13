@@ -31,7 +31,7 @@ public class PlaceService {
 	}
 
 	// Place 조회
-	public Place getPlaceById(Long placeId) {
+	public Place getPlaceById(Long placeId) {	
 		return placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 	}
 
@@ -72,5 +72,11 @@ public class PlaceService {
 			// 다음 요청: cursor 이후의 데이터
 			return placeRepository.findFirst10ByTitleContainingAndIdGreaterThan(title, cursor);
 		}
+	}
+
+	@Transactional
+	public void deletePlace(Long placeId) {
+		Place place = getPlaceById(placeId);
+		placeRepository.delete(place);
 	}
 }

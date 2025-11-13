@@ -21,8 +21,8 @@ public class CommentController {
     public ApiResponse<?> create(@PathVariable Long boardId,@RequestHeader("X-User-Id") Long userId,
                                  @RequestBody CommentRequest commentRequest) {
 
-        commentService.createComment(boardId,userId,commentRequest);
-        return ApiResponse.success(null);
+        ;
+        return ApiResponse.success(commentService.createComment(boardId,userId,commentRequest));
     }
 
     @Operation(summary = "댓글 목록 조회", description = "특정 게시글의 댓글 목록을 조회합니다.")
