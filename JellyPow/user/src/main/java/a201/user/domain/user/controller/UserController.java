@@ -61,6 +61,7 @@ public class UserController {
 		try {
 			User user = userService.getUserById(targetUserId);
 			UserDetailResponse response = UserDetailResponse.from(user);
+			response.setIsFollowing(followService.isFollowed(userId, targetUserId));
 			response.setIsVisible(true);
 			return ApiResponse.success(response);
 		} catch (CustomException e) {
