@@ -75,6 +75,7 @@ export interface GetUserFeedsResponse {
   boards?: GetFeedsResponse[];
 }
 
+// 게시글 수정용 장소 데이터
 export interface BoardWithPlaceResponse extends GetFeedDetailResponse {
   place?: SearchPlacesDetailResponse | null;
 }

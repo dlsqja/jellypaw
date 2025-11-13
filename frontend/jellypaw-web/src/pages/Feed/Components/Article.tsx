@@ -82,6 +82,7 @@ export default function Article({
   category,
   likeCount,
   placeId,
+  visibility,
 }: ArticleProps) {
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
@@ -155,6 +156,8 @@ export default function Article({
                 commentCount,
                 likeCount,
                 placeId,
+                category,
+                visibility,
               },
             },
           });

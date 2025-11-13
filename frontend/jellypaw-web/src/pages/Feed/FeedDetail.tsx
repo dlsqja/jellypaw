@@ -48,8 +48,8 @@ export default function FeedDetail() {
   // 전달된 게시글 데이터가 있으면 그대로 사용, 없으면 백업으로 상세 조회
   useEffect(() => {
     if (feedFromState) {
-      console.log('feedFromState에서 데이터 받음:', feedFromState);
       setDetailData(feedFromState);
+      console.log('feedFromState:', feedFromState);
     } else if (boardId) {
       getFeedDetail(Number(boardId)).then((detail) => {
         console.log('getFeedDetail API 응답:', detail);
@@ -63,7 +63,6 @@ export default function FeedDetail() {
   useEffect(() => {
     const placeId = detailData?.placeId;
     if (!placeId) {
-      console.log('장소 정보 조회 스킵 (placeId 없음):', placeId);
       setPlaceDetail(null);
       return;
     }
@@ -341,78 +340,75 @@ export default function FeedDetail() {
                 shape="pillSolid"
                 size="default"
                 onClick={async (event) => {
-  event.stopPropagation();
-  setIsActionModalOpen(false);
+                  event.stopPropagation();
+                  setIsActionModalOpen(false);
 
-  if (!detailData) {
-    debugToRN('EDIT_CLICK_NO_DETAIL', {});
-    alert('게시글 정보를 찾을 수 없습니다.');
-    return;
-  }
+                  if (!detailData) {
+                    debugToRN('EDIT_CLICK_NO_DETAIL', {});
+                    alert('게시글 정보를 찾을 수 없습니다.');
+                    return;
+                  }
 
-  try {
-    debugToRN('EDIT_FLOW_START', { id: detailData.id });
+                  try {
+                    debugToRN('EDIT_FLOW_START', { id: detailData.id });
 
-    const payload = {
-  id: detailData.id,
-  boardUser: detailData.boardUser,
-  title: detailData.title,
-  content: detailData.content,
-  placeId: detailData.placeId ?? null,
-  starRating: detailData.starRating ?? 0,
-  createdAt: detailData.createdAt ?? '',
-  images: detailData.images ?? [],
-  commentCount: detailData.commentCount ?? 0,
-  likeCount: detailData.likeCount ?? 0,
-  viewCount: detailData.viewCount ?? 0,
-  category: detailData.category ?? null,
-  visibility: detailData.visibility ?? null,
+                    const payload = {
+                      id: detailData.id,
+                      boardUser: detailData.boardUser,
+                      title: detailData.title,
+                      content: detailData.content,
+                      placeId: detailData.placeId ?? null,
+                      starRating: detailData.starRating ?? 0,
+                      createdAt: detailData.createdAt ?? '',
+                      images: detailData.images ?? [],
+                      commentCount: detailData.commentCount ?? 0,
+                      likeCount: detailData.likeCount ?? 0,
+                      viewCount: detailData.viewCount ?? 0,
+                      category: detailData.category ?? null,
+                      visibility: detailData.visibility ?? null,
 
-  // 🔹 여기부터 place 매핑 (백엔드 PlaceResponse 기준)
-  place: placeDetail
-    ? {
-        id: placeDetail.id ?? undefined,
-        title: placeDetail.title ?? '',
-        address: placeDetail.address ?? '',
-        openingHours: placeDetail.openingHours ?? '',
-        phoneNumber: placeDetail.phoneNumber ?? '',
-        link: placeDetail.link ?? '',
-        userId: placeDetail.userid ?? undefined,
-        starRating: placeDetail.starRating ?? undefined,
-        postCount: placeDetail.postCount ?? undefined,
-        user: placeDetail.user ?? undefined
-      }
-    : null,
-};
+                      // 🔹 여기부터 place 매핑 (백엔드 PlaceResponse 기준)
+                      place: placeDetail
+                        ? {
+                            id: placeDetail.id ?? undefined,
+                            title: placeDetail.title ?? '',
+                            address: placeDetail.address ?? '',
+                            openingHours: placeDetail.openingHours ?? '',
+                            phoneNumber: placeDetail.phoneNumber ?? '',
+                            link: placeDetail.link ?? '',
+                            userId: placeDetail.userid ?? undefined,
+                            starRating: placeDetail.starRating ?? undefined,
+                            postCount: placeDetail.postCount ?? undefined,
+                            user: placeDetail.user ?? undefined,
+                          }
+                        : null,
+                    };
 
+                    debugToRN('EDIT_FLOW_DETAIL_OK', {
+                      id: payload.id,
+                      title: payload.title,
+                      hasImages: Array.isArray(payload.images),
+                    });
 
-    debugToRN('EDIT_FLOW_DETAIL_OK', {
-      id: payload.id,
-      title: payload.title,
-      hasImages: Array.isArray(payload.images),
-    });
+                    await saveBoardToRedis(payload);
+                    debugToRN('EDIT_FLOW_REDIS_OK', {});
 
-    await saveBoardToRedis(payload);
-    debugToRN('EDIT_FLOW_REDIS_OK', {});
-
-    if ((window as any).ReactNativeWebView) {
-      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
-      debugToRN('EDIT_FLOW_POSTMSG', { msg });
-      (window as any).ReactNativeWebView.postMessage(msg);
-    } else {
-      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
-    }
-  } catch (e: any) {
-    debugToRN('EDIT_FLOW_ERROR', {
-      message: e?.message,
-      status: e?.response?.status,
-      data: e?.response?.data,
-    });
-    alert('수정 정보를 준비하는 데 실패했습니다.');
-  }
-}}
-
-
+                    if ((window as any).ReactNativeWebView) {
+                      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
+                      debugToRN('EDIT_FLOW_POSTMSG', { msg });
+                      (window as any).ReactNativeWebView.postMessage(msg);
+                    } else {
+                      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
+                    }
+                  } catch (e: any) {
+                    debugToRN('EDIT_FLOW_ERROR', {
+                      message: e?.message,
+                      status: e?.response?.status,
+                      data: e?.response?.data,
+                    });
+                    alert('수정 정보를 준비하는 데 실패했습니다.');
+                  }
+                }}
               >
                 게시글 수정하기
               </Button>
