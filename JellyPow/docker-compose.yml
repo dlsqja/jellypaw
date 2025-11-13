@@ -40,7 +40,6 @@ services:
     container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
@@ -61,6 +60,8 @@ services:
       - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - msa-net
     entrypoint:
       - bash
       - -c
@@ -98,3 +99,7 @@ volumes:
   mysql_data:
   elasticsearch_data:
   redis_data:
+
+networks:
+  msa-net:
+    external: true

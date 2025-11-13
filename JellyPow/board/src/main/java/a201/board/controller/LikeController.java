@@ -1,6 +1,8 @@
 package a201.board.controller;
 
 import a201.board.data.entity.Like;
+import a201.board.data.response.CommentResponse;
+import a201.board.data.response.LikeResponse;
 import a201.board.service.LikeService;
 import a201.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,7 +38,10 @@ public class LikeController {
     @GetMapping("/my")
     public ApiResponse<?> getByUser(@RequestHeader("X-User-Id") Long userId) {
         List<Like> likes = likeService.getLikesByMe(userId);
-        return ApiResponse.success(likes);
+        List<LikeResponse> likeResponses = likes.stream()
+                .map(LikeResponse::of)
+                .toList();
+        return ApiResponse.success(likeResponses);
     }
 }
 
