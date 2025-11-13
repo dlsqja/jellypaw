@@ -23,3 +23,27 @@ export interface EditProfileRequest {
 export interface EditProfileImageRequest {
   profileImg?: File | null;
 }
+
+export interface GetMyFeedResponse {
+  boards: [
+    {
+      id: number;
+      boardUser: {
+        id: number;
+        nickname: string;
+        profileImg: string;
+      };
+      title: string;
+      content: string;
+      placeId: number;
+      starRating: number;
+      createdAt: string;
+      images: string[];
+      commentCount: number;
+      likeCount: number;
+      viewCount: number;
+      category: string;
+      visibility: string;
+    },
+  ];
+}

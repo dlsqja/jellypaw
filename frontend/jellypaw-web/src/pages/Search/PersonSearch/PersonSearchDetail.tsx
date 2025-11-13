@@ -7,99 +7,40 @@ import ArticleBox from '@/pages/Mypage/components/ArticleBox';
 import { useParams } from 'react-router-dom';
 import { searchUsersDetail } from '@/services/api/search';
 import type { SearchUsersDetailResponse } from '@/types/search';
+import { getUserFeeds } from '@/services/api/feed';
+import type { GetUserFeedsResponse } from '@/types/feed';
+
+// 카테고리 라벨과 실제 카테고리 값 매핑
+const categoryLabelToValue: Record<string, string[]> = {
+  전체: [], // 전체는 빈 배열로, 모든 카테고리 포함
+  일상: ['DAILY'],
+  건강: ['HEALTH'],
+  식당: ['DINING'],
+  미용: ['BEAUTY'],
+  음식: ['FOOD'],
+  장난감: ['TOY'],
+  여행: ['TRAVEL'],
+  기타: ['ETC'],
+};
 
 // 카테고리 더미 데이터
 const categoriesData = [
   { label: '전체' },
-  { label: '병원' },
+  { label: '일상' },
   { label: '건강' },
-  { label: '미용' },
-  { label: '카페' },
   { label: '식당' },
   { label: '미용' },
-  { label: '카페' },
+  { label: '음식' },
+  { label: '장난감' },
+  { label: '여행' },
   { label: '기타' },
-];
-
-// 게시글 더미 데이터
-const articlesData = [
-  {
-    articleId: 1,
-    category: '전체',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '공원에서 즐거운 시간',
-    date: '2024.01.15',
-    content: '초코가 공원에서 신나게 뛰어노는 모습이에요! 날씨가 너무 좋아서 오랫동안 산책했어요.',
-    likeCount: 124,
-    commentCount: 18,
-  },
-  {
-    articleId: 2,
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    category: '병원',
-    title: '병원 견학 후기',
-    date: '2024.01.10',
-    content: '오늘 병원에 가서 건강 검진을 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
-  {
-    articleId: 3,
-    category: '건강',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '건강 검진 후기',
-    date: '2024.01.10',
-    content: '오늘 건강 검진을 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
-  {
-    articleId: 4,
-    category: '미용',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '미용 후기',
-    date: '2024.01.10',
-    content: '오늘 미용을 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
-  {
-    articleId: 5,
-    category: '카페',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '카페 후기',
-    date: '2024.01.10',
-    content: '오늘 카페를 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
-  {
-    articleId: 6,
-    category: '식당',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '식당 후기',
-    date: '2024.01.10',
-    content: '오늘 식당을 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
-  {
-    articleId: 7,
-    category: '기타',
-    imageUrl: '/src/assets/articles/게시글 사진.png',
-    title: '기타 후기',
-    date: '2024.01.10',
-    content: '오늘 기타를 받았어요. 초코는 정말 착하게 잘 행동했답니다.',
-    likeCount: 89,
-    commentCount: 12,
-  },
 ];
 
 export default function PersonSearchDetail() {
   const { personId } = useParams();
   const [targetProfileData, setTargetProfileData] = useState<SearchUsersDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [userFeeds, setUserFeeds] = useState<GetUserFeedsResponse | null>(null);
   // 프로필 조회 함수 (초기 로드용 - 로딩 상태 표시)
   const fetchProfile = useCallback(() => {
     if (!personId) return;
@@ -120,6 +61,14 @@ export default function PersonSearchDetail() {
         setIsLoading(false);
       });
   }, [personId]);
+
+  // 해당 사용자의 게시글 조회
+  useEffect(() => {
+    getUserFeeds(targetProfileData?.nickname ?? '').then((response) => {
+      console.log('response', response);
+      setUserFeeds(response);
+    });
+  }, [targetProfileData?.nickname]);
 
   // 프로필 갱신 함수 (백그라운드 갱신용 - 로딩 상태 표시 안 함)
   const refreshProfile = useCallback(() => {
@@ -144,16 +93,31 @@ export default function PersonSearchDetail() {
   const [activeCategory, setActiveCategory] = useState<number>(0);
 
   const selectedCategoryLabel = categoriesData[activeCategory].label;
-  const filteredArticles = articlesData.filter((article) => (selectedCategoryLabel === '전체' ? true : article.category === selectedCategoryLabel));
+  const selectedCategoryValues = categoryLabelToValue[selectedCategoryLabel] || [];
+
+  // 카테고리별 게시글 필터링
+  const filteredArticles = userFeeds?.boards?.filter((article) => {
+    if (selectedCategoryLabel === '전체') {
+      return true; // 전체는 모든 게시글 포함
+    }
+    // 선택된 카테고리 값들 중 하나와 일치하는 게시글만 필터링
+    return selectedCategoryValues.includes(article.category || '');
+  });
 
   // 카테고리별 게시글 수 계산
   const getCategoryCount = (categoryLabel: string) => {
+    if (!userFeeds?.boards) return 0;
+
     // 전체면 게시글 리스트 길이 반환
     if (categoryLabel === '전체') {
-      return articlesData.length;
+      return userFeeds.boards.length;
     }
-    // 카테고리별 게시글 수 반환
-    return articlesData.filter((article) => article.category === categoryLabel).length;
+
+    // 카테고리 라벨에 해당하는 카테고리 값들 가져오기
+    const categoryValues = categoryLabelToValue[categoryLabel] || [];
+
+    // 해당 카테고리 값들 중 하나와 일치하는 게시글 수 반환
+    return userFeeds.boards.filter((article) => categoryValues.includes(article.category || '')).length;
   };
 
   return (
@@ -169,7 +133,7 @@ export default function PersonSearchDetail() {
       {/* 카테고리 */}
       <div className="flex flex-col gap-4 mt-4">
         <p className="text-aqua-500 h4-b">카테고리</p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3 mb-4">
           {categoriesData.map((category, index) => (
             <Button
               key={index}
@@ -189,23 +153,37 @@ export default function PersonSearchDetail() {
           ))}
         </div>
         <p className="text-aqua-500 h4-b">{categoriesData[activeCategory].label} 게시글</p>
-        <div className="mb-4">
-          <Card>
-            <CardContent className="pt-4">
-              {filteredArticles.map((article, index) => (
-                <ArticleBox
-                  key={index}
-                  imageUrl={article.imageUrl}
-                  title={article.title}
-                  date={article.date}
-                  content={article.content}
-                  likeCount={article.likeCount}
-                  commentCount={article.commentCount}
-                />
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+        {filteredArticles && filteredArticles.length > 0 ? (
+          <div className="mb-4">
+            <Card>
+              <CardContent className="pt-4">
+                {filteredArticles.map((article, index) => (
+                  <ArticleBox
+                    key={index}
+                    feed={article}
+                    imageUrl={article.images?.[0] ?? ''}
+                    title={article.title ?? ''}
+                    date={article.createdAt ?? ''}
+                    content={article.content ?? ''}
+                    likeCount={article.likeCount ?? 0}
+                    commentCount={article.commentCount ?? 0}
+                    category={article.category}
+                  />
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="mb-4">
+            <Card>
+              <CardContent>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <p className="text-gray-300 p2-b text-center">{categoriesData[activeCategory].label} 게시글이 아직 없습니다</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </>
   );

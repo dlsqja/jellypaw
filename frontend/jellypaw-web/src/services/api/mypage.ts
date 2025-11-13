@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios';
-import type { GetProfileResponse, EditProfileRequest } from '@/types/mypage';
+import type { GetProfileResponse, EditProfileRequest, GetMyFeedResponse } from '@/types/mypage';
 
 // 내 프로필 조회
 export const getMyProfile = async (): Promise<GetProfileResponse> => {
@@ -29,4 +29,10 @@ export const editMyProfile = async (data: EditProfileRequest, profileImg?: File 
     },
   });
   return response.data;
+};
+
+// 내 게시글 조회
+export const getMyFeed = async (): Promise<GetMyFeedResponse[]> => {
+  const response = await apiClient.get('board-view/my');
+  return response.data.data ?? [];
 };

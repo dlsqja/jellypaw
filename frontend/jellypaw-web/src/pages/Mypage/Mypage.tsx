@@ -11,6 +11,7 @@ import { FaPaw } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { inApp, sendToApp, webOnlyLogout } from '@/lib/appBridge';
 import { Button } from '@/components/ui/button';
+import { getMyFeed } from '@/services/api/mypage';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -27,6 +28,7 @@ export default function Mypage() {
   const { data: profileData } = useProfile();
   const navigate = useNavigate();
 
+  // 드로어 오픈 시 드로어 표시
   useEffect(() => {
     if (isDrawerOpen) setShowDrawer(true);
     else {
@@ -35,6 +37,7 @@ export default function Mypage() {
     }
   }, [isDrawerOpen]);
 
+  // 로그아웃 확인 모달 표시
   const handleConfirmLogout = () => {
     setConfirmOpen(false);
     setIsDrawerOpen(false);
@@ -47,6 +50,13 @@ export default function Mypage() {
       webOnlyLogout();
     }
   };
+
+  // 내 게시글 조회
+  useEffect(() => {
+    getMyFeed().then((data) => {
+      console.log(data);
+    });
+  }, []);
 
   return (
     <>

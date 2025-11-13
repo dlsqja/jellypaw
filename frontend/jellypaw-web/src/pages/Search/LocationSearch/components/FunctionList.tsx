@@ -12,6 +12,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
+import type { GetProfileResponse } from '@/types/mypage';
 
 // 기능 목록 컴포넌트 속성 인터페이스
 interface FunctionListProps {
@@ -23,14 +24,12 @@ interface FunctionListProps {
   locationTitle?: string;
   // 운영시간 - 예약하기 페이지에서 사용
   openingHours?: string;
+  // 사용자 정보 - 예약하기 버튼 표시 여부 결정
+  user?: GetProfileResponse | null;
 }
 
 // 기능 목록 배열
 const functionList = [
-  {
-    name: '기록하기',
-    icon: <FaEdit />,
-  },
   {
     name: '전화',
     icon: <FaPhone />,
@@ -46,7 +45,7 @@ const functionList = [
 ];
 
 // 기능 목록 컴포넌트
-export default function FunctionList({ phone, locationId, locationTitle, openingHours }: FunctionListProps) {
+export default function FunctionList({ phone, locationId, locationTitle, openingHours, user }: FunctionListProps) {
   const [isPhoneDrawerOpen, setIsPhoneDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -104,8 +103,12 @@ export default function FunctionList({ phone, locationId, locationTitle, opening
               </Drawer>
             );
           }
-          // '예약' 누르면 예약 페이지로 이동
+          // '예약' 누르면 예약 페이지로 이동 - user가 있을 때만 표시
           if (functionItem.name === '예약하기') {
+            // user가 없으면 예약하기 버튼 표시하지 않음
+            if (!user) {
+              return null;
+            }
             return (
               <Button
                 key={functionItem.name}

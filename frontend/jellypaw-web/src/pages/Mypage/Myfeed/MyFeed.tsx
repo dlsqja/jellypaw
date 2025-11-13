@@ -3,19 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ArticleBox from '../components/ArticleBox';
 
-// 카테고리 더미 데이터
 const categoriesData = [
   { label: '전체' },
-  { label: '병원' },
+  { label: '일상' },
   { label: '건강' },
-  { label: '미용' },
-  { label: '카페' },
   { label: '식당' },
   { label: '미용' },
-  { label: '카페' },
+  { label: '음식' },
+  { label: '장난감' },
+  { label: '여행' },
   { label: '기타' },
 ];
-
 // 게시글 더미 데이터
 const articlesData = [
   {

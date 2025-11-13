@@ -1,21 +1,21 @@
 // 게시글 전체 목록 조회 응답
 export interface GetFeedsResponse {
+  id?: number;
   boardUser?: {
     id?: number;
     nickname?: string;
     profileImg?: string | null;
   };
-  category?: string;
-  commentCount?: number;
+  title?: string;
   content?: string;
-  createdAt?: string;
-  id?: number;
-  images?: string[] | null;
-  likeCount?: number;
   placeId?: number | null;
   starRating?: number;
-  title?: string;
+  createdAt?: string;
+  images?: string[] | null;
+  commentCount?: number;
+  likeCount?: number;
   viewCount?: number;
+  category?: string;
   visibility?: string;
 }
 [];
@@ -66,4 +66,9 @@ export interface CancelLikeResponse {
   code: number;
   message: string;
   data: any;
+}
+
+// 특정 사용자의 게시글 조회 응답
+export interface GetUserFeedsResponse {
+  boards?: GetFeedsResponse[];
 }
