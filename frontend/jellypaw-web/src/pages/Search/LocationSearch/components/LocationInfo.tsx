@@ -1,18 +1,16 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { parseWorkingHours, parseWorkingHoursToSlots } from '@/utils/workingHour';
+import { parseWorkingHours } from '@/utils/workingHour';
 import { FiClock } from 'react-icons/fi';
-import { IoDocumentTextOutline } from 'react-icons/io5';
+import type { GetProfileResponse } from '@/types/mypage';
 
 interface LocationInfoProps {
+  user?: GetProfileResponse[];
   openingHours: string;
 }
 
-export default function LocationInfo({ openingHours }: LocationInfoProps) {
+export default function LocationInfo({ user, openingHours }: LocationInfoProps) {
+  // 운영시간 파싱  const parsedWorkingHours = parseWorkingHours(openingHours);
   const parsedWorkingHours = parseWorkingHours(openingHours);
-  console.log('parsedWorkingHours', parsedWorkingHours);
-  const parsedWorkingHoursSlots = parseWorkingHoursToSlots(parsedWorkingHours);
-  console.log('parsedWorkingHoursSlots', parsedWorkingHoursSlots);
-
   return (
     <div className="flex flex-col gap-4">
       <Card className="p-6">
@@ -25,7 +23,6 @@ export default function LocationInfo({ openingHours }: LocationInfoProps) {
         <CardContent>
           <div className="flex flex-col gap-2 mt-4">
             {/* 운영시간 표시 */}
-
             {parsedWorkingHours.length > 0 ? (
               // 요일별 운영시간 표시
               parsedWorkingHours.map((item, index) => (
