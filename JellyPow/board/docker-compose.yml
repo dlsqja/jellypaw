@@ -3,7 +3,7 @@ networks:
     external: true
 
 services:
-  user:
+  board:
     image: dlsqja3436/board
     container_name: board
     env_file:
