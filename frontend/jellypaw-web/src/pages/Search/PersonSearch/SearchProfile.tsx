@@ -29,7 +29,6 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
 
   // 프로필 데이터가 변경될 때 로컬 팔로워 수 동기화
   useEffect(() => {
-    console.log('profileData', profileData);
     setLocalFollowerNum(profileData?.followerNum);
   }, [profileData?.followerNum]);
 

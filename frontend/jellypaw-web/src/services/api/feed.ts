@@ -7,6 +7,7 @@ import type {
   DeleteCommentResponse,
   AddLikeResponse,
   CancelLikeResponse,
+  GetUserFeedsResponse,
 } from '@/types/feed';
 
 interface ApiResponse<T> {
@@ -62,4 +63,8 @@ export const cancelLike = async (boardId: number): Promise<any> => {
   return response.data;
 };
 
-// 내가 좋아요한 게시글 조회회
+// 특정 사용자의 게시글 조회
+export const getUserFeeds = async (nickname: string): Promise<GetUserFeedsResponse> => {
+  const response = await apiClient.get<ApiResponse<GetUserFeedsResponse>>(`/board-view/${nickname}`);
+  return response.data.data;
+};
