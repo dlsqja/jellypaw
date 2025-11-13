@@ -11,27 +11,26 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'KakaoLogin'>;
 export default function KakaoLoginScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
 
-  const buildAuthorizeUrl = (opts?: { prompt?: 'select_account' | 'login' }) =>
+  const buildAuthorizeUrl = (opts?: { prompt?: 'select_account' | 'login' | 'none' }) =>
     `https://kauth.kakao.com/oauth/authorize` +
     `?client_id=${KAKAO_REST_API_KEY}` +
     `&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}` +
     `&response_type=code` +
     (opts?.prompt ? `&prompt=${opts.prompt}` : '');
 
-  // 기본: 원탭 자동 로그인
   const onPressDefault = () => {
-    const authorizeUrl = buildAuthorizeUrl();
-    navigation.navigate('KakaoWebView', { authorizeUrl, incognito: false });
+    const authorizeUrl = buildAuthorizeUrl(); // prompt 없음
+    navigation.navigate('KakaoWebView', { authorizeUrl });
   };
 
-  // 계정 전환: 선택 강제 + incognito
   const onPressOtherAccount = async () => {
     try {
       setLoading(true);
-    } catch {}
-    const authorizeUrl = buildAuthorizeUrl({ prompt: 'select_account' });
-    navigation.navigate('KakaoWebView', { authorizeUrl, incognito: true });
-    setLoading(false);
+      const authorizeUrl = buildAuthorizeUrl({ prompt: 'select_account' });
+      navigation.navigate('KakaoWebView', { authorizeUrl });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,16 +56,14 @@ export default function KakaoLoginScreen({ navigation }: Props) {
           />
         </View>
 
-        {/* 회색 작은 텍스트를 클릭해서 다른 계정 로그인 */}
+        {/* 회색 작은 텍스트 → 계정 선택 강제 */}
         <View style={S.altWrap}>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onPressOtherAccount}
             disabled={loading}
           >
-            <Text style={S.helpText}>
-              다른 카카오 계정으로 로그인
-            </Text>
+            <Text style={S.helpText}>다른 카카오 계정으로 로그인</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -75,7 +72,7 @@ export default function KakaoLoginScreen({ navigation }: Props) {
 }
 
 const S = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FAFAFA' , paddingHorizontal: 16,},
+  root: { flex: 1, backgroundColor: '#FAFAFA', paddingHorizontal: 16 },
   content: { marginTop: 175, alignItems: 'center', width: '100%' },
   ctaWrap: { width: '100%' },
   altWrap: { width: '100%', marginTop: 16, alignItems: 'center' },
