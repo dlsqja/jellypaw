@@ -57,7 +57,6 @@ validImageUris.forEach((uri) => {
 });
 
 
-  // 게시글 작성 요청
   console.log('form', form);
   const response = await apiClient.post<ApiResponse<any>>('/boards', form, {
     headers: { Accept: 'application/json' },
@@ -77,7 +76,6 @@ validImageUris.forEach((uri) => {
     error.config = response.config;
     throw error;
   }
-  // 게시글 작성 응답 반환
   return response.data.data;
 };
 
@@ -92,28 +90,42 @@ export const updateFeed = async (
 
   const form = new FormData();
 
-form.append('boardUpdateRequest', {
-  string: JSON.stringify(boardRequest),
-  type: 'application/json',
-} as any);
+  form.append('boardUpdateRequest', {
+    string: JSON.stringify(boardRequest),
+    type: 'application/json',
+  } as any);
 
- form.append('placeRequest', {
-  name: 'placeRequest.json',
-  type: 'application/json',
-  data: JSON.stringify(placeRequest),
-} as any);
+  if (
+    placeRequest &&
+    (
+      placeRequest.placeCode ||
+      placeRequest.title ||
+      placeRequest.address ||
+      placeRequest.phoneNumber ||
+      (placeRequest.openingHours && placeRequest.openingHours.length > 0) ||
+      placeRequest.link
+    )
+  ) {
+    form.append('placeRequest', {
+      string: JSON.stringify(placeRequest),
+      type: 'application/json',
+    } as any);
+  }
 
   const validImageUris =
-  (newImages || [])
-    .filter((u): u is string => typeof u === 'string')
-    .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
+    (newImages || [])
+      .filter((u): u is string => typeof u === 'string')
+      .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
 
-validImageUris.forEach((uri) => {
-  const name = (uri.split('/').pop() || 'image.jpg').toLowerCase();
-  const type = name.endsWith('.png') ? 'image/png' :
-               name.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
-  form.append('newImages', { uri, name, type } as any);
-});
+  validImageUris.forEach((uri) => {
+    const name = (uri.split('/').pop() || 'image.jpg').toLowerCase();
+    const type =
+      name.endsWith('.png') ? 'image/png'
+      : name.endsWith('.webp') ? 'image/webp'
+      : 'image/jpeg';
+
+    form.append('newImages', { uri, name, type } as any);
+  });
 
   const response = await apiClient.put<ApiResponse<any>>(`/boards/${boardId}`, form, {
     headers: { Accept: 'application/json' },
@@ -121,7 +133,9 @@ validImageUris.forEach((uri) => {
   });
 
   if (response.data?.code && response.data.code !== 200) {
-    const error: any = new Error(`[API] code=${response.data.code} msg=${response.data.message || 'UNKNOWN'}`);
+    const error: any = new Error(
+      `[API] code=${response.data.code} msg=${response.data.message || 'UNKNOWN'}`
+    );
     error.response = { status: response.status, data: response.data };
     error.config = response.config;
     throw error;

@@ -130,6 +130,26 @@ export default function FeedDetail() {
     });
   }, [boardId]);
 
+  // 게시글 수정 시 데이터 다시 가져오기
+  useEffect(() => {
+    const handler = (event: any) => {
+      const updatedId = event.detail?.boardId;
+      if (!boardId) return;
+      if (Number(updatedId) !== Number(boardId)) return;
+
+      console.log('[WEB] FEED_UPDATED for this detail. refetching...');
+      getFeedDetail(Number(boardId)).then((detail) => {
+        console.log('[WEB] getFeedDetail after update', detail);
+        setDetailData(detail);
+      });
+    };
+
+    window.addEventListener('FEED_UPDATED', handler as any);
+    return () => {
+      window.removeEventListener('FEED_UPDATED', handler as any);
+    };
+  }, [boardId]);
+  
   // 댓글 새로고침
   const refreshComments = () => {
     if (!boardId) {
