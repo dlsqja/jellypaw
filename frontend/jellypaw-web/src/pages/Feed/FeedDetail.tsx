@@ -44,7 +44,6 @@ export default function FeedDetail() {
 
     setCurrentSlide(carouselApi.selectedScrollSnap());
     const handler = () => setCurrentSlide(carouselApi.selectedScrollSnap());
-
     carouselApi.on('select', handler);
     return () => {
       carouselApi.off('select', handler);
@@ -218,11 +217,11 @@ export default function FeedDetail() {
             <div className="flex items-center">
               <button type="button" className="h-7 flex items-center gap-1 cursor-pointer ">
                 <Heart className="h-5 w-5 text-pink-300" />
-                <span className="text-aqua-500 p2-b">{detailData?.likeCount || 0}</span>
+                <span className="text-aqua-500 p2-b">{detailData?.likeCount}</span>
               </button>
               <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer ">
                 <MessageCircle className="h-5 w-5 text-gray-600" />
-                <span className="text-aqua-500 p2-b">{detailData?.commentCount || 0}</span>
+                <span className="text-aqua-500 p2-b">{detailData?.commentCount}</span>
               </button>
             </div>
           </div>

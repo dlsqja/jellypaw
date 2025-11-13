@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { FaPaw } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createComment } from '@/services/api/feed';
 import { useParams } from 'react-router-dom';
 
@@ -25,10 +25,18 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { boardId } = useParams();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // 댓글 입력창 컴포넌트 속성 변경 시 댓글 내용 초기화
+  // 댓글 입력창 컴포넌트 속성 변경 시 댓글 내용 초기화 및 포커스
   useEffect(() => {
     setContent('');
+    // parentId가 null이 아닐 때 (대댓글을 입력하려고 할 때) input에 포커스
+    if (parentId !== null) {
+      // 약간의 지연을 두어 DOM 업데이트 후 포커스
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
   }, [parentId]);
 
   // 댓글 내용 변경
@@ -96,6 +104,7 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
           )}
           <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2">
             <Input
+              ref={inputRef}
               value={content}
               onChange={handleCommentChange}
               placeholder={parentId ? '대댓글을 입력하세요...' : '댓글을 입력하세요...'}

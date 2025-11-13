@@ -25,11 +25,9 @@ export const getComments = async (boardId: number): Promise<GetCommentsResponse[
   return response.data.data;
 };
 
-// 댓글 생성
+// 댓글 생성 - parentid가 null이면 댓글, 아니면 대댓글
 export const createComment = async (boardId: number, parent: number | null, content: string): Promise<GetCommentsResponse> => {
-  console.log('boardId:', boardId, 'parent:', parent, 'content:', content);
   const response = await apiClient.post<GetCommentsResponse>(`/comments/${boardId}`, { parent, content });
-  console.log('response:', response.data);
   return response.data;
 };
 
