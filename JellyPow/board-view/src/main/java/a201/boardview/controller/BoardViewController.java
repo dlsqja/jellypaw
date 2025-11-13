@@ -53,9 +53,17 @@ public class BoardViewController {
     }
 
     @GetMapping("/{nickname}")
-    public ApiResponse<BoardSimpleListResponse> getBoardsByNickname(@RequestHeader("X-User-id") long userId ,@PathVariable("nickname") String nickname) {
+    public ApiResponse<BoardSimpleListResponse> getBoardsByNickname(@RequestHeader("X-User-id") Long userId ,@PathVariable("nickname") String nickname) {
 
         List<BoardView> boardViews = boardViewService.getBoardsByNickname(nickname);
+
+        return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
+    }
+
+    @GetMapping("/places/{placeId}")
+    public ApiResponse<BoardSimpleListResponse> getBoardsByPlaceId(@RequestHeader("X-User-id") Long userId ,@PathVariable("placeId") Long placeId) {
+
+        List<BoardView> boardViews = boardViewService.getBoardsByPlaceId(placeId);
 
         return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
     }

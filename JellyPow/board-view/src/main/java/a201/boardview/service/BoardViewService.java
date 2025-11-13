@@ -145,4 +145,9 @@ public class BoardViewService {
 
         return boardViewRepository.findAllByUserId_nickname(nickname);
     }
+
+    public List<BoardView> getBoardsByPlaceId(Long placeId) {
+
+        return boardViewRepository.findAllByPlaceId(placeId);
+    }
 }

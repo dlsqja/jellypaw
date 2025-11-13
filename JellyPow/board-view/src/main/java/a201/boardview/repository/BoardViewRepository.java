@@ -8,4 +8,5 @@ import java.util.List;
 public interface BoardViewRepository extends JpaRepository<BoardView, Long> {
     List<BoardView> findAllByUserId_Id(Long userIdId);
     List<BoardView> findAllByUserId_nickname(String nickname);
+    List<BoardView> findAllByPlaceId(Long placeId);
 }
