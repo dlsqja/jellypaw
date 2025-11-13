@@ -42,6 +42,13 @@ export interface GetCommentsResponse {
   };
 }
 
+// 댓글 생성 응답
+export interface CreateCommentResponse {
+  code: number;
+  message: string;
+  data: GetCommentsResponse[];
+}
+
 // 게시글 삭제 응답
 export interface DeleteFeedResponse {
   code: number;

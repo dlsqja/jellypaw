@@ -311,10 +311,12 @@ export default function FeedDetail() {
           {/* 날짜 및 평점 */}
           <div className="flex items-center gap-2">
             <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(detailData?.createdAt)}</Badge>
-            <Badge variant="pink">
-              <FaStar className="text-pink-300 me-0.5" />
-              {typeof detailData?.starRating === 'number' ? detailData.starRating.toFixed(1) : detailData?.starRating}
-            </Badge>
+            {detailData?.starRating != 0 && (
+              <Badge variant="pink">
+                <FaStar className="text-pink-300 me-0.5" />
+                {typeof detailData?.starRating === 'number' ? detailData.starRating.toFixed(1) : detailData?.starRating}
+              </Badge>
+            )}
           </div>
 
           {/* 장소 정보 */}
