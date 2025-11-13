@@ -11,10 +11,9 @@ const WEB_BASE = (WEB_BASE_URL || 'http://k13a201.p.ssafy.io:3000').replace(/\/+
 
 export default function FeedScreen({ boardId }: Props) {
   const path = boardId ? `/feed/${boardId}` : '/feed';
+  const uri = `${WEB_BASE}${path}`;
 
-  return (
-    <AuthorizedWebView
-      uri={`${WEB_BASE_URL}${path}`}
-    />
-  );
+  console.log('[FeedScreen] boardId =', boardId, 'uri =', uri);
+
+  return <AuthorizedWebView uri={uri} />;
 }
