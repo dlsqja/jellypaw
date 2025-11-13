@@ -20,46 +20,84 @@ interface CommentProps extends GetCommentsResponse {
 
 export default function Comment({ id, userId, content, createdAt, childs, onReply, onEdit, boardId, onDeleteSuccess }: CommentProps) {
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isRepliesVisible, setIsRepliesVisible] = useState(false);
   const { data: myProfile } = useProfile();
 
   const myUserId = myProfile?.userId ?? null;
 
+  // 시간 포맷팅 함수
   const getRelativeTime = (dateString?: string) => {
     if (!dateString) {
       return '';
     }
 
     try {
+      // ISO 8601 형식 파싱 (예: "2025-11-13T15:05:10.285725")
       const createdDate = new Date(dateString);
       const now = new Date();
-      const diffMs = now.getTime() - createdDate.getTime();
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
+      // 유효한 날짜인지 확인
+      if (isNaN(createdDate.getTime())) {
+        return dateString;
+      }
+
+      // 시간 차이 계산 (밀리초)
+      const diffMs = now.getTime() - createdDate.getTime();
+
+      // 미래 시간이거나 음수인 경우 처리
+      if (diffMs < 0) {
+        return '방금 전';
+      }
+
+      // 초 단위
+      const diffSeconds = Math.floor(diffMs / 1000);
+      if (diffSeconds < 60) {
+        return '방금 전';
+      }
+
+      // 분 단위
+      const diffMinutes = Math.floor(diffSeconds / 60);
       if (diffMinutes < 60) {
         return `${diffMinutes}분 전`;
       }
 
+      // 시간 단위
       const diffHours = Math.floor(diffMinutes / 60);
-      const isToday =
-        createdDate.getFullYear() === now.getFullYear() && createdDate.getMonth() === now.getMonth() && createdDate.getDate() === now.getDate();
-
-      if (isToday && diffHours < 24) {
+      if (diffHours < 24) {
         return `${diffHours}시간 전`;
       }
 
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      if (diffDays < 1) {
-        return '오늘';
+      // 일 단위
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 7) {
+        return `${diffDays}일 전`;
       }
 
-      return `${diffDays}일 전`;
+      // 주 단위
+      const diffWeeks = Math.floor(diffDays / 7);
+      if (diffWeeks < 4) {
+        return `${diffWeeks}주 전`;
+      }
+
+      // 월 단위
+      const diffMonths = Math.floor(diffDays / 30);
+      if (diffMonths < 12) {
+        return `${diffMonths}개월 전`;
+      }
+
+      // 년 단위
+      const diffYears = Math.floor(diffDays / 365);
+      return `${diffYears}년 전`;
     } catch (error) {
+      console.error('시간 포맷팅 오류:', error);
       return dateString;
     }
   };
 
+  // 댓글 작성 시간 포맷팅
   const formattedCreatedAt = getRelativeTime(createdAt);
 
+  // 댓글 소유자 확인
   const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
 
   // 댓글 수정 함수 - 준비중
@@ -103,7 +141,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
           </div>
         )}
         {/* 댓글 내용 */}
-        <div className="w-full flex flex-col justify-start items-start gap-1.5">
+        <div className="w-full flex flex-col justify-start items-start gap-1.5 ">
           {/* 댓글 내용 컨테이너 */}
           <div className="w-full bg-aqua-100 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
             <div className="flex justify-between items-center">
@@ -149,9 +187,17 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
               </button>
             </div>
           </div>
-          {/* 대댓글 자리 */}
+          {/* 대댓글 보기/접기 버튼 */}
           {Array.isArray(childs) && childs.length > 0 && (
-            <div className="mt-3 flex flex-col gap-2 pl-4 w-full">
+            <div className="w-full flex items-center justify-start gap-2">
+              <button type="button" className="ml-4 text-gray-300 p3-b cursor-pointer" onClick={() => setIsRepliesVisible(!isRepliesVisible)}>
+                {isRepliesVisible ? '답글 접기' : `${childs.length}개 답글 보기 `}
+              </button>
+            </div>
+          )}
+          {/* 대댓글 자리 */}
+          {Array.isArray(childs) && childs.length > 0 && isRepliesVisible && (
+            <div className="mt-3 flex flex-col gap-3 pl-4 w-full ">
               {childs.map((child) => {
                 const childTime = getRelativeTime(child.createdAt);
                 return (
@@ -163,7 +209,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
                         <FaPaw className="w-8 h-8 text-aqua-300" />
                       </div>
                     )}
-                    <div className="flex-1 bg-gray-200 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                    <div className="flex-1 bg-gray-200/40 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                       <div className="flex justify-between items-center">
                         <div className="text-aqua-500 p2-b">{child.userId.nickname}</div>
                         <div className="text-gray-300 p3">{childTime}</div>

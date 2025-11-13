@@ -107,7 +107,7 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
               ref={inputRef}
               value={content}
               onChange={handleCommentChange}
-              placeholder={parentId ? '대댓글을 입력하세요...' : '댓글을 입력하세요...'}
+              placeholder={parentId ? '답글을 입력하세요...' : '댓글을 입력하세요...'}
               className="h-8 flex-1 border-0 bg-transparent px-0 py-0 p2-b text-aqua-500 placeholder:text-gray-300 placeholder:p2-b focus-visible:ring-0"
             />
             <Button tone="aqua" shape="pillSolid" size="sm" onClick={handleCommentSubmit} disabled={isSubmitting || !content.trim()}>
