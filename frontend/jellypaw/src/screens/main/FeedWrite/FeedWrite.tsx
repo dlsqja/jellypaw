@@ -41,7 +41,8 @@ export default function FeedWrite({ route, navigation }: Props) {
   const pendingLocationRef = useRef<string | null>(null);
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState<string>(categoryValue || '');
-const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
+  const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
+  const [originalServerImages, setOriginalServerImages] = useState<string[]>([]);
 
 
   // 이미지 선택 핸들러 - 카메라 촬영
@@ -180,6 +181,7 @@ const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
       setTitle(data.title);
       setContent(data.content);
       setRating(data.starRating || 0);
+      setOriginalServerImages(data.images || []);
       setImages((data.images || []).map((url) => `${VITE_IMAGE_BASE_URL}${url}`));
       setCategory(data.category || categoryValue || '');
       setInitialPlaceId(data.placeId ?? null);
@@ -201,29 +203,43 @@ const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
 
 
   const handleSubmit = async () => {
-    if (isSubmitting) return;
-    if (!title.trim() || !content.trim()) return;
+  if (isSubmitting) return;
+  if (!title.trim() || !content.trim()) return;
 
-    try {
-      setIsSubmitting(true);
+  try {
+    setIsSubmitting(true);
 
-      const imageUris = images
-  .filter((u): u is string => typeof u === 'string')
-  .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
+    // 🔹 1) 현재 화면에 남아있는 서버 이미지들 (풀 URL → 상대 경로)
+    const currentServerImagePaths = images
+      .filter((u): u is string => typeof u === 'string')
+      .filter((u) => u.startsWith(VITE_IMAGE_BASE_URL))
+      .map((fullUrl) => fullUrl.replace(VITE_IMAGE_BASE_URL, ''));
 
+    // 🔹 2) 새로 추가된 로컬 이미지들만 업로드 대상
+    const newLocalImageUris = images
+      .filter((u): u is string => typeof u === 'string')
+      .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
 
-      const boardRequest: FeedWriteRequest = {
-        category,
-        title: title.trim(),
-        content: content.trim(),
-        placeId: mode === 'edit' ? initialPlaceId : null,
-        starRating: rating,
-        visibility: 'PRIVATE',
-      };
+    // 🔹 3) 삭제할 이미지들 = 처음 서버에 있던 것들 - 지금 남아 있는 것들
+    const removeImageUrls =
+      mode === 'edit'
+        ? originalServerImages.filter((orig) => !currentServerImagePaths.includes(orig))
+        : [];
 
-      const hasSelectedGooglePlace = !!selectedPlace?.place_id;
+    const boardRequest: FeedWriteRequest = {
+      category,
+      title: title.trim(),
+      content: content.trim(),
+      placeId: mode === 'edit' ? initialPlaceId : null,
+      starRating: rating,
+      visibility: 'PRIVATE',
+      // 백엔드 BoardUpdateRequest.removeImages 와 매칭
+      removeImages: removeImageUrls.length > 0 ? removeImageUrls : undefined,
+    };
 
-      const placeRequest: FeedWritePlaceRequest = hasSelectedGooglePlace
+    const hasSelectedGooglePlace = !!selectedPlace?.place_id;
+
+    const placeRequest: FeedWritePlaceRequest = hasSelectedGooglePlace
       ? {
           placeCode: selectedPlace?.place_id || '',
           title: selectedPlace?.name || '',
@@ -234,38 +250,39 @@ const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
         }
       : {};
 
-      
-      if (mode === 'edit' && boardId) {
-        await updateFeed(boardId, {
-          ...boardRequest,
-          newImages: imageUris,
-          placeRequest,
-        });
+    if (mode === 'edit' && boardId) {
+      await updateFeed(boardId, {
+        ...boardRequest,
+        newImages: newLocalImageUris,
+        placeRequest,
+      });
 
-        // 🔹 웹 피드 새로고침 요청 이벤트
-        DeviceEventEmitter.emit('FEED_UPDATED', { boardId });
+      DeviceEventEmitter.emit('FEED_UPDATED', { boardId });
 
-        Alert.alert('완료', '게시글이 수정되었습니다.', [
-          { text: '확인', onPress: () => navigation.goBack() },
-        ]);
-      } else {
-        await createFeed({
-          ...boardRequest,
-          newImages: imageUris,
-          placeRequest,
-        });
+      Alert.alert('완료', '게시글이 수정되었습니다.', [
+        { text: '확인', onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      // create 모드는 removeImages 필요 없음. newLocalImageUris만 사용
+      await createFeed({
+        ...boardRequest,
+        newImages: newLocalImageUris,
+        placeRequest,
+      });
 
-        Alert.alert('성공', '게시글이 작성되었습니다.', [
-          { text: '확인', onPress: () => navigation.goBack() },
-        ]);
-      }
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert('오류', error?.message || '요청 처리에 실패했습니다.');
-    } finally {
-      setIsSubmitting(false);
+      Alert.alert('성공', '게시글이 작성되었습니다.', [
+        { text: '확인', onPress: () => navigation.goBack() },
+      ]);
     }
-  };
+  } catch (error: any) {
+    console.error(error);
+    Alert.alert('오류', error?.message || '요청 처리에 실패했습니다.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
   return (
     <>
       <View style={styles.container}>

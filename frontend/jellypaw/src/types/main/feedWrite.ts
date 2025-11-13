@@ -21,6 +21,7 @@ export interface FeedWriteRequest {
   placeId: number | null;
   starRating: number;
   visibility: string;
+  removeImages?: string[];
 }
 
 export interface FeedWritePlaceRequest {
