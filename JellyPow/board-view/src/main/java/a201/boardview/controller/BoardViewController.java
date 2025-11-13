@@ -43,4 +43,12 @@ public class BoardViewController {
 
         return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardList));
     }
+
+    @GetMapping("/my")
+    public ApiResponse<BoardSimpleListResponse> getMyBoards(@RequestHeader("X-User-id")Long userId) {
+
+        List<BoardView> boardViews = boardViewService.getMyBoards(userId);
+
+        return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
+    }
 }

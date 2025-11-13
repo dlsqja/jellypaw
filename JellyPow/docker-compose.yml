@@ -9,31 +9,32 @@ services:
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
-    networks:
-      - msa-net
+#    networks:
+#      - msa-net
 
   kafka:
     image: apache/kafka:3.8.1
     container_name: kafka
     environment:
       TZ: Asia/Seoul
-      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
-      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:29093"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
+      #로컬 테스트 시 주석
+#      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
+#      KAFKA_PROCESS_ROLES: "broker,controller"
+#      KAFKA_NODE_ID: 1
+#      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+#      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:29093"
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+#      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+#      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      # 여기까지
     ports:
       - "9092:9092"
-    networks:
-      - msa-net
+#    networks:
+#      - msa-net
 
   mongo:
     image: mongo:8
@@ -44,8 +45,8 @@ services:
       - "127.0.0.1:27017:27017"
     volumes:
       - ./mongo-data:/data/db
-    networks:
-      - msa-net # ✅ 추가
+#    networks:
+#      - msa-net # ✅ 추가
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -60,8 +61,8 @@ services:
       - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - msa-net
+#    networks:
+#      - msa-net
     entrypoint:
       - bash
       - -c
@@ -100,6 +101,6 @@ volumes:
   elasticsearch_data:
   redis_data:
 
-networks:
-  msa-net:
-    external: true
+#networks:
+#  msa-net:
+#    external: true

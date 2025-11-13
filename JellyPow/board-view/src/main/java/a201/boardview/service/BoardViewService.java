@@ -134,4 +134,10 @@ public class BoardViewService {
 
         return boardPage.getContent();
     }
+
+    public List<BoardView> getMyBoards(Long userId) {
+
+
+        return boardViewRepository.findAllByUserId_Id(userId);
+    }
 }
