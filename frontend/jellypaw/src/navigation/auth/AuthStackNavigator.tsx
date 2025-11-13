@@ -8,7 +8,7 @@ import AuthLayout from '../../layouts/AuthLayout';
 import KakaoWebViewScreen from '../../screens/auth/KakaoWebViewScreen';
 export type AuthStackParamList = {
   KakaoLogin: undefined;
-  KakaoWebView: { authorizeUrl: string };
+  KakaoWebView: { authorizeUrl: string; incognito?: boolean };
   LoginBridge: { code: string };
   SignupWebView: { authId: number; email: string } | undefined;
 };

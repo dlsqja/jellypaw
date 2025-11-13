@@ -24,7 +24,7 @@ export default function AuthLayout({
         {
           backgroundColor,
           paddingTop: insets.top,
-          paddingHorizontal: 16,
+
         },
         style,
       ]}
