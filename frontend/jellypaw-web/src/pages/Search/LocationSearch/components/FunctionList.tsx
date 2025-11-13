@@ -25,7 +25,7 @@ interface FunctionListProps {
   // 운영시간 - 예약하기 페이지에서 사용
   openingHours?: string;
   // 사용자 정보 - 예약하기 버튼 표시 여부 결정
-  user?: GetProfileResponse[];
+  user?: GetProfileResponse | null;
 }
 
 // 기능 목록 배열
@@ -110,7 +110,7 @@ export default function FunctionList({ phone, locationId, locationTitle, opening
           // '예약' 누르면 예약 페이지로 이동 - user가 있을 때만 표시
           if (functionItem.name === '예약하기') {
             // user가 없으면 예약하기 버튼 표시하지 않음
-            if (!user || user.length === 0) {
+            if (!user) {
               return null;
             }
             return (

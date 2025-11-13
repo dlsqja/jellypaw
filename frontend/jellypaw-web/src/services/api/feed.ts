@@ -39,12 +39,6 @@ export const createComment = async (boardId: number, parent: number | null, cont
   return response.data;
 };
 
-// 게시글 수정
-// export const updateFeed = async (post_id: number, data: any): Promise<any> => {
-//   const response = await apiClient.patch<any>(`/boards/${post_id}`, data);
-//   return response.data;
-// };
-
 // 게시글 삭제
 export const deleteFeed = async (boardId: number): Promise<any> => {
   const response = await apiClient.delete<ApiResponse<DeleteFeedResponse>>(`/boards/${boardId}`);

@@ -51,6 +51,6 @@ export interface SearchPlacesDetailResponse {
   postCount?: number;
   starRating?: number;
   title?: string;
-  user: GetProfileResponse[];
+  user?: GetProfileResponse | null;
   userid: number;
 }

@@ -66,10 +66,7 @@ export default function LocationSearchDetail() {
         {/* 장소 프로필 , 기능 목록, 기본 정보, 인증직원(존재할 때만)*/}
         <LocationProfile {...locationData} />
         {/* 운영시간, 소개 글 */}
-        <LocationInfo
-          {...(locationData.user && locationData.user.length > 0 ? { user: locationData.user } : {})}
-          openingHours={locationData.openingHours || ''}
-        />
+        <LocationInfo openingHours={locationData.openingHours || ''} />
       </div>
     </>
   );

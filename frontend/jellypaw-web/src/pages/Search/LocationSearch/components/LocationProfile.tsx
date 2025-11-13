@@ -9,6 +9,8 @@ import { SlLocationPin } from 'react-icons/sl';
 import { TbWorld } from 'react-icons/tb';
 import { MdOutlinePhone } from 'react-icons/md';
 import type { SearchPlacesDetailResponse } from '@/types/search';
+import { BsPersonFillCheck } from 'react-icons/bs';
+import { useNavigate } from 'react-router-dom';
 
 export default function LocationProfile({
   id,
@@ -21,6 +23,15 @@ export default function LocationProfile({
   openingHours,
   user,
 }: SearchPlacesDetailResponse) {
+  const navigate = useNavigate();
+
+  // 사용자 프로필 상세 페이지로 이동
+  const handleUserProfileClick = () => {
+    if (user?.userId) {
+      navigate(`/search/person/${user.userId}`);
+    }
+  };
+
   return (
     <>
       {/* 가게 기본 프로필 */}
@@ -52,7 +63,6 @@ export default function LocationProfile({
         openingHours={openingHours}
         user={user}
       />
-
       {/* 기본 정보 카드 */}
       <Card className="p-6">
         <CardHeader>
@@ -90,8 +100,8 @@ export default function LocationProfile({
           </div>
         </CardContent>
       </Card>
-      {/* 인증 직원 카드 - 있을 때만 보이기
-      {CertifiedStaffs.length > 0 && (
+      {/* 인증 직원 카드 - 있을 때만 보이기 */}
+      {user ? (
         <Card className="p-6">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -101,19 +111,16 @@ export default function LocationProfile({
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3 mt-4">
-              {CertifiedStaffs.map((staff, index) => (
-                <CertifiedStaffProfile
-                  key={index}
-                  name={staff.name}
-                  specialties={staff.specialties}
-                  experience={staff.experience}
-                  profileImageUrl={staff.profileImageUrl}
-                />
-              ))}
+              <CertifiedStaffProfile
+                name={user.nickname || ''}
+                profileImageUrl={user.profileImg || ''}
+                description={user.description || ''}
+                onClick={handleUserProfileClick}
+              />
             </div>
           </CardContent>
         </Card>
-      )} */}
+      ) : null}
     </>
   );
 }

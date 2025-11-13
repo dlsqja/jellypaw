@@ -1,14 +1,12 @@
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { parseWorkingHours } from '@/utils/workingHour';
 import { FiClock } from 'react-icons/fi';
-import type { GetProfileResponse } from '@/types/mypage';
 
 interface LocationInfoProps {
-  user?: GetProfileResponse[];
   openingHours: string;
 }
 
-export default function LocationInfo({ user, openingHours }: LocationInfoProps) {
+export default function LocationInfo({ openingHours }: LocationInfoProps) {
   // 운영시간 파싱  const parsedWorkingHours = parseWorkingHours(openingHours);
   const parsedWorkingHours = parseWorkingHours(openingHours);
   return (
