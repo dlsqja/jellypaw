@@ -1,3 +1,5 @@
+import type { SearchPlacesDetailResponse } from './search';
+
 // 게시글 전체 목록 조회 응답
 export interface GetFeedsResponse {
   id?: number;
@@ -71,4 +73,8 @@ export interface CancelLikeResponse {
 // 특정 사용자의 게시글 조회 응답
 export interface GetUserFeedsResponse {
   boards?: GetFeedsResponse[];
+}
+
+export interface BoardWithPlaceResponse extends GetFeedDetailResponse {
+  place?: SearchPlacesDetailResponse | null;
 }

@@ -1,23 +1,41 @@
+// src/ui/components/Input.tsx
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, TextInputProps } from 'react-native';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+  StyleProp,
+  TextStyle,
+} from 'react-native';
 import { Text } from './Text';
 
 type Props = {
   label?: string;
   errorText?: string;
+  helperText?: string;
+  helperTextStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
 } & TextInputProps;
 
 export default function Input({
   label,
   errorText,
+  helperText,
+  helperTextStyle,
   style,
   editable = true,
+  containerStyle,
   ...rest
 }: Props) {
   const [focused, setFocused] = useState(false);
 
+  const showError = !!errorText;
+  const showHelper = !showError && !!helperText;
+
   return (
-    <View style={{ width: '100%', marginBottom: 20 }}>
+    <View style={[{ width: '100%', marginBottom: 20 }, containerStyle]}>
       {label ? <Text style={S.label}>{label}</Text> : null}
 
       <View
@@ -44,7 +62,10 @@ export default function Input({
         />
       </View>
 
-      {errorText ? <Text style={S.error}>{errorText}</Text> : null}
+      {showError && <Text style={S.error}>{errorText}</Text>}
+      {showHelper && (
+        <Text style={[S.helper, helperTextStyle]}>{helperText}</Text>
+      )}
     </View>
   );
 }
@@ -78,6 +99,12 @@ const S = StyleSheet.create({
   error: {
     marginTop: 6,
     color: '#e85555',
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+  },
+  helper: {
+    marginTop: 6,
+    color: '#999999',
     fontSize: 12,
     fontFamily: 'Pretendard-Regular',
   },

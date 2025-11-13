@@ -97,11 +97,11 @@ form.append('boardUpdateRequest', {
   type: 'application/json',
 } as any);
 
-//  form.append('placeRequest', {
-//   name: 'placeRequest.json',
-//   type: 'application/json',
-//   data: JSON.stringify(placeRequest),
-// } as any);
+ form.append('placeRequest', {
+  name: 'placeRequest.json',
+  type: 'application/json',
+  data: JSON.stringify(placeRequest),
+} as any);
 
   const validImageUris =
   (newImages || [])

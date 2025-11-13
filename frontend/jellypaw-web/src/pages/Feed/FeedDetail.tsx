@@ -341,43 +341,78 @@ export default function FeedDetail() {
                 shape="pillSolid"
                 size="default"
                 onClick={async (event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(false);
+  event.stopPropagation();
+  setIsActionModalOpen(false);
 
-                  if (!detailData?.id) {
-                    debugToRN('EDIT_CLICK_NO_ID', {});
-                    return;
-                  }
+  if (!detailData) {
+    debugToRN('EDIT_CLICK_NO_DETAIL', {});
+    alert('게시글 정보를 찾을 수 없습니다.');
+    return;
+  }
 
-                  try {
-                    debugToRN('EDIT_FLOW_START', { id: detailData.id });
+  try {
+    debugToRN('EDIT_FLOW_START', { id: detailData.id });
 
-                    const detail = await getFeedDetail(Number(detailData.id));
-                    debugToRN('EDIT_FLOW_DETAIL_OK', {
-                      id: detail?.id,
-                      title: detail?.title,
-                      hasImages: Array.isArray(detail?.images),
-                    });
+    const payload = {
+  id: detailData.id,
+  boardUser: detailData.boardUser,
+  title: detailData.title,
+  content: detailData.content,
+  placeId: detailData.placeId ?? null,
+  starRating: detailData.starRating ?? 0,
+  createdAt: detailData.createdAt ?? '',
+  images: detailData.images ?? [],
+  commentCount: detailData.commentCount ?? 0,
+  likeCount: detailData.likeCount ?? 0,
+  viewCount: detailData.viewCount ?? 0,
+  category: detailData.category ?? null,
+  visibility: detailData.visibility ?? null,
 
-                    await saveBoardToRedis(detail);
-                    debugToRN('EDIT_FLOW_REDIS_OK', {});
+  // 🔹 여기부터 place 매핑 (백엔드 PlaceResponse 기준)
+  place: placeDetail
+    ? {
+        id: placeDetail.id ?? undefined,
+        title: placeDetail.title ?? '',
+        address: placeDetail.address ?? '',
+        openingHours: placeDetail.openingHours ?? '',
+        phoneNumber: placeDetail.phoneNumber ?? '',
+        link: placeDetail.link ?? '',
+        userId: placeDetail.userid ?? undefined,
+        starRating: placeDetail.starRating ?? undefined,
+        postCount: placeDetail.postCount ?? undefined,
+        user: placeDetail.user ?? undefined
+      }
+    : null,
+};
 
-                    if ((window as any).ReactNativeWebView) {
-                      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
-                      debugToRN('EDIT_FLOW_POSTMSG', { msg });
-                      (window as any).ReactNativeWebView.postMessage(msg);
-                    } else {
-                      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
-                    }
-                  } catch (e: any) {
-                    debugToRN('EDIT_FLOW_ERROR', {
-                      message: e?.message,
-                      status: e?.response?.status,
-                      data: e?.response?.data,
-                    });
-                    alert('수정 정보를 준비하는 데 실패했습니다.');
-                  }
-                }}
+
+    debugToRN('EDIT_FLOW_DETAIL_OK', {
+      id: payload.id,
+      title: payload.title,
+      hasImages: Array.isArray(payload.images),
+    });
+
+    await saveBoardToRedis(payload);
+    debugToRN('EDIT_FLOW_REDIS_OK', {});
+
+    if ((window as any).ReactNativeWebView) {
+      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
+      debugToRN('EDIT_FLOW_POSTMSG', { msg });
+      (window as any).ReactNativeWebView.postMessage(msg);
+    } else {
+      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
+    }
+  } catch (e: any) {
+    debugToRN('EDIT_FLOW_ERROR', {
+      message: e?.message,
+      status: e?.response?.status,
+      data: e?.response?.data,
+    });
+    alert('수정 정보를 준비하는 데 실패했습니다.');
+  }
+}}
+
+
               >
                 게시글 수정하기
               </Button>

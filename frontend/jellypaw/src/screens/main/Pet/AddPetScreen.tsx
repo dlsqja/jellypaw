@@ -226,7 +226,6 @@ export default function AddPetScreen() {
             <Button
               title="저장하기"
               shape="pillSolid"
-              size="lg"
               tone="aqua"
               onPress={onSave}
             />
@@ -243,7 +242,6 @@ const S = StyleSheet.create({
   },
   sectionWrap: {
     overflow: 'visible',
-    paddingHorizontal: 20,
   },
   sectionTitle: {
     fontSize: 20,

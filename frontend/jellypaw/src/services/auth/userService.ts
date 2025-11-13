@@ -40,3 +40,11 @@ export async function getEmailByAuthId(authId: number): Promise<string> {
   const res = await apiClient.get(`/public/get-email/${authId}`);
   return res.data.data as string;
 }
+
+export async function checkNicknameDuplicate(nickname: string): Promise<boolean> {
+  const res = await apiClient.get<ApiResponse<boolean>>(
+    '/public/check-nickname',
+    { params: { nickname } },
+  );
+  return res.data.data;
+}
