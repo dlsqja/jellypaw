@@ -1,6 +1,6 @@
 // FeedWrite.tsx
 import React, { useState, useRef } from 'react';
-import { View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Platform, Alert, Modal, Pressable } from 'react-native';
+import { DeviceEventEmitter, View, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image, Platform, Alert, Modal, Pressable } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -40,6 +40,9 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
   const insets = useSafeAreaInsets();
+  const [category, setCategory] = useState<string>(categoryValue || '');
+const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
+
 
   // 이미지 선택 핸들러 - 카메라 촬영
   const handleTakePhoto = () => {
@@ -178,17 +181,11 @@ export default function FeedWrite({ route, navigation }: Props) {
       setContent(data.content);
       setRating(data.starRating || 0);
       setImages((data.images || []).map((url) => `${VITE_IMAGE_BASE_URL}${url}`));
+      setCategory(data.category || categoryValue || '');
+      setInitialPlaceId(data.placeId ?? null);
 
       if (data.place) {
         setLocation(data.place.title || '');
-        setSelectedPlace({
-          place_id: data.place.placeCode || '',
-          name: data.place.title || '',
-          address: data.place.address || '',
-          phone_number: data.place.phoneNumber || '',
-          website: data.place.link || '',
-          opening_hours: { weekday_text: data.place.openingHours || [] },
-        });
       }
     } catch (e: any) {
       console.log('[FeedWrite] getRedisBoard failed', {
@@ -216,31 +213,37 @@ export default function FeedWrite({ route, navigation }: Props) {
 
 
       const boardRequest: FeedWriteRequest = {
-        category: categoryValue || '',
+        category,
         title: title.trim(),
         content: content.trim(),
-        placeId: null,
-        // create/edit 모두 null로 보냄 (백엔드가 null이면 기존 값 유지)
+        placeId: mode === 'edit' ? initialPlaceId : null,
         starRating: rating,
         visibility: 'PRIVATE',
       };
 
+      const hasSelectedGooglePlace = !!selectedPlace?.place_id;
 
-      const placeRequest: FeedWritePlaceRequest = {
-        placeCode: selectedPlace?.place_id || '',
-        title: selectedPlace?.name || '',
-        address: selectedPlace?.address || '',
-        phoneNumber: selectedPlace?.phone_number || '',
-        openingHours: selectedPlace?.opening_hours?.weekday_text || [],
-        link: selectedPlace?.website || '',
-      };
+      const placeRequest: FeedWritePlaceRequest = hasSelectedGooglePlace
+      ? {
+          placeCode: selectedPlace?.place_id || '',
+          title: selectedPlace?.name || '',
+          address: selectedPlace?.address || '',
+          phoneNumber: selectedPlace?.phone_number || '',
+          openingHours: selectedPlace?.opening_hours?.weekday_text || [],
+          link: selectedPlace?.website || '',
+        }
+      : {};
 
+      
       if (mode === 'edit' && boardId) {
         await updateFeed(boardId, {
           ...boardRequest,
           newImages: imageUris,
           placeRequest,
         });
+
+        // 🔹 웹 피드 새로고침 요청 이벤트
+        DeviceEventEmitter.emit('FEED_UPDATED', { boardId });
 
         Alert.alert('완료', '게시글이 수정되었습니다.', [
           { text: '확인', onPress: () => navigation.goBack() },

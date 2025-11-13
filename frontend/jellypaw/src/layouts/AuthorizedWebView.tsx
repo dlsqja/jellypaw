@@ -5,6 +5,7 @@ import { getAccessToken, clearTokens } from '../lib/tokenStorage';
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { DeviceEventEmitter } from 'react-native';
 
 type Props = WebViewProps & { uri: string };
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
@@ -25,6 +26,33 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
       }
     })();
   }, []);
+
+useEffect(() => {
+  const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
+    console.log('[AuthorizedWebView] FEED_UPDATED', payload);
+
+    const boardId = payload?.boardId;
+    if (!boardId) return;
+
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
+          window.dispatchEvent(event);
+          console.log('[WEB] FEED_UPDATED event dispatched for boardId=${boardId}');
+        } catch (e) {
+          console.log('[WEB] FEED_UPDATED dispatch error', e);
+        }
+      })();
+      true;
+    `);
+  });
+
+  return () => {
+    sub.remove();
+  };
+}, []);
+
 
   const injectedJavaScript = useMemo(
     () => `
