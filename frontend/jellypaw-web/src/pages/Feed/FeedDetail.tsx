@@ -190,8 +190,6 @@ export default function FeedDetail() {
     };
   }, [boardId]);
 
-<<<<<<< Updated upstream
-=======
 
   useEffect(() => {
   if (detailData || !boardId) return;
@@ -214,7 +212,6 @@ export default function FeedDetail() {
   })();
 }, [detailData, boardId]);
 
->>>>>>> Stashed changes
   // 댓글 새로고침
   const refreshComments = () => {
     if (!boardId) {
