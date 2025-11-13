@@ -161,20 +161,20 @@ export default function Article({
         }}
       >
         {/* 프로필 헤더 */}
-        <CardHeader className="p-4 gap-4">
+        <CardHeader className="p-4 gap-2">
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
                 {/* 프로필 사진*/}
                 {boardUser?.profileImg ? (
                   <img
-                    className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300"
+                    className="w-10 h-10 rounded-full object-cover border-2 "
                     src={`${IMAGE_BASE_URL}${boardUser.profileImg}`}
                     alt={boardUser.nickname}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
-                    <FaPaw className="w-10 h-10 text-aqua-300" />
+                  <div className="w-10 h-10 rounded-full p-1.5 border-2  flex justify-center items-center">
+                    <FaPaw className="w-10 h-10 text-gray-300" />
                   </div>
                 )}
                 <div className="ml-3 flex flex-col">
@@ -190,31 +190,31 @@ export default function Article({
           <CardContent>
             <div className="flex flex-col gap-4">
               {/* 제목, 평점, 날짜 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1">
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center">
-                    <IconText
-                      icon={
-                        category === 'DAILY'
-                          ? IoCalendarClear
-                          : category === 'HEALTH'
-                          ? IoHeart
-                          : category === 'DINING'
-                          ? IoRestaurant
-                          : category === 'BEAUTY'
-                          ? IoCut
-                          : category === 'FOOD'
-                          ? IoFastFood
-                          : category === 'TOY'
-                          ? IoGameController
-                          : category === 'TRAVEL'
-                          ? IoLocation
-                          : IoEllipsisHorizontalCircleSharp
-                      }
-                      label={title}
-                      size="md"
-                      textStyle="h6-b"
-                    />
+                  <div className="flex items-center gap-1.5">
+                    {/* 카테고리 아이콘 버튼 */}
+
+                    {category === 'DAILY' ? (
+                      <IoCalendarClear className="w-4 h-4 text-pink-300" />
+                    ) : category === 'HEALTH' ? (
+                      <IoHeart className="w-4 h-4 text-pink-300" />
+                    ) : category === 'DINING' ? (
+                      <IoRestaurant className="w-4 h-4 text-pink-300" />
+                    ) : category === 'BEAUTY' ? (
+                      <IoCut className="w-4 h-4 text-pink-300" />
+                    ) : category === 'FOOD' ? (
+                      <IoFastFood className="w-4 h-4 text-pink-300" />
+                    ) : category === 'TOY' ? (
+                      <IoGameController className="w-4 h-4 text-pink-300" />
+                    ) : category === 'TRAVEL' ? (
+                      <IoLocation className="w-4 h-4 text-pink-300" />
+                    ) : (
+                      <IoEllipsisHorizontalCircleSharp className="w-6 h-6 text-pink-300" />
+                    )}
+
+                    {/* 제목 */}
+                    <p className="text-aqua-500 h6-b flex-1">{title}</p>
                   </div>
                 </div>
 
@@ -227,8 +227,8 @@ export default function Article({
               {/* 대표 이미지 (첫 번째 이미지) */}
               {images && images.length > 0 && (
                 <div className="w-full">
-                  <div className="w-77 h-64 relative rounded-[12px] overflow-hidden">
-                    <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
+                  <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
+                    <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
                   </div>
                 </div>
               )}

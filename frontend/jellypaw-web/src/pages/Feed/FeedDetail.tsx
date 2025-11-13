@@ -5,7 +5,7 @@ import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
 import { getFeedDetail, getComments, deleteFeed } from '@/services/api/feed';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 import { FaPaw } from 'react-icons/fa';
@@ -176,7 +176,7 @@ export default function FeedDetail() {
 
       {/* 프로필 헤더 */}
       <Card className="rounded-none shadow-none border-none bg-gray-100 ">
-        <CardHeader className="pt-4 pb-2">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-3">
             {/* 프로필 이미지 */}
             {/* 클릭 시 프로필 페이지로 이동 */}
@@ -237,9 +237,9 @@ export default function FeedDetail() {
 
           {/* 장소 정보 */}
           {detailData?.placeId && placeDetail?.title && (
-            <div className="flex items-center gap-2">
-              <IoLocation className="h-4 w-4 text-gray-600" />
-              <span className="text-aqua-500 p3-b">{placeDetail.title}</span>
+            <div className="flex items-center gap-1">
+              <IoLocation className="h-3 w-3 text-aqua-600" />
+              <span className="text-aqua-600 p3-b">{placeDetail.title}</span>
             </div>
           )}
 
@@ -247,7 +247,7 @@ export default function FeedDetail() {
           {detailData?.images && detailData.images.length > 0 ? (
             // 이미지가 1개면 이미지 표시
             detailData.images.length === 1 ? (
-              <div className="w-full h-96 relative rounded-[12px] overflow-hidden">
+              <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
                 <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${detailData.images[0]}`} alt="게시글 이미지" />
               </div>
             ) : (
@@ -256,7 +256,7 @@ export default function FeedDetail() {
                 <CarouselContent>
                   {detailData.images.map((image, index) => (
                     <CarouselItem key={image ?? index}>
-                      <div className="w-full h-96 relative rounded-[12px] overflow-hidden">
+                      <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
                         <img
                           className="w-full h-full rounded-[12px] object-cover"
                           src={`${IMAGE_BASE_URL}${image}`}
@@ -278,11 +278,9 @@ export default function FeedDetail() {
           ) : null}
 
           {/* 본문 */}
-          <div className="flex justify-between items-center">
-            <p className="text-aqua-500 h4-b">
-              {detailData?.title}
-              <span className="text-aqua-500 h6 ml-2">{detailData?.content}</span>
-            </p>
+          <div className="flex flex-col">
+            <p className="text-aqua-500 p1-b flex-shrink-0">{detailData?.title}</p>
+            <span className="text-aqua-500 p2">{detailData?.content}</span>
           </div>
 
           {/* 액션 버튼들 */}
