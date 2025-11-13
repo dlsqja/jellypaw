@@ -73,7 +73,7 @@ export default function Feed() {
     <>
       <Header title="피드" />
       {/* 팔로워 목록 */}
-      <div className="flex overflow-x-auto gap-4 w-full h-[95px] items-center scrollbar-hide">
+      <div className="flex overflow-x-auto gap-4 w-full h-[100px] items-center scrollbar-hide">
         {/* 전체 */}
         <div className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer" onClick={() => handleProfileClick(null)}>
           <div
