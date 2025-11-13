@@ -51,13 +51,6 @@ export default function Mypage() {
     }
   };
 
-  // 내 게시글 조회
-  useEffect(() => {
-    getMyFeed().then((data) => {
-      console.log(data);
-    });
-  }, []);
-
   return (
     <>
       <div className="relative">

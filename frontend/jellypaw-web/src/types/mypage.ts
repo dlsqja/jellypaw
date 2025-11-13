@@ -25,25 +25,23 @@ export interface EditProfileImageRequest {
 }
 
 export interface GetMyFeedResponse {
-  boards: [
-    {
+  boards: {
+    id: number;
+    boardUser: {
       id: number;
-      boardUser: {
-        id: number;
-        nickname: string;
-        profileImg: string;
-      };
-      title: string;
-      content: string;
-      placeId: number;
-      starRating: number;
-      createdAt: string;
-      images: string[];
-      commentCount: number;
-      likeCount: number;
-      viewCount: number;
-      category: string;
-      visibility: string;
-    },
-  ];
+      nickname: string;
+      profileImg: string | null;
+    };
+    title: string;
+    content: string;
+    placeId: number | null;
+    starRating: number;
+    createdAt: string;
+    images: string[] | null;
+    commentCount: number;
+    likeCount: number;
+    viewCount: number;
+    category: string;
+    visibility: string;
+  }[];
 }

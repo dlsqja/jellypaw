@@ -106,7 +106,7 @@ export default function Feed() {
       </div>
 
       {/* 게시글 목록 */}
-      <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
+      <div className="flex flex-col items-center  w-full mt-4 scrollbar-hide">
         {filteredFeeds.length > 0 ? (
           filteredFeeds.map((feed, index) => <Article key={index} {...feed} />)
         ) : activeProfileId !== null ? (

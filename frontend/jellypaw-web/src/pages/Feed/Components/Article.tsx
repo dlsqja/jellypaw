@@ -33,37 +33,70 @@ const formatDate = (dateString?: string): string => {
 
 // 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
 const formatRelativeTime = (dateString?: string): string => {
-  if (!dateString) return '';
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  if (!dateString) {
+    return '';
+  }
 
+  try {
+    // ISO 8601 형식 파싱 (예: "2025-11-13T15:05:10.285725")
+    const createdDate = new Date(dateString);
+    const now = new Date();
+
+    // 유효한 날짜인지 확인
+    if (isNaN(createdDate.getTime())) {
+      return dateString;
+    }
+
+    // 시간 차이 계산 (밀리초)
+    const diffMs = now.getTime() - createdDate.getTime();
+
+    // 미래 시간이거나 음수인 경우 처리
+    if (diffMs < 0) {
+      return '방금 전';
+    }
+
+    // 초 단위
+    const diffSeconds = Math.floor(diffMs / 1000);
+    if (diffSeconds < 60) {
+      return '방금 전';
+    }
+
+    // 분 단위
+    const diffMinutes = Math.floor(diffSeconds / 60);
     if (diffMinutes < 60) {
       return `${diffMinutes}분 전`;
     }
-    const diffHours = Math.floor(diffMinutes / 60);
-    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
 
-    if (isToday && diffHours < 24) {
+    // 시간 단위
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) {
       return `${diffHours}시간 전`;
     }
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffDays < 1) {
-      return '오늘';
-    } else if (diffDays < 30) {
+
+    // 일 단위
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) {
       return `${diffDays}일 전`;
-    } else if (diffDays < 365) {
-      const diffMonths = Math.floor(diffDays / 30);
-      return `${diffMonths}개월 전`;
-    } else {
-      const diffYears = Math.floor(diffDays / 365);
-      return `${diffYears}년 전`;
     }
+
+    // 주 단위
+    const diffWeeks = Math.floor(diffDays / 7);
+    if (diffWeeks < 4) {
+      return `${diffWeeks}주 전`;
+    }
+
+    // 월 단위
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) {
+      return `${diffMonths}개월 전`;
+    }
+
+    // 년 단위
+    const diffYears = Math.floor(diffDays / 365);
+    return `${diffYears}년 전`;
   } catch (error) {
-    console.error('날짜 파싱 오류:', error);
-    return formatDate(dateString);
+    console.error('시간 포맷팅 오류:', error);
+    return dateString;
   }
 };
 
@@ -176,7 +209,7 @@ export default function Article({
                     alt={boardUser.nickname}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full p-1.5 border-2  flex justify-center items-center">
+                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-gray-300 flex justify-center items-center">
                     <FaPaw className="w-10 h-10 text-gray-300" />
                   </div>
                 )}

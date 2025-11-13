@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import BackHeader from '@/components/headers/BackHeader';
 import SearchProfile from './SearchProfile';
 import { Button } from '@/components/ui/button';
@@ -64,10 +64,19 @@ export default function PersonSearchDetail() {
 
   // 해당 사용자의 게시글 조회
   useEffect(() => {
-    getUserFeeds(targetProfileData?.nickname ?? '').then((response) => {
-      console.log('response', response);
-      setUserFeeds(response);
-    });
+    if (!targetProfileData?.nickname) {
+      return;
+    }
+
+    getUserFeeds(targetProfileData.nickname)
+      .then((response) => {
+        console.log('response', response);
+        setUserFeeds(response);
+      })
+      .catch((error) => {
+        console.error('게시글 조회 실패:', error);
+        setUserFeeds(null);
+      });
   }, [targetProfileData?.nickname]);
 
   // 프로필 갱신 함수 (백그라운드 갱신용 - 로딩 상태 표시 안 함)
@@ -95,14 +104,27 @@ export default function PersonSearchDetail() {
   const selectedCategoryLabel = categoriesData[activeCategory].label;
   const selectedCategoryValues = categoryLabelToValue[selectedCategoryLabel] || [];
 
-  // 카테고리별 게시글 필터링
-  const filteredArticles = userFeeds?.boards?.filter((article) => {
-    if (selectedCategoryLabel === '전체') {
-      return true; // 전체는 모든 게시글 포함
+  // 카테고리별 게시글 필터링 (useMemo로 최적화)
+  const filteredArticles = useMemo(() => {
+    if (!userFeeds?.boards) {
+      return [];
     }
+
+    if (selectedCategoryLabel === '전체') {
+      return userFeeds.boards; // 전체는 모든 게시글 포함
+    }
+
     // 선택된 카테고리 값들 중 하나와 일치하는 게시글만 필터링
-    return selectedCategoryValues.includes(article.category || '');
-  });
+    const filtered = userFeeds.boards.filter((article) => {
+      const articleCategory = article.category || '';
+      const isMatch = selectedCategoryValues.includes(articleCategory);
+      if (!isMatch) {
+      }
+      return isMatch;
+    });
+
+    return filtered;
+  }, [userFeeds?.boards, selectedCategoryLabel, selectedCategoryValues]);
 
   // 카테고리별 게시글 수 계산
   const getCategoryCount = (categoryLabel: string) => {

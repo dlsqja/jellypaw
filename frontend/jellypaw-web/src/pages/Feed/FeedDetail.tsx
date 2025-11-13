@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
-import { getFeedDetail, getComments, deleteFeed } from '@/services/api/feed';
+import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike } from '@/services/api/feed';
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
@@ -41,23 +41,65 @@ export default function FeedDetail() {
   const [placeDetail, setPlaceDetail] = useState<SearchPlacesDetailResponse | null>(null);
   // 모달 상태
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  // 좋아요 상태
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(detailData?.likeCount ?? 0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   // 게시글 소유자 확인
   const isOwner = profileData?.userId === detailData?.boardUser?.id;
 
-  // 전달된 게시글 데이터가 있으면 그대로 사용, 없으면 백업으로 상세 조회
+  // 좋아요 개수 초기화
+  useEffect(() => {
+    setCurrentLikeCount(detailData?.likeCount ?? 0);
+  }, [detailData?.likeCount]);
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async () => {
+    const boardId = detailData?.id;
+    // id가 없거나 좋아요 로딩 중이면 좋아요 토글 안 함
+    if (!boardId || isLikeLoading) return;
+
+    // 이전 좋아요 상태와 좋아요 개수 저장
+    const previousIsLiked = isLiked;
+    const previousLikeCount = currentLikeCount;
+
+    // 좋아요 상태 업데이트
+    setIsLiked(!previousIsLiked);
+    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
+
+    // 좋아요 로딩 상태 업데이트
+    setIsLikeLoading(true);
+
+    // 좋아요 처리
+    try {
+      // 이전 좋아요 상태가 true면 좋아요 취소, false면 좋아요 추가
+      if (previousIsLiked) {
+        await cancelLike(Number(boardId));
+        console.log('좋아요 취소되었습니다.');
+      } else {
+        await addLike(Number(boardId));
+        console.log('좋아요 추가되었습니다.');
+      }
+      // 성공 시 detailData도 업데이트
+      setDetailData((prev) => (prev ? { ...prev, likeCount: previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1 } : null));
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+      // 에러 발생 시 롤백
+      setIsLiked(previousIsLiked);
+      setCurrentLikeCount(previousLikeCount);
+      alert('좋아요 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLikeLoading(false);
+    }
+  };
+
+  // state로 받아온 게시글 정보 저장
   useEffect(() => {
     if (feedFromState) {
       setDetailData(feedFromState);
-      console.log('feedFromState:', feedFromState);
-    } else if (boardId) {
-      getFeedDetail(Number(boardId)).then((detail) => {
-        console.log('getFeedDetail API 응답:', detail);
-        console.log('getFeedDetail API 응답 placeId:', detail?.placeId);
-        setDetailData(detail);
-      });
     }
-  }, [feedFromState, boardId]);
+  }, [feedFromState]);
 
   // 장소 정보 조회
   useEffect(() => {
@@ -67,31 +109,14 @@ export default function FeedDetail() {
       return;
     }
 
-    console.log('장소 정보 조회 시작 (placeId):', placeId);
     searchPlacesDetail(Number(placeId))
       .then((placeDetail) => {
-        console.log('장소 정보 조회 성공:', placeDetail);
         setPlaceDetail(placeDetail);
       })
       .catch((error) => {
-        console.error('장소 정보 조회 실패:', error);
         setPlaceDetail(null);
       });
   }, [detailData?.placeId]);
-
-  useEffect(() => {
-    if (!carouselApi) return;
-    if ((detailData?.images?.length ?? 0) <= 1) {
-      return;
-    }
-
-    setCurrentSlide(carouselApi.selectedScrollSnap());
-    const handler = () => setCurrentSlide(carouselApi.selectedScrollSnap());
-    carouselApi.on('select', handler);
-    return () => {
-      carouselApi.off('select', handler);
-    };
-  }, [carouselApi]);
 
   // 댓글 조회
   useEffect(() => {
@@ -100,7 +125,6 @@ export default function FeedDetail() {
     }
 
     getComments(Number(boardId)).then((comments) => {
-      console.log('comments', comments);
       setComments(comments);
       setReplyTargetId(null);
     });
@@ -137,10 +161,70 @@ export default function FeedDetail() {
     });
   };
 
+  // 댓글 작성 성공 시 댓글 리스트 업데이트
+  const handleCommentSubmitSuccess = (newComment: GetCommentsResponse | GetCommentsResponse[]) => {
+    if (!newComment) return;
+
+    // API는 GetCommentsResponse[] 배열을 반환
+    let comments: GetCommentsResponse[] = [];
+
+    if (Array.isArray(newComment)) {
+      // 배열인 경우 직접 사용
+      comments = newComment;
+    } else {
+      // 단일 객체인 경우 배열로 변환
+      comments = [newComment];
+    }
+
+    if (comments.length === 0) return;
+    const comment = comments[0];
+    if (!comment || !comment.id) return;
+
+    // 대댓글인 경우 (parentId가 있음)
+    if (replyTargetId) {
+      setComments((prevComments) =>
+        prevComments.map((prevComment) => {
+          if (prevComment.id === replyTargetId) {
+            // 해당 댓글의 childs 배열에 새 대댓글 추가
+            return {
+              ...prevComment,
+              childs: [...(prevComment.childs || []), comment],
+            };
+          }
+          return prevComment;
+        }),
+      );
+      // 댓글 수 증가
+      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
+    } else {
+      // 일반 댓글인 경우 최상위에 추가
+      setComments((prevComments) => [comment, ...prevComments]);
+      // 댓글 수 증가
+      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
+    }
+    // 답글 대상 초기화
+    setReplyTargetId(null);
+  };
+
   // 답글 선택
   const handleReplySelect = (commentId: number | null) => {
     setReplyTargetId((prev) => (prev === commentId ? null : commentId));
   };
+
+  // 캐러셀 슬라이드 제어
+  useEffect(() => {
+    if (!carouselApi) return;
+    if ((detailData?.images?.length ?? 0) <= 1) {
+      return;
+    }
+
+    setCurrentSlide(carouselApi.selectedScrollSnap());
+    const handler = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+    carouselApi.on('select', handler);
+    return () => {
+      carouselApi.off('select', handler);
+    };
+  }, [carouselApi]);
 
   // 날짜 포맷팅 함수 (YY.MM.DD 형식)
   const formatDate = (dateString?: string): string => {
@@ -192,7 +276,6 @@ export default function FeedDetail() {
   return (
     <>
       <BackHeader title="게시글" />
-
       {/* 프로필 헤더 */}
       <Card className="rounded-none shadow-none border-none bg-gray-100 ">
         <CardHeader className="pb-2">
@@ -215,8 +298,8 @@ export default function FeedDetail() {
                   alt={detailData?.boardUser?.nickname}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
-                  <FaPaw className="w-12 h-12 text-aqua-300" />
+                <div className="w-12 h-12 rounded-full p-1.5 border-2 border-gray-300 flex justify-center items-center">
+                  <FaPaw className="w-12 h-12 text-gray-300" />
                 </div>
               )}
               {/* 프로필 이름 및 게시글 생성 시간 */}
@@ -248,10 +331,12 @@ export default function FeedDetail() {
           {/* 날짜 및 평점 */}
           <div className="flex items-center gap-2">
             <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(detailData?.createdAt)}</Badge>
-            <Badge variant="pink">
-              <FaStar className="text-pink-300 me-0.5" />
-              {typeof detailData?.starRating === 'number' ? detailData.starRating.toFixed(1) : detailData?.starRating}
-            </Badge>
+            {detailData?.starRating != 0 && (
+              <Badge variant="pink">
+                <FaStar className="text-pink-300 me-0.5" />
+                {typeof detailData?.starRating === 'number' ? detailData.starRating.toFixed(1) : detailData?.starRating}
+              </Badge>
+            )}
           </div>
 
           {/* 장소 정보 */}
@@ -305,9 +390,9 @@ export default function FeedDetail() {
           {/* 액션 버튼들 */}
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <button type="button" className="h-7 flex items-center gap-1 cursor-pointer ">
-                <Heart className="h-5 w-5 text-pink-300" />
-                <span className="text-aqua-500 p2-b">{detailData?.likeCount}</span>
+              <button type="button" className="h-7 flex items-center gap-1 cursor-pointer" onClick={handleLikeToggle} disabled={isLikeLoading}>
+                <Heart className={`h-5 w-5 ${isLiked ? 'text-pink-300 fill-pink-300' : 'text-pink-300'}`} />
+                <span className="text-aqua-500 p2-b">{currentLikeCount}</span>
               </button>
               <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer ">
                 <MessageCircle className="h-5 w-5 text-gray-600" />
@@ -317,7 +402,7 @@ export default function FeedDetail() {
           </div>
 
           {/* 댓글 */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 mb-4">
             {comments
               .filter((comment): comment is GetCommentsResponse => !!comment && !!comment.userId)
               .map((comment) => (
@@ -330,7 +415,7 @@ export default function FeedDetail() {
               ))}
           </div>
           {/* 댓글 입력창 */}
-          <CommentInput parentId={replyTargetId} onSubmitSuccess={refreshComments} onCancelReply={() => setReplyTargetId(null)} />
+          <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} />
         </CardContent>
       </Card>
 

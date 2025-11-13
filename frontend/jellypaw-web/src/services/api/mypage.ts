@@ -32,7 +32,7 @@ export const editMyProfile = async (data: EditProfileRequest, profileImg?: File 
 };
 
 // 내 게시글 조회
-export const getMyFeed = async (): Promise<GetMyFeedResponse[]> => {
+export const getMyFeed = async (): Promise<GetMyFeedResponse> => {
   const response = await apiClient.get('board-view/my');
-  return response.data.data ?? [];
+  return response.data.data;
 };
