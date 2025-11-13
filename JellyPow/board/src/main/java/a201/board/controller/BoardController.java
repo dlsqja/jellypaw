@@ -59,10 +59,11 @@ public class BoardController {
     public ApiResponse<Void> update(@RequestHeader("X-User-Id") Long userId,
                                     @PathVariable Long boardId,
                                     @RequestPart("boardUpdateRequest") BoardUpdateRequest boardUpdateRequest,
+									@RequestPart(value = "placeRequest", required = false) PlaceCreateRequest placeRequest,
                                     @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
 
         boardUpdateRequest.setNewImages(newImages);
-        boardService.updatePost(userId,boardId,boardUpdateRequest);
+        boardService.updatePost(userId,boardId,boardUpdateRequest, placeRequest);
 
         return ApiResponse.success(null);
     }
