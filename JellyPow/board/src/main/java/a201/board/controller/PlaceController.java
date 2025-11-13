@@ -8,6 +8,8 @@ import a201.board.data.request.PlaceUpdateRequest;
 import a201.board.data.response.PlaceResponse;
 import a201.board.data.response.PlaceSearchResponse;
 import a201.board.service.PlaceService;
+import a201.common.client.UserClient;
+import a201.common.client.dto.UserResponseDto;
 import a201.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ import java.util.stream.Collectors;
 public class PlaceController {
 
     private final PlaceService placeService;
-
+	private final UserClient userClient;
 	// Place 생성
 	@Operation(summary = "Place 생성", description = "Place를 생성합니다.")
     @PostMapping
@@ -33,7 +35,13 @@ public class PlaceController {
 	@Operation(summary = "Place 조회", description = "Place를 조회합니다.")
     @GetMapping("/{placeId}")
     public ApiResponse<PlaceResponse> getPlaceByCode(@PathVariable Long placeId) {
-        return ApiResponse.success(PlaceResponse.from(placeService.getPlaceById(placeId)));
+		Place place = placeService.getPlaceById(placeId);
+		PlaceResponse placeResponse = PlaceResponse.from(place);
+		if (place.getUserId() != null) {
+			UserResponseDto user = userClient.getUser(place.getUserId());
+			placeResponse.setUser(user);
+		}
+        return ApiResponse.success(placeResponse);
     }
 
 	// Place 수정

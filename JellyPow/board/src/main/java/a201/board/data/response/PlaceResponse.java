@@ -1,11 +1,14 @@
 package a201.board.data.response;
 
 import a201.board.data.entity.Place;
+import a201.common.client.dto.UserResponseDto;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
+@Setter
 @Builder
 public class PlaceResponse {
 
@@ -15,7 +18,7 @@ public class PlaceResponse {
     private String openingHours;
     private String phoneNumber;
     private String link;
-    private Long userId;
+	private UserResponseDto user;
     private BigDecimal starRating;
     private Long postCount;
 
@@ -27,7 +30,6 @@ public class PlaceResponse {
 				.openingHours(place.getOpeningHours())
 				.phoneNumber(place.getPhoneNumber())
 				.link(place.getLink())
-				.userId(place.getUserId())
 				.starRating(place.getStarRating())
 				.postCount(place.getPostCount())
 				.build();

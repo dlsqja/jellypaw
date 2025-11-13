@@ -57,8 +57,7 @@ public class UserController {
 
 	@Operation(summary = "유저 상세 조회", description = "특정 사용자의 프로필 정보를 조회합니다.")
 	@GetMapping("/{targetUserId}")
-	public ApiResponse<UserDetailResponse> getUser(@RequestHeader("X-User-Id") Long userId,
-		@PathVariable Long targetUserId) {
+	public ApiResponse<UserDetailResponse> getUser(@PathVariable Long targetUserId) {
 		try {
 			User user = userService.getUserById(targetUserId);
 			UserDetailResponse response = UserDetailResponse.from(user);
