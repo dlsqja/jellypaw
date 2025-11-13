@@ -13,7 +13,7 @@ export const getRedisBoard = async (): Promise<RedisBoardResponse | null> => {
       code: res.data?.code,
       message: res.data?.message,
       hasData: !!res.data?.data,
-      boardId: res.data?.data?.boardId,
+      boardId: res.data?.data?.id,
     });
 
     return res.data.data ?? null;

@@ -8,7 +8,7 @@ export interface RedisPlace {
 }
 
 export interface RedisBoardResponse {
-  boardId: number;
+  id: number;
   title: string;
   content: string;
   images: string[];

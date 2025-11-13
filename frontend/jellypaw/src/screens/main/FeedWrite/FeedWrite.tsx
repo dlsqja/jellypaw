@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import { PermissionsAndroid } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
@@ -173,7 +173,7 @@ export default function FeedWrite({ route, navigation }: Props) {
         return;
       }
 
-      setBoardId(data.boardId);
+      setBoardId(data.id);
       setTitle(data.title);
       setContent(data.content);
       setRating(data.starRating || 0);
@@ -210,18 +210,21 @@ export default function FeedWrite({ route, navigation }: Props) {
     try {
       setIsSubmitting(true);
 
-      const imageUris = images.filter(
-        (uri): uri is string => typeof uri === 'string',
-      );
+      const imageUris = images
+  .filter((u): u is string => typeof u === 'string')
+  .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
+
 
       const boardRequest: FeedWriteRequest = {
         category: categoryValue || '',
         title: title.trim(),
         content: content.trim(),
-        placeId: selectedPlace?.place_id || '',
+        placeId: null,
+        // create/edit 모두 null로 보냄 (백엔드가 null이면 기존 값 유지)
         starRating: rating,
         visibility: 'PRIVATE',
       };
+
 
       const placeRequest: FeedWritePlaceRequest = {
         placeCode: selectedPlace?.place_id || '',

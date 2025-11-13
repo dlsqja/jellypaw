@@ -25,29 +25,37 @@ export const createFeed = async (
   const { newImages, placeRequest, ...boardRequest } = params;
 
   // FormData 생성
-  const form = new FormData();
+ const form = new FormData();
 
-  // boardRequest를 JSON 문자열로 변환하여 FormData에 추가
-  const json = JSON.stringify(boardRequest);
-  form.append('boardRequest', { string: json, type: 'application/json' } as any);
-  // placeRequest를 JSON 문자열로 변환하여 FormData에 추가
-  const jsonPlace = JSON.stringify(placeRequest);
-  form.append('placeRequest', { string: jsonPlace, type: 'application/json' } as any);
+form.append('boardRequest', {
+  string: JSON.stringify(boardRequest),
+  type: 'application/json',
+} as any);
 
-  // newImages 배열에 이미지 파일 추가
-  const validImageUris = newImages?.filter((uri): uri is string => typeof uri === 'string') || [];
+if (placeRequest && (
+  placeRequest.placeCode || placeRequest.title || placeRequest.address ||
+  placeRequest.phoneNumber || (placeRequest.openingHours && placeRequest.openingHours.length) || placeRequest.link
+)) {
+  form.append('placeRequest', {
+    string: JSON.stringify(placeRequest),
+    type: 'application/json',
+  } as any);
+}
 
-  // 이미지 파일이 있는 경우 배열에 추가
-  if (validImageUris.length > 0) {
-    // 이미지 파일 배열에 추가
-    validImageUris.forEach((uri) => {
-      const filename = (uri.split('/').pop() || 'image.jpg').trim().toLowerCase();
-      const type = filename.endsWith('.png') ? 'image/png' : filename.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
 
-      // 이미지 파일 추가
-      form.append('newImages', { uri, name: filename, type } as any);
-    });
-  }
+// 로컬 파일만 업로드
+const validImageUris =
+  (newImages || [])
+    .filter((u): u is string => typeof u === 'string')
+    .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
+
+validImageUris.forEach((uri) => {
+  const name = (uri.split('/').pop() || 'image.jpg').toLowerCase();
+  const type = name.endsWith('.png') ? 'image/png' :
+               name.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+  form.append('newImages', { uri, name, type } as any);
+});
+
 
   // 게시글 작성 요청
   console.log('form', form);
@@ -84,25 +92,28 @@ export const updateFeed = async (
 
   const form = new FormData();
 
-  form.append('boardRequest', {
-    string: JSON.stringify(boardRequest),
-    type: 'application/json',
-  } as any);
+form.append('boardUpdateRequest', {
+  string: JSON.stringify(boardRequest),
+  type: 'application/json',
+} as any);
 
-  form.append('placeRequest', {
-    string: JSON.stringify(placeRequest),
-    type: 'application/json',
-  } as any);
+//  form.append('placeRequest', {
+//   name: 'placeRequest.json',
+//   type: 'application/json',
+//   data: JSON.stringify(placeRequest),
+// } as any);
 
-  const validImageUris = newImages?.filter((uri): uri is string => typeof uri === 'string') || [];
-  validImageUris.forEach((uri) => {
-    const filename = (uri.split('/').pop() || 'image.jpg').trim().toLowerCase();
-    const type =
-      filename.endsWith('.png') ? 'image/png' :
-      filename.endsWith('.webp') ? 'image/webp' :
-      'image/jpeg';
-    form.append('newImages', { uri, name: filename, type } as any);
-  });
+  const validImageUris =
+  (newImages || [])
+    .filter((u): u is string => typeof u === 'string')
+    .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
+
+validImageUris.forEach((uri) => {
+  const name = (uri.split('/').pop() || 'image.jpg').toLowerCase();
+  const type = name.endsWith('.png') ? 'image/png' :
+               name.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
+  form.append('newImages', { uri, name, type } as any);
+});
 
   const response = await apiClient.put<ApiResponse<any>>(`/boards/${boardId}`, form, {
     headers: { Accept: 'application/json' },

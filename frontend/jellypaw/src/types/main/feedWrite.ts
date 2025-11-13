@@ -18,10 +18,9 @@ export interface FeedWriteRequest {
   category: string;
   title: string;
   content: string;
-  placeId: string;
+  placeId: number | null;
   starRating: number;
   visibility: string;
-  // newImages: string[]; // multi-part
 }
 
 export interface FeedWritePlaceRequest {
