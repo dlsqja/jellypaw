@@ -27,7 +27,7 @@ public class UserClient {
             log.info("User 서버 API 호출: userId={}", userId);
             
             ApiResponse<UserResponseDto> apiResponse = this.restClient.get()
-                    .uri("/api/users/{userId}", userId)
+                    .uri("/api/users/backend/{userId}", userId)
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response1) -> {
                         log.warn("User 서버 4xx 에러: userId={}, status={}", userId, response1.getStatusCode());
