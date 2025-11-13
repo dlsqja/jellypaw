@@ -12,13 +12,24 @@ import shutil
 # 1. FastAPI 애플리케이션 초기화
 app = FastAPI(title="AI Analysis Service", version="1.0")
 
+# CORS 미들웨어 추가 (프론트엔드에서 직접 호출 시 필요)
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 프로덕션에서는 특정 도메인만 허용 (예: ["https://yourdomain.com"])
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # 2. 설정 변수
 # Dockerfile의 WORKDIR /app과 일치해야 함.
 BASE_DIR = "/app" 
 # 임시 이미지 파일을 저장할 디렉토리 (컨테이너 내부)
 TEMP_UPLOAD_DIR = os.path.join(BASE_DIR, "temp_images") 
 # AI 스크립트의 경로 (Dockerfile의 COPY 경로와 일치해야 함)
-AI_SCRIPT_PATH = os.path.join(BASE_DIR, "analyze_corrected.py")
+AI_SCRIPT_PATH = os.path.join(BASE_DIR, "analyze_corrected_improved.py")
 # Python 인터프리터 경로 (컨테이너 내부에 설치된 Python)
 PYTHON_EXECUTABLE = shutil.which("python")
 

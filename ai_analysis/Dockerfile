@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY yolo_model/analyze_corrected_improved.py /app/ 
 COPY yolo_model/weights /app/weights/ 
 COPY yolo_model/digital_reference_colors_hex.json /app/
+COPY yolo_model/urine_test_with_diseases.json /app/
 COPY api_server.py /app/
 
 # 8. 포트 노출
