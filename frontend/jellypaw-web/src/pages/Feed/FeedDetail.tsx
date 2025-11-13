@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
-import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike } from '@/services/api/feed';
+import { getFeeds, getComments, deleteFeed, addLike, cancelLike } from '@/services/api/feed';
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
@@ -131,24 +131,35 @@ export default function FeedDetail() {
   }, [boardId]);
 
   // 게시글 수정 시 데이터 다시 가져오기
-  useEffect(() => {
-    const handler = (event: any) => {
-      const updatedId = event.detail?.boardId;
-      if (!boardId) return;
-      if (Number(updatedId) !== Number(boardId)) return;
+useEffect(() => {
+  const handler = (event: any) => {
+    const updatedId = event.detail?.boardId;
+    if (!boardId) return;
+    if (Number(updatedId) !== Number(boardId)) return;
 
-      console.log('[WEB] FEED_UPDATED for this detail. refetching...');
-      getFeedDetail(Number(boardId)).then((detail) => {
-        console.log('[WEB] getFeedDetail after update', detail);
-        setDetailData(detail);
+    console.log('[WEB] FEED_UPDATED for this detail. refetching from list...');
+
+    getFeeds()
+      .then((feeds) => {
+        const updated = feeds.find((feed) => feed.id === Number(boardId));
+        if (!updated) {
+          console.log('[WEB] updated feed not found in list');
+          return;
+        }
+
+        setDetailData(updated as GetFeedDetailResponse);
+      })
+      .catch((error) => {
+        console.error('[WEB] getFeeds after FEED_UPDATED failed', error);
       });
-    };
+  };
 
-    window.addEventListener('FEED_UPDATED', handler as any);
-    return () => {
-      window.removeEventListener('FEED_UPDATED', handler as any);
-    };
-  }, [boardId]);
+  window.addEventListener('FEED_UPDATED', handler as any);
+  return () => {
+    window.removeEventListener('FEED_UPDATED', handler as any);
+  };
+}, [boardId]);
+
   
   // 댓글 새로고침
   const refreshComments = () => {
