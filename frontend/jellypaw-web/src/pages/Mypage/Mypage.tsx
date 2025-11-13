@@ -53,13 +53,7 @@ export default function Mypage() {
       <div className="relative">
         <div className="flex items-center justify-between">
           <Header title="내 공간" />
-          <IoSettingsOutline
-            size={20}
-            color="#284542"
-            className="cursor-pointer"
-            onClick={() => setIsDrawerOpen(true)}
-            aria-label="설정 열기"
-          />
+          <IoSettingsOutline size={20} color="#284542" className="cursor-pointer" onClick={() => setIsDrawerOpen(true)} aria-label="설정 열기" />
         </div>
 
         <div className="inline-flex flex-col gap-6">
@@ -72,9 +66,7 @@ export default function Mypage() {
         {/* overlay */}
         {showDrawer && (
           <div
-            className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${
-              isDrawerOpen ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${isDrawerOpen ? 'opacity-100' : 'opacity-0'}`}
             onClick={() => setIsDrawerOpen(false)}
           />
         )}
@@ -92,7 +84,9 @@ export default function Mypage() {
             aria-labelledby="mypage-settings-title"
           >
             <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-              <h2 id="mypage-settings-title" className="text-aqua-500 h5-b">설정</h2>
+              <h2 id="mypage-settings-title" className="text-aqua-500 h5-b">
+                설정
+              </h2>
               <button type="button" onClick={() => setIsDrawerOpen(false)} aria-label="설정 닫기">
                 <IoClose size={20} className="text-gray-400 hover:text-gray-500" />
               </button>
@@ -115,23 +109,8 @@ export default function Mypage() {
             </div>
 
             <div className="flex flex-col gap-4 py-4 justify-center items-center">
-              <button
-                type="button"
-                className="text-left text-aqua-500 p2-b"
-                onClick={() => {
-                  setIsDrawerOpen(false);
-                  setTimeout(() => navigate('/mypage/verify'), 300);
-                }}
-              >
-                인증 받기
-              </button>
-
               {/* 로그아웃 → 모달 오픈 */}
-              <button
-                type="button"
-                className="text-left text-red-500 p2-b"
-                onClick={() => setConfirmOpen(true)}
-              >
+              <button type="button" className="text-left text-red-500 p2-b" onClick={() => setConfirmOpen(true)}>
                 로그아웃
               </button>
 
@@ -151,26 +130,14 @@ export default function Mypage() {
             <p className="h6-b text-gray-900 mb-2">로그아웃 하시겠어요?</p>
             <p className="p2 text-gray-500 mb-4">현재 계정에서 로그아웃됩니다.</p>
             <div className="flex gap-2">
-  <Button
-    shape="pillOutline"
-    tone="lightAqua"
-    className="flex-1 h-11"
-    onClick={() => setConfirmOpen(false)}
-  >
-    취소
-  </Button>
+              <Button shape="pillOutline" tone="lightAqua" className="flex-1 h-11" onClick={() => setConfirmOpen(false)}>
+                취소
+              </Button>
 
-  <Button
-    shape="pillOutline"
-    tone="red"
-    borderTone="pink"
-    className="flex-1 h-11"
-    onClick={handleConfirmLogout}
-  >
-    로그아웃
-  </Button>
-</div>
-
+              <Button shape="pillOutline" tone="red" borderTone="pink" className="flex-1 h-11" onClick={handleConfirmLogout}>
+                로그아웃
+              </Button>
+            </div>
           </div>
         </>
       )}
