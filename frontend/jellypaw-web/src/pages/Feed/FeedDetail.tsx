@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
-import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike } from '@/services/api/feed';
+import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike, getLikedFeeds } from '@/services/api/feed';
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
@@ -26,6 +26,7 @@ export default function FeedDetail() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const feedFromState = (location.state as { feed?: GetFeedDetailResponse } | undefined)?.feed ?? null;
+  const likeInfoFromState = (location.state as { isLiked?: boolean; currentLikeCount?: number } | undefined) ?? null;
 
   // 게시글에서 가져온 데이터
   const [detailData, setDetailData] = useState<GetFeedDetailResponse | null>(feedFromState);
@@ -42,8 +43,8 @@ export default function FeedDetail() {
   // 모달 상태
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   // 좋아요 상태
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentLikeCount, setCurrentLikeCount] = useState(detailData?.likeCount ?? 0);
+  const [isLiked, setIsLiked] = useState(likeInfoFromState?.isLiked ?? false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeInfoFromState?.currentLikeCount ?? detailData?.likeCount ?? 0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   // 게시글 소유자 확인
@@ -51,8 +52,31 @@ export default function FeedDetail() {
 
   // 좋아요 개수 초기화
   useEffect(() => {
-    setCurrentLikeCount(detailData?.likeCount ?? 0);
-  }, [detailData?.likeCount]);
+    // state에서 받은 좋아요 정보가 있으면 우선 사용, 없으면 detailData 사용
+    if (likeInfoFromState?.currentLikeCount !== undefined) {
+      setCurrentLikeCount(likeInfoFromState.currentLikeCount);
+    } else {
+      setCurrentLikeCount(detailData?.likeCount ?? 0);
+    }
+  }, [detailData?.likeCount, likeInfoFromState?.currentLikeCount]);
+
+  // 초기 좋아요 상태 확인
+  useEffect(() => {
+    // state에서 받은 좋아요 정보가 있으면 우선 사용
+    if (likeInfoFromState?.isLiked !== undefined) {
+      setIsLiked(likeInfoFromState.isLiked);
+    } else if (detailData?.id) {
+      // state에 정보가 없으면 API로 조회
+      getLikedFeeds()
+        .then((likedFeeds) => {
+          const isLikedFeed = likedFeeds.some((likedFeed) => likedFeed.boardId === detailData.id);
+          setIsLiked(isLikedFeed);
+        })
+        .catch((error) => {
+          console.error('좋아요 상태 확인 실패:', error);
+        });
+    }
+  }, [detailData?.id, likeInfoFromState?.isLiked]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
@@ -64,14 +88,20 @@ export default function FeedDetail() {
     const previousIsLiked = isLiked;
     const previousLikeCount = currentLikeCount;
 
-    // 좋아요 상태 업데이트
+    // 로컬 state만 즉시 업데이트 (UI 반영)
     setIsLiked(!previousIsLiked);
-    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
+    if (previousIsLiked) {
+      // 좋아요 취소: 1개 감소
+      setCurrentLikeCount(Math.max(0, previousLikeCount - 1));
+    } else {
+      // 좋아요 추가: 1개 증가
+      setCurrentLikeCount(previousLikeCount + 1);
+    }
 
     // 좋아요 로딩 상태 업데이트
     setIsLikeLoading(true);
 
-    // 좋아요 처리
+    // 좋아요 처리 (API 호출)
     try {
       // 이전 좋아요 상태가 true면 좋아요 취소, false면 좋아요 추가
       if (previousIsLiked) {
@@ -81,8 +111,7 @@ export default function FeedDetail() {
         await addLike(Number(boardId));
         console.log('좋아요 추가되었습니다.');
       }
-      // 성공 시 detailData도 업데이트
-      setDetailData((prev) => (prev ? { ...prev, likeCount: previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1 } : null));
+      // 실제 데이터는 Feed 전체 목록이 로드될 때 업데이트되므로 여기서는 API 호출만 수행
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
       // 에러 발생 시 롤백
@@ -385,13 +414,8 @@ export default function FeedDetail() {
           <div className="flex flex-col gap-4 mb-4">
             {comments
               .filter((comment): comment is GetCommentsResponse => !!comment && !!comment.userId)
-              .map((comment) => (
-                <Comment
-                  key={comment.id ?? `${comment.userId.id}-${comment.createdAt}`}
-                  {...comment}
-                  boardId={Number(boardId) || null}
-                  onReply={handleReplySelect}
-                />
+              .map((comment, index) => (
+                <Comment key={index} {...comment} boardId={Number(boardId) || null} onReply={handleReplySelect} />
               ))}
           </div>
           {/* 댓글 입력창 */}

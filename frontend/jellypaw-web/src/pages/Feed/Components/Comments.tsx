@@ -134,9 +134,11 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
       <div className="w-full flex justify-start items-start gap-2 pb-2">
         {/* 프로필 이미지 */}
         {userId.profileImg ? (
-          <img className="w-10 h-10 rounded-full" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
+          <div className="w-10 h-10 flex-shrink-0 relative rounded-full overflow-hidden">
+            <img className="absolute inset-0 w-full h-full object-cover" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
+          </div>
         ) : (
-          <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
             <FaPaw className="w-10 h-10 text-aqua-300" />
           </div>
         )}

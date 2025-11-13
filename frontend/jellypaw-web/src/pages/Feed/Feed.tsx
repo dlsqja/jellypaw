@@ -6,8 +6,8 @@ import Article from '@/pages/Feed/Components/Article';
 import { getFollowers } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
-import { getFeeds } from '@/services/api/feed';
-import type { GetFeedsResponse } from '@/types/feed';
+import { getFeeds, getLikedFeeds } from '@/services/api/feed';
+import type { GetFeedsResponse, GetLikedFeedsResponse } from '@/types/feed';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -16,12 +16,26 @@ export default function Feed() {
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
+  const [likedFeeds, setLikedFeeds] = useState<GetLikedFeedsResponse[]>([]);
+
+  // 좋아요한 게시글 조회
+  useEffect(() => {
+    // profileData가 로드되고 nickname이 있을 때만 API 호출
+    getLikedFeeds()
+      .then((likedFeedsData) => {
+        console.log('likedFeeds', likedFeedsData);
+        setLikedFeeds(likedFeedsData || []);
+      })
+      .catch((error) => {
+        console.error('좋아요한 게시글 조회 실패:', error);
+        setLikedFeeds([]);
+      });
+  }, []);
 
   // 팔로워 목록 조회
   useEffect(() => {
     // profileData가 로드되고 nickname이 있을 때만 API 호출
     if (profileData?.nickname) {
-      console.log('profileData', profileData);
       getFollowers(profileData.nickname).then((followers) => {
         console.log('followers', followers);
         setFollowings(followers || []); // null이면 빈 배열로 설정
@@ -55,6 +69,31 @@ export default function Feed() {
         setFeeds([]);
       });
   }, []);
+
+  // 좋아요가 되어 있는 게시글 목록 콘솔 출력
+  useEffect(() => {
+    if (feeds.length > 0 && likedFeeds.length > 0) {
+      const likedBoardIds = likedFeeds.map((likedFeed) => likedFeed.boardId);
+      const likedArticles = feeds.filter((feed) => feed.id !== undefined && likedBoardIds.includes(feed.id));
+      console.log('좋아요가 되어 있는 게시글 목록:', likedArticles);
+    }
+  }, [feeds, likedFeeds]);
+
+  // 좋아요 상태 업데이트 핸들러
+  const handleLikeToggle = (boardId: number, isLiked: boolean) => {
+    setLikedFeeds((prevLikedFeeds) => {
+      if (isLiked) {
+        // 좋아요 추가: boardId가 없으면 추가
+        if (!prevLikedFeeds.some((likedFeed) => likedFeed.boardId === boardId)) {
+          return [...prevLikedFeeds, { boardId }];
+        }
+        return prevLikedFeeds;
+      } else {
+        // 좋아요 취소: boardId 제거
+        return prevLikedFeeds.filter((likedFeed) => likedFeed.boardId !== boardId);
+      }
+    });
+  };
 
   // 팔로워 userId와 게시글의 boardUser.id가 일치하는 게시글 필터링
   const filteredFeeds = useMemo(() => {
@@ -108,7 +147,11 @@ export default function Feed() {
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center  w-full mt-4 scrollbar-hide">
         {filteredFeeds.length > 0 ? (
-          filteredFeeds.map((feed, index) => <Article key={index} {...feed} />)
+          filteredFeeds.map((feed, index) => {
+            // 좋아요한 게시글 목록에서 현재 게시글의 id가 있는지 확인
+            const isLiked = feed.id !== undefined && likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
+            return <Article key={index} {...feed} initialIsLiked={isLiked} onLikeToggle={handleLikeToggle} currentLikeCount={feed.likeCount ?? 0} />;
+          })
         ) : activeProfileId !== null ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <p className="text-gray-400 p2-b text-center">게시글이 아직 없습니다</p>

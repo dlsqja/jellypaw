@@ -13,7 +13,7 @@ export default function Replies({ profileImageUrl, name, content, createdAt, lik
   return (
     <div className="w-full flex justify-start items-start gap-3 mt-2">
       {/* 프로필 이미지 */}
-      <img className="w-8 h-8 rounded-full" src={profileImageUrl} />
+      <img className="w-8 h-8 object-cover rounded-full" src={profileImageUrl} />
       {/* 댓글 내용 */}
       <div className="w-full flex flex-col justify-start items-start gap-1.5">
         {/* 댓글 내용 컨테이너 */}
