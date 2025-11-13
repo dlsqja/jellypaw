@@ -18,6 +18,7 @@ public class PlaceResponse {
     private String openingHours;
     private String phoneNumber;
     private String link;
+	private Long userId;
 	private UserResponseDto user;
     private BigDecimal starRating;
     private Long postCount;
@@ -30,6 +31,7 @@ public class PlaceResponse {
 				.openingHours(place.getOpeningHours())
 				.phoneNumber(place.getPhoneNumber())
 				.link(place.getLink())
+				.userId(place.getUserId())
 				.starRating(place.getStarRating())
 				.postCount(place.getPostCount())
 				.build();
