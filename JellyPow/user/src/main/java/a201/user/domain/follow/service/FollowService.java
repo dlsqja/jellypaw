@@ -117,5 +117,17 @@ public class FollowService {
                 .map(follow -> FollowUserResponse.from(follow.getToUser()))
                 .collect(Collectors.toList());
     }
+
+	public boolean isFollowed(Long userId, Long targetUserId) {
+		User fromUser = userRepository.findById(userId)
+				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		User toUser = userRepository.findById(targetUserId)
+				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+		Follow follow = followRepository.findByFromUserAndToUser(fromUser, toUser)
+				.orElse(null);
+
+		return follow != null ? true : false;
+	}
 }
 

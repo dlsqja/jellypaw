@@ -23,7 +23,7 @@ public class BoardEventConsumer {
             BoardCreateEvent boardCreateEvent = JsonUtil.fromJsonString(message, BoardCreateEvent.class);
             boardViewService.createBoard(boardCreateEvent);
         } catch (Exception e) {
-            log.error("User 생성 이벤트 처리 실패: {}", message, e);
+            log.error("board 생성 이벤트 처리 실패: {}", message, e);
         }
     }
 
@@ -35,7 +35,7 @@ public class BoardEventConsumer {
             BoardUpdateEvent boardUpdateEvent = JsonUtil.fromJsonString(message, BoardUpdateEvent.class);
             boardViewService.updateBoard(boardUpdateEvent);
         } catch (Exception e) {
-            log.error("User 업데이트 이벤트 처리 실패: {}", message, e);
+            log.error("board 업데이트 이벤트 처리 실패: {}", message, e);
         }
     }
 

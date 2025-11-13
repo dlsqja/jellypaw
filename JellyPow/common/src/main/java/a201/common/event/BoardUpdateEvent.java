@@ -5,6 +5,7 @@ import a201.common.enums.Visibility;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,4 +27,6 @@ public class BoardUpdateEvent {
     private BigDecimal starRating;
 
     private Visibility visibility;
+
+    private List<String> imageUrls;
 }

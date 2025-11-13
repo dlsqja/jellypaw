@@ -3,6 +3,7 @@ package a201.boardview.data.dto;
 import a201.boardview.data.entity.BoardUser;
 import a201.boardview.data.entity.BoardView;
 import a201.boardview.data.entity.CommentCount;
+import a201.boardview.data.entity.ImageView;
 import a201.common.enums.Category;
 import a201.common.enums.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -44,9 +45,9 @@ public class BoardSimpleResponse {
 
     private Category category;
 
-    private String thumbnail;
-
     private Visibility visibility;
+
+
 
 
 
@@ -64,7 +65,7 @@ public class BoardSimpleResponse {
                 .commentCount(boardView.getComment().getCount())
                 .likeCount(boardView.getLikeCount().getCount())
                 .viewCount(boardView.getViewCount().getCount())
-                .thumbnail(boardView.getThumbnail())
+                .images(boardView.getImages().stream().map(ImageView::getImageLink).toList())
                 .visibility(boardView.getVisibility())
                 .build();
     }

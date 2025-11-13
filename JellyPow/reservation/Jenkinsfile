@@ -1,0 +1,102 @@
+pipeline {
+  agent any
+
+  environment {
+    DOCKER_IMAGE = 'dlsqja3436/reservation'
+    EC2_HOST = 'k13a201.p.ssafy.io'
+    COMPOSE_DIR = 'JellyPow'
+    SERVICE_DIR = 'reservation'
+  }
+
+
+
+  stages {
+    stage('Build Application') {
+      agent {
+        docker {
+          image 'gradle:7.6-jdk17'
+          args '-u root'
+        }
+      }
+      steps {
+            script {
+              withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG')]) {
+                sh '''
+                  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
+                  cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+
+                  cd ./${COMPOSE_DIR}
+                  chmod +x ./gradlew
+                  ./gradlew :${SERVICE_DIR}:clean :${SERVICE_DIR}:build -x test
+                '''
+              }
+            }
+            stash name: 'built-jar', includes: "${COMPOSE_DIR}/${SERVICE_DIR}/build/libs/*.jar"
+          }
+       }
+
+    stage('Build and Push Docker Image') {
+      steps {
+
+        unstash 'built-jar'
+
+        withCredentials([
+          usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKERHUB_USERNAME',
+            passwordVariable: 'DOCKERHUB_PASSWORD'
+          )
+        ]) {
+          sh '''
+            cd ./${COMPOSE_DIR}/${SERVICE_DIR}/
+            echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+            docker build --no-cache -t ${DOCKER_IMAGE} .
+            docker push ${DOCKER_IMAGE}
+          '''
+        }
+      }
+    }
+
+    stage('Deploy with Docker Compose to EC2') {
+      steps {
+        withCredentials([
+          sshUserPrivateKey(
+            credentialsId: 'ec2-ssh-key',
+            keyFileVariable: 'KEYFILE',
+            usernameVariable: 'EC2_USERNAME'
+          ),
+          usernamePassword(
+            credentialsId: 'dockerhub-creds',
+            usernameVariable: 'DOCKERHUB_USERNAME',
+            passwordVariable: 'DOCKERHUB_PASSWORD'
+          ),
+          file(
+            credentialsId: 'mongo_env',
+            variable: 'ENV_FILE'
+          )
+        ]) {
+          sh """
+                  chmod 600 "$KEYFILE"
+
+                  ssh -i "$KEYFILE" -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "mkdir -p /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR} && chmod 755 /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR} && rm -f /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/.env"
+
+                  # 파일 업로드
+                  scp -i "$KEYFILE" -o StrictHostKeyChecking=no ./${COMPOSE_DIR}/${SERVICE_DIR}/docker-compose.yml $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/
+                  scp -i "$KEYFILE" -o StrictHostKeyChecking=no "$ENV_FILE" $EC2_USERNAME@$EC2_HOST:/home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}/.env
+
+                  # EC2 내부에서 compose 실행
+                  ssh -i "$KEYFILE" -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_HOST "
+                    cd /home/$EC2_USERNAME/${COMPOSE_DIR}/${SERVICE_DIR}
+                    echo \\"$DOCKERHUB_PASSWORD\\" | docker login -u \\"$DOCKERHUB_USERNAME\\" --password-stdin
+                    docker compose down || true
+                    docker compose pull
+                    docker compose up -d --remove-orphans
+
+                    docker image prune -f
+                  "
+            """
+        }
+      }
+    }
+  }
+}

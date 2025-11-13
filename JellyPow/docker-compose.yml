@@ -12,7 +12,6 @@ services:
     networks:
       - msa-net
 
-  # Kafka (KRaft 모드 - Zookeeper 불필요)
   kafka:
     image: apache/kafka:3.8.1
     container_name: kafka
@@ -38,16 +37,15 @@ services:
 
   mongo:
     image: mongo:8
-    container_name: reservation-mongo
+    container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
       - ./mongo-data:/data/db
     networks:
-      - msa-net   # ✅ 추가
+      - msa-net # ✅ 추가
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -75,14 +73,32 @@ services:
         /usr/local/bin/docker-entrypoint.sh eswrapper
     healthcheck:
       test:
-        [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
       timeout: 10s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: jellypaw-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    # networks:
+    #   - msa-net
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
       retries: 5
 
 volumes:
   mysql_data:
   elasticsearch_data:
+  redis_data:
 
 networks:
   msa-net:
