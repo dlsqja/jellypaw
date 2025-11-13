@@ -61,13 +61,22 @@ export default function Feed() {
     if (!Array.isArray(feeds)) {
       return [];
     }
-    // activeProfileId가 null이면 전체 게시글 표시
+    // activeProfileId가 null이면 팔로우한 사람들의 게시글 + 내 게시글 표시
     if (activeProfileId === null) {
-      return feeds;
+      // 팔로우한 사람들의 userId 목록
+      const followingUserIds = followings.map((following) => following.userId).filter((id): id is number => id !== undefined);
+      // 내 userId 추가
+      const myUserId = profileData?.userId;
+      const allowedUserIds = myUserId ? [...followingUserIds, myUserId] : followingUserIds;
+      // 팔로우한 사람들의 게시글 + 내 게시글 필터링
+      return feeds.filter((feed) => {
+        const feedUserId = feed.boardUser?.id;
+        return feedUserId !== undefined && allowedUserIds.includes(feedUserId);
+      });
     }
     // 특정 팔로워의 게시글만 필터링
     return feeds.filter((feed) => feed.boardUser?.id === activeProfileId);
-  }, [feeds, activeProfileId]);
+  }, [feeds, activeProfileId, followings, profileData?.userId]);
 
   return (
     <>
