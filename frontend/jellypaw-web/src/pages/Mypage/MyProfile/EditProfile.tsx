@@ -9,6 +9,7 @@ import { useProfile, useProfileQueryClient } from '@/hooks/queries/ProfileQuery'
 import { BsPersonCircle } from 'react-icons/bs';
 import type { EditProfileRequest, EditProfileImageRequest } from '@/types/mypage';
 import { useNavigate } from 'react-router-dom';
+import { FiCamera } from 'react-icons/fi';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 export default function EditProfile() {
@@ -59,7 +60,12 @@ export default function EditProfile() {
       // 미리보기 URL 생성
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
+        const result = reader.result as string;
+        setPreviewImage(result);
+      };
+      reader.onerror = () => {
+        console.error('이미지 읽기 실패');
+        alert('이미지를 읽을 수 없습니다.');
       };
       reader.readAsDataURL(file);
     }
@@ -113,24 +119,42 @@ export default function EditProfile() {
       <div className="w-full py-8 inline-flex flex-col justify-center items-center gap-4">
         {/* 숨겨진 파일 input */}
         <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} className="hidden" />
-        {/* 프로필 이미지 표시 */}
-        {previewImage ? (
-          <img className="w-28 h-28 rounded-full object-cover" src={previewImage} alt="프로필 미리보기" />
-        ) : profileData?.profileImg && !deleteProfileImg ? (
-          <img className="w-28 h-28 rounded-full object-cover" src={`${IMAGE_BASE_URL}${profileData.profileImg}`} alt="프로필" />
-        ) : (
-          <BsPersonCircle className="w-28 h-28 text-aqua-300" />
-        )}
-        <div className="flex justify-center items-center gap-2">
-          <p className="text-aqua-300 p2 cursor-pointer" onClick={handleAddProfilePhoto}>
-            추가
-          </p>
-          {(previewImage || (profileData?.profileImg && !deleteProfileImg)) && (
-            <p className="text-aqua-300 p2 cursor-pointer" onClick={handleRemoveProfilePhoto}>
-              제거
-            </p>
-          )}
+        {/* 프로필 이미지 선택 UI */}
+        <div className="relative w-28 h-28">
+          {/* 큰 원 (외부) - padding 4px */}
+          <button type="button" onClick={handleAddProfilePhoto} className="relative w-28 h-28 p-1 bg-aqua-100 rounded-full cursor-pointer">
+            {/* 안쪽 원 */}
+            <div className="w-full h-full bg-aqua-100 rounded-full overflow-hidden relative">
+              {/* 이미지가 있다면 */}
+              {previewImage ? (
+                <img className="w-full h-full rounded-full object-cover" src={`${previewImage}`} alt="프로필 미리보기" />
+              ) : profileData?.profileImg && !deleteProfileImg ? (
+                <img className="w-full h-full rounded-full object-cover" src={`${IMAGE_BASE_URL}${profileData.profileImg}`} alt="프로필" />
+              ) : (
+                // 이미자가 없다면
+                <div className="w-full h-full flex justify-center items-center">
+                  <FiCamera className="w-12 h-12 text-aqua-300" />
+                </div>
+              )}
+            </div>
+          </button>
+          {/* 우하단 작은 카메라 버튼 - outer * 0.32 */}
+          <button
+            type="button"
+            onClick={handleAddProfilePhoto}
+            className="absolute right-0 bottom-0 w-9 h-9 bg-aqua-300 rounded-full flex justify-center items-center cursor-pointer shadow-lg z-10"
+          >
+            <FiCamera className="w-4.5 h-4.5 text-white" />
+          </button>
         </div>
+        {/* 제거 버튼 */}
+        {(previewImage || (profileData?.profileImg && !deleteProfileImg)) && (
+          <div className="flex justify-center items-center gap-2">
+            <p className="text-aqua-300 p2 cursor-pointer" onClick={handleRemoveProfilePhoto}>
+              프로필 사진 제거
+            </p>
+          </div>
+        )}
       </div>
       {/* 개인 정보 영역 */}
       <div className="flex flex-col gap-6">

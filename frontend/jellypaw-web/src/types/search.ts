@@ -1,3 +1,5 @@
+import type { GetProfileResponse } from './mypage';
+
 // 유저 검색 응답
 export interface SearchUsersResponse {
   userId?: number;
@@ -41,12 +43,14 @@ export interface SearchPlacesResponse {
 
 // 장소 검색 상세 조회 응답
 export interface SearchPlacesDetailResponse {
-  id?: number;
-  title?: string;
   address?: string;
-  phoneNumber?: string;
+  id?: number;
   link?: string;
-  starRating?: number;
   openingHours?: string;
+  phoneNumber?: string;
   postCount?: number;
+  starRating?: number;
+  title?: string;
+  user: GetProfileResponse[];
+  userid: number;
 }
