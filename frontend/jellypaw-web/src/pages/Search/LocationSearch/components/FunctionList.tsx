@@ -31,10 +31,6 @@ interface FunctionListProps {
 // 기능 목록 배열
 const functionList = [
   {
-    name: '기록하기',
-    icon: <FaEdit />,
-  },
-  {
     name: '전화',
     icon: <FaPhone />,
   },
