@@ -1,5 +1,13 @@
 import apiClient from '@/lib/axios';
-import type { GetFeedsResponse, GetFeedDetailResponse, GetCommentsResponse, DeleteFeedResponse, DeleteCommentResponse } from '@/types/feed';
+import type {
+  GetFeedsResponse,
+  GetFeedDetailResponse,
+  GetCommentsResponse,
+  DeleteFeedResponse,
+  DeleteCommentResponse,
+  AddLikeResponse,
+  CancelLikeResponse,
+} from '@/types/feed';
 
 interface ApiResponse<T> {
   code: number;
@@ -43,14 +51,21 @@ export const deleteFeed = async (boardId: number): Promise<any> => {
   return response.data.data;
 };
 
-// 댓글 수정
-// export const updateComment = async (comment_id: number, data: any): Promise<any> => {
-//   const response = await apiClient.patch<any>(`/comments/${comment_id}`, data);
-//   return response.data;
-// };
-
 // 댓글 삭제
 export const deleteComment = async (commentId: number, boardId: number): Promise<any> => {
   const response = await apiClient.delete<DeleteCommentResponse>(`/comments/${boardId}/${commentId}`);
   return response.data;
 };
+
+// 좋아요 추가
+export const addLike = async (boardId: number): Promise<any> => {
+  const response = await apiClient.post<AddLikeResponse>(`/likes/${boardId}`);
+  return response.data;
+};
+// 좋아요 취소
+export const cancelLike = async (boardId: number): Promise<any> => {
+  const response = await apiClient.delete<CancelLikeResponse>(`/likes/${boardId}`);
+  return response.data;
+};
+
+// 내가 좋아요한 게시글 조회회

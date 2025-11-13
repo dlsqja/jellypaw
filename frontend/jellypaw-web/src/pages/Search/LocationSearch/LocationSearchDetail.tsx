@@ -41,7 +41,7 @@ export default function LocationSearchDetail() {
         <BackHeader title="" />
         <div className="flex flex-col justify-center items-center gap-4 py-8">
           <Spinner className="size-8 text-aqua-500" />
-          <span className="text-gray-500 p2">장소 정보를 불러오는 중...</span>
+          <span className="text-gray-300 p2-b">장소 정보를 불러오는 중...</span>
         </div>
       </>
     );
@@ -53,7 +53,7 @@ export default function LocationSearchDetail() {
       <>
         <BackHeader title="" />
         <div className="flex flex-col justify-center items-center gap-4 py-8">
-          <p className="text-gray-500 p2">장소 정보를 불러올 수 없습니다.</p>
+          <p className="text-gray-300 p2-b">장소 정보를 불러올 수 없습니다.</p>
         </div>
       </>
     );
