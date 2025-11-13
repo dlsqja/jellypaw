@@ -2,13 +2,17 @@ package a201.board.data.response;
 
 import a201.board.data.entity.Place;
 import a201.common.client.dto.UserResponseDto;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class PlaceResponse {
 
