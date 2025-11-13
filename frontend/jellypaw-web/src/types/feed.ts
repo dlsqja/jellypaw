@@ -1,3 +1,5 @@
+import type { SearchPlacesDetailResponse } from "./search";
+
 // 게시글 전체 목록 조회 응답
 export interface GetFeedsResponse {
   boardUser?: {
@@ -66,4 +68,8 @@ export interface CancelLikeResponse {
   code: number;
   message: string;
   data: any;
+}
+
+export interface BoardWithPlaceResponse extends GetFeedDetailResponse {
+  place?: SearchPlacesDetailResponse | null;
 }

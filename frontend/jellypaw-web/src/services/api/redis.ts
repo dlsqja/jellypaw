@@ -65,6 +65,7 @@ const getUserIdFromToken = (): string | null => {
 };
 
 export const saveBoardToRedis = async (payload: any): Promise<void> => {
+  console.log('[REDIS_SAVE] payload =', payload);
   const userId = getUserIdFromToken();
   if (!userId) {
     throw new Error('로그인 정보를 확인할 수 없습니다.');
