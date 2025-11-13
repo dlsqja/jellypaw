@@ -3,7 +3,7 @@ networks:
     external: true
 
 services:
-  user:
+  reservation:
     image: dlsqja3436/reservation
     container_name: reservation
     env_file:
