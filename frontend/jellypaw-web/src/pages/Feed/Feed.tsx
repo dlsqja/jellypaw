@@ -107,9 +107,13 @@ export default function Feed() {
 
       {/* 게시글 목록 */}
       <div className="flex flex-col items-center gap-4 w-full mt-4 scrollbar-hide">
-        {filteredFeeds.map((feed, index) => (
-          <Article key={index} {...feed} currentUserId={profileData?.userId ?? profileData?.userId} />
-        ))}
+        {filteredFeeds.length > 0 ? (
+          filteredFeeds.map((feed, index) => <Article key={index} {...feed} />)
+        ) : activeProfileId !== null ? (
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <p className="text-gray-400 p2-b text-center">게시글이 아직 없습니다</p>
+          </div>
+        ) : null}
       </div>
     </>
   );

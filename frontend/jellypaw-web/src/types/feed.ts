@@ -53,3 +53,17 @@ export interface DeleteCommentResponse {
   message: string;
   data: any;
 }
+
+// 좋아요 추가 응답
+export interface AddLikeResponse {
+  code: number;
+  message: string;
+  data: any;
+}
+
+// 좋아요 취소 응답
+export interface CancelLikeResponse {
+  code: number;
+  message: string;
+  data: any;
+}

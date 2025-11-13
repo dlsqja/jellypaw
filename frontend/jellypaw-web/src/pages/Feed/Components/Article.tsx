@@ -1,18 +1,12 @@
-import { useState } from 'react';
-import { MoreHorizontal, Heart, MessageCircle, Share2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { MdRestaurant } from 'react-icons/md';
 import IconText from '@/components/texts/IconText';
-import { Badge } from '@/components/ui/badge';
-import { FaStar } from 'react-icons/fa6';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
-import { IoClose } from 'react-icons/io5';
-import { Button } from '@/components/ui/button';
-import { deleteFeed } from '@/services/api/feed';
-import { getFeedDetail } from '@/services/api/feed';
-import { saveBoardToRedis } from '@/services/api/redis';
+import { addLike, cancelLike } from '@/services/api/feed';
 import {
   IoCalendarClear,
   IoHeart,
@@ -23,7 +17,6 @@ import {
   IoLocation,
   IoEllipsisHorizontalCircleSharp,
 } from 'react-icons/io5';
-import { debugToRN } from '@/lib/utils';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 // 날짜 포맷팅 함수 (YY.MM.DD 형식)
@@ -74,10 +67,8 @@ const formatRelativeTime = (dateString?: string): string => {
   }
 };
 
-// 🔹 GetFeedsResponse에 currentUserId만 추가한 타입
-interface ArticleProps extends GetFeedsResponse {
-  currentUserId?: number | null;
-}
+// GetFeedsResponse를 그대로 사용
+interface ArticleProps extends GetFeedsResponse {}
 
 export default function Article({
   boardUser,
@@ -87,16 +78,58 @@ export default function Article({
   images,
   starRating,
   title,
-  currentUserId,
   commentCount,
   category,
   likeCount,
+  placeId,
 }: ArticleProps) {
   const navigate = useNavigate();
-  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount ?? 0);
+  const [isLikeLoading, setIsLikeLoading] = useState(false);
 
-  // 🔹 내 게시글인지 여부
-  const isOwner = !!currentUserId && !!boardUser?.id && boardUser.id === currentUserId;
+  // 좋아요 개수 초기화
+  useEffect(() => {
+    setCurrentLikeCount(likeCount ?? 0);
+  }, [likeCount]);
+
+  // 좋아요 토글 핸들러
+  const handleLikeToggle = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation(); // 카드 클릭 이벤트 방지
+    // id가 없거나 좋아요 로딩 중이면 좋아요 토글 안 함
+    if (!id || isLikeLoading) return;
+
+    // 이전 좋아요 상태와 좋아요 개수 저장
+    const previousIsLiked = isLiked;
+    const previousLikeCount = currentLikeCount;
+
+    // 좋아요 상태 업데이트
+    setIsLiked(!previousIsLiked);
+    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
+
+    // 좋아요 로딩 상태 업데이트
+    setIsLikeLoading(true);
+
+    // 좋아요 처리
+    try {
+      // 이전 좋아요 상태가 true면 좋아요 취소, false면 좋아요 추가
+      if (previousIsLiked) {
+        await cancelLike(Number(id));
+        console.log('좋아요 취소되었습니다.');
+      } else {
+        await addLike(Number(id));
+        console.log('좋아요 추가되었습니다.');
+      }
+    } catch (error) {
+      console.error('좋아요 처리 실패:', error);
+      // 에러 발생 시 롤백
+      setIsLiked(previousIsLiked);
+      setCurrentLikeCount(previousLikeCount);
+      alert('좋아요 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsLikeLoading(false);
+    }
+  };
 
   if (!id) return null; // id 없으면 방어적으로 렌더 안 함
 
@@ -121,26 +154,27 @@ export default function Article({
                 title,
                 commentCount,
                 likeCount,
+                placeId,
               },
             },
           });
         }}
       >
         {/* 프로필 헤더 */}
-        <CardHeader className="p-4 gap-4">
+        <CardHeader className="p-4 gap-2">
           <div className="flex items-start">
             <div className="flex justify-between items-center w-full">
               <div className="flex items-center">
                 {/* 프로필 사진*/}
                 {boardUser?.profileImg ? (
                   <img
-                    className="w-10 h-10 rounded-full object-cover border-2 border-aqua-300"
+                    className="w-10 h-10 rounded-full object-cover border-2 "
                     src={`${IMAGE_BASE_URL}${boardUser.profileImg}`}
                     alt={boardUser.nickname}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
-                    <FaPaw className="w-10 h-10 text-aqua-300" />
+                  <div className="w-10 h-10 rounded-full p-1.5 border-2  flex justify-center items-center">
+                    <FaPaw className="w-10 h-10 text-gray-300" />
                   </div>
                 )}
                 <div className="ml-3 flex flex-col">
@@ -149,22 +183,6 @@ export default function Article({
                   <div className="text-aqua-500 p3">{formatRelativeTime(createdAt)}</div>
                 </div>
               </div>
-              {/* 🔹 내 글일 때만 ... 버튼 노출 */}
-              {isOwner && (
-                <button
-                  type="button"
-                  className="h-7 w-7 flex justify-center items-center cursor-pointer"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    setIsActionModalOpen(true);
-                  }}
-                  aria-haspopup="dialog"
-                  aria-expanded={isActionModalOpen}
-                  aria-label="게시글 옵션 열기"
-                >
-                  <MoreHorizontal className="h-5 w-5 text-gray-300" />
-                </button>
-              )}
             </div>
           </div>
 
@@ -172,38 +190,31 @@ export default function Article({
           <CardContent>
             <div className="flex flex-col gap-4">
               {/* 제목, 평점, 날짜 */}
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1">
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center">
-                    <IconText
-                      icon={
-                        category === 'DAILY'
-                          ? IoCalendarClear
-                          : category === 'HEALTH'
-                          ? IoHeart
-                          : category === 'DINING'
-                          ? IoRestaurant
-                          : category === 'BEAUTY'
-                          ? IoCut
-                          : category === 'FOOD'
-                          ? IoFastFood
-                          : category === 'TOY'
-                          ? IoGameController
-                          : category === 'TRAVEL'
-                          ? IoLocation
-                          : IoEllipsisHorizontalCircleSharp
-                      }
-                      label={title}
-                      size="md"
-                      textStyle="h6-b"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(createdAt)}</Badge>
-                    <Badge variant="pink">
-                      <FaStar className="text-pink-300 me-0.5" />
-                      {typeof starRating === 'number' ? starRating.toFixed(1) : starRating}
-                    </Badge>
+                  <div className="flex items-center gap-1.5">
+                    {/* 카테고리 아이콘 버튼 */}
+
+                    {category === 'DAILY' ? (
+                      <IoCalendarClear className="w-4 h-4 text-pink-300" />
+                    ) : category === 'HEALTH' ? (
+                      <IoHeart className="w-4 h-4 text-pink-300" />
+                    ) : category === 'DINING' ? (
+                      <IoRestaurant className="w-4 h-4 text-pink-300" />
+                    ) : category === 'BEAUTY' ? (
+                      <IoCut className="w-4 h-4 text-pink-300" />
+                    ) : category === 'FOOD' ? (
+                      <IoFastFood className="w-4 h-4 text-pink-300" />
+                    ) : category === 'TOY' ? (
+                      <IoGameController className="w-4 h-4 text-pink-300" />
+                    ) : category === 'TRAVEL' ? (
+                      <IoLocation className="w-4 h-4 text-pink-300" />
+                    ) : (
+                      <IoEllipsisHorizontalCircleSharp className="w-6 h-6 text-pink-300" />
+                    )}
+
+                    {/* 제목 */}
+                    <p className="text-aqua-500 h6-b flex-1">{title}</p>
                   </div>
                 </div>
 
@@ -216,19 +227,24 @@ export default function Article({
               {/* 대표 이미지 (첫 번째 이미지) */}
               {images && images.length > 0 && (
                 <div className="w-full">
-                  <div className="w-77 h-64 relative rounded-[12px] overflow-hidden">
-                    <img className="w-77 h-64 rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
+                  <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
+                    <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
                   </div>
                 </div>
               )}
             </div>
 
             {/* 액션 바 */}
-            <div className="h-10 border-t border-gray-200 flex justify-between items-center pt-2">
+            <div className="h-10 border-t border-gray-200 flex justify-between items-center">
               <div className="flex items-center">
-                <button type="button" className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70">
-                  <Heart className="h-5 w-5 text-pink-300" />
-                  <span className="text-aqua-500 p2-b">{likeCount}</span>
+                <button
+                  type="button"
+                  className="h-7 flex items-center gap-1 cursor-pointer hover:opacity-70 disabled:opacity-50"
+                  onClick={handleLikeToggle}
+                  disabled={isLikeLoading}
+                >
+                  <Heart className={`h-5 w-5 ${isLiked ? 'text-pink-400' : 'text-pink-300'}`} fill={isLiked ? 'currentColor' : 'none'} />
+                  <span className="text-aqua-500 p2-b">{currentLikeCount}</span>
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
@@ -239,100 +255,6 @@ export default function Article({
           </CardContent>
         </CardHeader>
       </Card>
-
-      {/* 게시글 수정 / 삭제 옵션 모달 */}
-      {isActionModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setIsActionModalOpen(false)}
-        >
-          <div
-            className="w-64 rounded-2xl bg-gray-100 p-4 shadow-lg"
-            onClick={(event) => {
-              event.stopPropagation();
-            }}
-          >
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-aqua-500 h6-b">게시글 관리</h3>
-              <IoClose className="w-5 h-5 text-aqau-500 cursor-pointer" onClick={() => setIsActionModalOpen(false)} />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                tone="aqua"
-                shape="pillSolid"
-                size="default"
-                onClick={async (event) => {
-                  event.stopPropagation();
-                  setIsActionModalOpen(false);
-
-                  if (!id) {
-                    debugToRN('EDIT_CLICK_NO_ID', {});
-                    return;
-                  }
-
-                  try {
-                    debugToRN('EDIT_FLOW_START', { id });
-
-                    const detail = await getFeedDetail(Number(id));
-                    debugToRN('EDIT_FLOW_DETAIL_OK', {
-                      id: detail?.id,
-                      title: detail?.title,
-                      hasImages: Array.isArray(detail?.images),
-                    });
-
-                    await saveBoardToRedis(detail);
-                    debugToRN('EDIT_FLOW_REDIS_OK', {});
-
-                    if ((window as any).ReactNativeWebView) {
-                      const msg = JSON.stringify({ type: 'OPEN_FEED_EDIT' });
-                      debugToRN('EDIT_FLOW_POSTMSG', { msg });
-                      (window as any).ReactNativeWebView.postMessage(msg);
-                    } else {
-                      debugToRN('EDIT_FLOW_NO_RN_WEBVIEW', {});
-                    }
-                  } catch (e: any) {
-                    debugToRN('EDIT_FLOW_ERROR', {
-                      message: e?.message,
-                      status: e?.response?.status,
-                      data: e?.response?.data,
-                    });
-                    alert('수정 정보를 준비하는 데 실패했습니다.');
-                  }
-                }}
-              >
-                게시글 수정하기
-              </Button>
-
-              <Button
-                type="button"
-                tone="red"
-                shape="pillSolid"
-                size="default"
-                onClick={async () => {
-                  const confirmed = window.confirm('정말 게시글을 삭제하시겠습니까?\n삭제된 게시글은 복구할 수 없습니다.');
-                  if (!confirmed) {
-                    return;
-                  }
-                  setIsActionModalOpen(false);
-                  try {
-                    const response = await deleteFeed(Number(id));
-                    console.log('게시글이 삭제되었습니다.', response);
-                    window.location.reload();
-                  } catch (error) {
-                    console.error('게시글 삭제에 실패했습니다.', error);
-                  }
-                }}
-              >
-                게시글 삭제하기
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
