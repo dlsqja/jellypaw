@@ -31,7 +31,7 @@ public class PlaceService {
 	}
 
 	// Place 조회
-	public Place getPlaceById(Long placeId) {
+	public Place getPlaceById(Long placeId) {	
 		return placeRepository.findById(placeId).orElseThrow(() -> new CustomException(ErrorCode.PLACE_NOT_FOUND));
 	}
 
