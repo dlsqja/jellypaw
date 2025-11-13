@@ -134,9 +134,11 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
       <div className="w-full flex justify-start items-start gap-2 pb-2">
         {/* 프로필 이미지 */}
         {userId.profileImg ? (
-          <img className="w-10 h-10 rounded-full" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
+          <div className="w-10 h-10 flex-shrink-0 relative rounded-full overflow-hidden">
+            <img className="absolute inset-0 w-full h-full object-cover" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
+          </div>
         ) : (
-          <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
             <FaPaw className="w-10 h-10 text-aqua-300" />
           </div>
         )}
@@ -169,11 +171,8 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
             </div>
             <div className="text-aqua-500 p2">{content || ''}</div>
             {/* 댓글 작성 시간, 좋아요, 댓글 보기, 댓글 달기 */}
-            <div className="flex justify-start items-center gap-4 ml-1 mt-1">
-              <button type="button" className="flex items-center gap-1 cursor-pointer">
-                <Heart className="h-4 w-4 text-gray-300" />
-                {/* {likeCount && likeCount > 0 && <span className="text-gray-300 p3-b">{likeCount}</span>} */}
-              </button>
+            <div className="flex mt-1">
+              <button type="button" className="cursor-pointer"></button>
               <button
                 type="button"
                 className="flex items-center gap-1 cursor-pointer"

@@ -6,38 +6,42 @@ import Step1Content from '../Reservation/step1';
 import Step2Content from '../Reservation/step2';
 import { FaMapLocation } from 'react-icons/fa6';
 import { createReservation } from '@/services/api/reservation';
-import type { ReservationRequest } from '@/types/reservation';
+import type { CreateReservationRequest } from '@/types/reservation';
 
 // 예약 데이터 타입 정의
 interface ReservationData {
   date: string; // "2025-11-11" 형식
   time: number; // 시간 슬롯 인덱스
   content: string; // 상세 요청사항
+  placeName: string; // 장소명
 }
 
 export default function Function_reservation() {
   const [isStep2, setIsStep2] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const location = useLocation();
-  const { locationId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const locationTitle = (location.state as { locationTitle?: string })?.locationTitle || '장소명 없음';
   const openingHours = (location.state as { openingHours?: string })?.openingHours || '';
+  // 장소 ID
+  const { locationId } = useParams();
 
   // 예약 데이터 상태 관리
   const [reservationData, setReservationData] = useState<ReservationData>({
     date: '',
     time: 0,
     content: '',
+    placeName: locationTitle,
   });
 
   // Step1에서 Step2로 넘어갈 때 호출
-  const handleStep1Next = (step1Data: { date: string; time: number; content: string }) => {
+  const handleStep1Next = (step1Data: { date: string; time: number; content: string; placeName: string }) => {
     // Step1에서 입력한 데이터를 ReservationData 타입으로 업데이트
     const ReservationSubmitData: ReservationData = {
       date: step1Data.date,
       time: step1Data.time,
       content: step1Data.content,
+      placeName: step1Data.placeName,
     };
     setReservationData(ReservationSubmitData);
     setIsStep2(true);
@@ -54,9 +58,10 @@ export default function Function_reservation() {
 
     try {
       createReservation(Number(locationId), reservationData);
+      console.log('locationId', locationId);
       console.log('예약 요청 성공:', reservationData);
       alert('예약 요청이 완료되었습니다.');
-      // 성공하면 마이페이지로 이동
+      // 성공하면 마이페이지로 이동`
       navigate('/mypage');
     } catch (error) {
       console.error('예약 요청 실패:', error);
@@ -97,6 +102,7 @@ export default function Function_reservation() {
       {!isStep2 && (
         <Step1Content
           openingHours={openingHours}
+          placeName={locationTitle}
           onNext={(step1Data) => {
             handleStep1Next(step1Data);
           }}

@@ -11,8 +11,10 @@ interface Step1Props {
     date: string; // "2025-11-11" 형식
     time: number; // 시간 슬롯
     content: string; // 상세 요청사항
+    placeName: string; // 장소명
   }) => void;
   openingHours: string;
+  placeName: string;
 }
 
 // 캘린더 요일 선택했을 떄 이름 지정정
@@ -31,7 +33,7 @@ const slotIndexToTimeString = (slot: number): string | null => {
 };
 
 // 예약 날짜 및 시간 선택 컴포넌트
-export default function Step1({ onNext, openingHours }: Step1Props) {
+export default function Step1({ onNext, openingHours, placeName }: Step1Props) {
   const parsedWorkingHours = parseWorkingHours(openingHours);
   const parsedWorkingHoursSlots = parseWorkingHoursToSlots(parsedWorkingHours);
   // console.log('parsedWorkingHoursSlots', parsedWorkingHoursSlots);
@@ -149,14 +151,17 @@ export default function Step1({ onNext, openingHours }: Step1Props) {
   const handleNext = () => {
     const dateString = formatDate(selectedDate);
     const timeSlotValue = selectedTime !== null ? selectedTime : timeOptions.length > 0 ? timeOptions[0].slot : 0;
+
     console.log('dateString', dateString);
     console.log('timeSlotValue', timeSlotValue);
     console.log('requestDetails', requestDetails);
+    console.log('placeName', placeName);
     // 다음 버튼 클릭 시 데이터 전송
     onNext({
       date: dateString,
       time: timeSlotValue,
       content: requestDetails,
+      placeName: placeName,
     });
   };
 

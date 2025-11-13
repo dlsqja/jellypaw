@@ -14,7 +14,7 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 interface CommentInputProps {
   parentId: number | null;
   onOptimisticSubmit?: () => void;
-  onSubmitSuccess?: (comment: GetCommentsResponse | GetCommentsResponse[]) => void;
+  onSubmitSuccess?: (comments: GetCommentsResponse[]) => void;
   onSubmitError?: () => void;
   onCancelReply?: () => void;
 }

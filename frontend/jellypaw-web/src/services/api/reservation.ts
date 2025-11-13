@@ -1,10 +1,10 @@
 import apiClient from '@/lib/axios';
-import type { ReservationRequest, ReservationResponse, GetReservationResponse } from '@/types/reservation';
+import type { CreateReservationRequest, CreateReservationResponse, GetReservationResponse } from '@/types/reservation';
 
 // 예약 생성
-export const createReservation = async (place_id: number, reservationRequest: ReservationRequest): Promise<ReservationResponse> => {
+export const createReservation = async (place_id: number, reservationRequest: CreateReservationRequest): Promise<CreateReservationResponse> => {
   const response = await apiClient.post(`/reservations/${place_id}`, reservationRequest);
-  return response.data.data;
+  return response.data;
 };
 
 // 예약 조회
