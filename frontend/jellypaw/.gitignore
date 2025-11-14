@@ -34,6 +34,8 @@ local.properties
 *.keystore
 !debug.keystore
 .kotlin/
+# Gradle properties with sensitive data
+android/gradle.properties
 
 # node.js
 #

@@ -45,5 +45,6 @@ edgeToEdgeEnabled=false
 # Release keystore configuration
 MYAPP_RELEASE_STORE_FILE=jellypaw-release.keystore
 MYAPP_RELEASE_KEY_ALIAS=jellypaw-key-alias
-MYAPP_RELEASE_STORE_PASSWORD=04090409
-MYAPP_RELEASE_KEY_PASSWORD=04090409
+MYAPP_RELEASE_STORE_PASSWORD=your-keystore-password
+MYAPP_RELEASE_KEY_PASSWORD=your-key-password
+
