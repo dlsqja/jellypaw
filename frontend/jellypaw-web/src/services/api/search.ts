@@ -1,5 +1,17 @@
 import apiClient from '@/lib/axios';
-import type { SearchUsersResponse, SearchPlacesResponse, SearchUsersDetailResponse, SearchPlacesDetailResponse } from '@/types/search';
+import type {
+  SearchUsersResponse,
+  SearchPlacesResponse,
+  SearchUsersDetailResponse,
+  SearchPlacesDetailResponse,
+  GetPlaceFeedsResponse,
+} from '@/types/search';
+
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
 
 // 유저 검색
 export const searchUsers = async (keyword: string): Promise<SearchUsersResponse[]> => {
@@ -12,6 +24,7 @@ export const searchUsersDetail = async (targetUserId: number): Promise<SearchUse
   const response = await apiClient.get(`/users/${targetUserId}`);
   return response.data.data;
 };
+
 // 장소 검색
 export const searchPlaces = async (keyword: string, cursor?: number | 0): Promise<SearchPlacesResponse> => {
   const response = await apiClient.get(`/places/search/cursor?title=${keyword}&cursor=${cursor}`);
@@ -22,5 +35,11 @@ export const searchPlaces = async (keyword: string, cursor?: number | 0): Promis
 // 장소 검색 상세 조회
 export const searchPlacesDetail = async (placeId: number): Promise<SearchPlacesDetailResponse> => {
   const response = await apiClient.get(`/places/${placeId}`);
+  return response.data.data;
+};
+
+// 특정 장소의 게시글 조회
+export const getPlaceFeeds = async (placeId: number): Promise<GetPlaceFeedsResponse> => {
+  const response = await apiClient.get<ApiResponse<GetPlaceFeedsResponse>>(`/board-view/places/${placeId}`);
   return response.data.data;
 };

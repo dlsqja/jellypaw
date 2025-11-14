@@ -1,5 +1,5 @@
 import type { GetProfileResponse } from './mypage';
-
+import type { GetFeedsResponse } from './feed';
 // 유저 검색 응답
 export interface SearchUsersResponse {
   userId?: number;
@@ -53,4 +53,8 @@ export interface SearchPlacesDetailResponse {
   title?: string;
   user?: GetProfileResponse | null;
   userid: number;
+}
+
+export interface GetPlaceFeedsResponse {
+  boards?: GetFeedsResponse[];
 }

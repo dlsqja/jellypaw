@@ -45,3 +45,7 @@ export interface GetMyFeedResponse {
     visibility: string;
   }[];
 }
+
+export type NicknameStatus = 'idle' | 'checking' | 'available' | 'duplicated' | 'error';
+
+export type CheckNicknameDuplicateResult = boolean;

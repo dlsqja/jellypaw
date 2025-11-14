@@ -1,5 +1,5 @@
 import apiClient from '@/lib/axios';
-import type { GetProfileResponse, EditProfileRequest, GetMyFeedResponse } from '@/types/mypage';
+import type { CheckNicknameDuplicateResult, GetProfileResponse, EditProfileRequest, GetMyFeedResponse } from '@/types/mypage';
 
 // 내 프로필 조회
 export const getMyProfile = async (): Promise<GetProfileResponse> => {
@@ -36,3 +36,16 @@ export const getMyFeed = async (): Promise<GetMyFeedResponse> => {
   const response = await apiClient.get('board-view/my');
   return response.data.data;
 };
+
+
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+export async function checkNicknameDuplicate(nickname: string): Promise<CheckNicknameDuplicateResult> {
+  const res = await apiClient.get<ApiResponse<boolean>>('/public/check-nickname', {
+    params: { nickname },
+  });
+  return res.data.data; }
