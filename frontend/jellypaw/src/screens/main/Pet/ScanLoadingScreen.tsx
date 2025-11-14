@@ -1,6 +1,12 @@
 // src/screens/main/Pet/ScanLoadingScreen.tsx
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Easing } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Easing,
+  Pressable,   // ✅ 추가
+} from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
@@ -12,22 +18,13 @@ type Props = NativeStackScreenProps<PetStackParamList, 'ScanLoading'>;
 export default function ScanLoadingScreen({ navigation, route }: Props) {
   const { imageUri, petId } = route.params;
 
-  /**
-   * progress: 0 → 5 를 한 사이클로 사용
-   *
-   * 0 ~ 1 : 1번 발바닥 깜빡임 (aqua) / 나머지 회색
-   * 1 ~ 2 : 1번 고정 aqua, 2번 깜빡임 (aqua), 3번 회색
-   * 2 ~ 3 : 1,2번 고정 aqua, 3번 깜빡임 (aqua)
-   * 3 ~ 4 : 1,2,3번 모두 aqua 고정
-   * 4 ~ 5 : 모두 회색으로 서서히 복귀
-   */
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.timing(progress, {
         toValue: 5,
-        duration: 5000,       
+        duration: 5000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
@@ -40,18 +37,23 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
     // 실패: 에러 처리
   }, [imageUri, navigation, petId]);
 
-  // 각 발바닥 애니메이션 (start: 깜빡이는 시작 시점 0~2)
-  const getPawAnim = (start: number) => {
-    const s = start === 0 ? 0.0001 : start; // inputRange 증가 조건 때문에 살짝 보정
+  const handleDevSkip = () => {
+    // 개발용 더미 이동
+    navigation.replace('ResultSummary', {
+      analysisId: 'dummy-analysis-id',
+      petId,
+    });
+  };
 
-    // 깜빡이는 구간: s ~ s+1 (중간에서 scale 최대)
+  const getPawAnim = (start: number) => {
+    const s = start === 0 ? 0.0001 : start;
+
     const scale = progress.interpolate({
       inputRange: [0, s, s + 0.5, s + 1, 5],
       outputRange: [1, 1, 1.15, 1, 1],
       extrapolate: 'clamp',
     });
 
-    // aqua(위쪽 레이어)의 opacity
     const aquaOpacity = progress.interpolate({
       inputRange: [0, s, s + 0.5, s + 1, 4, 5],
       outputRange: [0, 0, 1, 1, 1, 0],
@@ -61,12 +63,13 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
     return { scale, aquaOpacity };
   };
 
-  const paw1 = getPawAnim(0); // 0~1
-  const paw2 = getPawAnim(1); // 1~2
-  const paw3 = getPawAnim(2); // 2~3
+  const paw1 = getPawAnim(0);
+  const paw2 = getPawAnim(1);
+  const paw3 = getPawAnim(2);
 
   return (
-    <View style={S.root}>
+    <Pressable style={S.root} onPress={handleDevSkip}>
+      {/* ⬆️ 개발 중엔 어디 눌러도 다음 화면으로 이동 */}
       <View style={S.card}>
         <View style={S.textBlock}>
           <Text weight="bold" style={S.title}>
@@ -76,7 +79,6 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
         </View>
 
         <View style={S.pawsRow}>
-          {/* 1번 발바닥 */}
           <View style={S.pawWrapper}>
             <FontAwesome5 name="paw" solid size={52} color={palette.gray200} />
             <Animated.View
@@ -98,7 +100,6 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
             </Animated.View>
           </View>
 
-          {/* 2번 발바닥 */}
           <View style={S.pawWrapper}>
             <FontAwesome5 name="paw" solid size={56} color={palette.gray200} />
             <Animated.View
@@ -120,7 +121,6 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
             </Animated.View>
           </View>
 
-          {/* 3번 발바닥 */}
           <View style={S.pawWrapper}>
             <FontAwesome5 name="paw" solid size={52} color={palette.gray200} />
             <Animated.View
@@ -145,7 +145,7 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
 
         <View style={S.bottomSpacer} />
       </View>
-    </View>
+    </Pressable>
   );
 }
 
