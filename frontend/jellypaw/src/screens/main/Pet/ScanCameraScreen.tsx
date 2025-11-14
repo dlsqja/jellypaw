@@ -8,10 +8,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import { palette } from '../../../ui/system/variants';
 import Toast from 'react-native-toast-message';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { PetStackParamList } from '../../../navigation/PetNavigator';
+
+type Nav = NativeStackNavigationProp<PetStackParamList, 'ScanCamera'>;
 
 export default function ScanCameraScreen() {
   const insets = useSafeAreaInsets();
-  const nav = useNavigation<any>();
+  const nav = useNavigation<Nav>();
 
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice('back');
@@ -98,13 +102,11 @@ const hasPermission =
   const handleConfirm = () => {
     if (!photoUri) return;
 
-    // TODO: 여기서 서버 업로드 + AI 분석
-    Toast.show({
-      type: 'success',
-      text1: '이미지를 불러왔어요.',
-      text2: '결과 분석을 진행합니다.',
+    // TODO: 여기서는 아직 API 안 부르고, 로딩 스크린에서 API 호출
+    nav.navigate('ScanLoading', {
+      imageUri: photoUri,
+      // petId,
     });
-    nav.goBack();
   };
 
   const renderCamera = () => {
