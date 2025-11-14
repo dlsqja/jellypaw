@@ -1,14 +1,8 @@
 // src/screens/main/Pet/ScanCameraScreen.tsx
-
-import React, { useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { RNCamera, RNCameraProps } from 'react-native-camera';
+import { Camera, useCameraDevice, type CameraPermissionStatus } from 'react-native-vision-camera';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
@@ -18,12 +12,45 @@ import Toast from 'react-native-toast-message';
 export default function ScanCameraScreen() {
   const insets = useSafeAreaInsets();
   const nav = useNavigation<any>();
-  const cameraRef = useRef<RNCamera | null>(null);
 
+  const cameraRef = useRef<Camera | null>(null);
+  const device = useCameraDevice('back');
+
+  const [cameraPermission, setCameraPermission] =
+    useState<CameraPermissionStatus | 'granted'>('not-determined');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
-  const [isCameraReady, setIsCameraReady] = useState(false);
   const hasCaptured = !!photoUri;
 
+  // ✅ 권한 확인 + 요청
+  useEffect(() => {
+    (async () => {
+      // 1) 현재 상태 조회
+      const current = await Camera.getCameraPermissionStatus();
+      console.log('[UrineScanCamera] cameraPermission(get):', current);
+
+      let finalStatus: CameraPermissionStatus = current;
+
+      // 2) 아직 한 번도 안 물어본 상태면, 여기서 실제 요청
+      if (current === 'not-determined') {
+        const req = await Camera.requestCameraPermission();
+        console.log('[UrineScanCamera] cameraPermission(request):', req);
+        finalStatus = req;
+      }
+
+      setCameraPermission(finalStatus);
+
+      if (finalStatus === 'denied') {
+        Toast.show({
+          type: 'error',
+          text1: '카메라 권한이 필요합니다.',
+          text2: '설정에서 권한을 허용해 주세요.',
+        });
+      }
+    })();
+  }, []);
+
+const hasPermission =
+  cameraPermission === 'authorized' || cameraPermission === 'granted';
   const handleBack = () => {
     nav.goBack();
   };
@@ -37,11 +64,11 @@ export default function ScanCameraScreen() {
       return;
     }
 
-    if (!isCameraReady) {
+    if (!device || !hasPermission) {
       Toast.show({
-        type: 'info',
-        text1: '카메라 준비 중입니다.',
-        text2: '잠시 후 다시 시도해 주세요.',
+        type: 'error',
+        text1: '카메라를 사용할 수 없어요.',
+        text2: '권한 또는 기기 설정을 확인해 주세요.',
       });
       return;
     }
@@ -49,17 +76,13 @@ export default function ScanCameraScreen() {
     if (hasCaptured) return;
 
     try {
-      const res = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-        pauseAfterCapture: true,
+      const photo = await cameraRef.current.takePhoto({
+        qualityPrioritization: 'balanced',
+        flash: 'off',
       });
 
-      if (!res?.uri) {
-        throw new Error('NO_URI');
-      }
-
-      setPhotoUri(res.uri);
+      const uri = 'file://' + photo.path;
+      setPhotoUri(uri);
     } catch (e) {
       console.log('[UrineScanCamera] capture error', e);
       Toast.show({
@@ -70,11 +93,12 @@ export default function ScanCameraScreen() {
     }
   };
 
-  const handleRetake = () => {
-    setPhotoUri(null);
-  };
+  const handleRetake = () => setPhotoUri(null);
 
   const handleConfirm = () => {
+    if (!photoUri) return;
+
+    // TODO: 여기서 서버 업로드 + AI 분석
     Toast.show({
       type: 'success',
       text1: '이미지를 불러왔어요.',
@@ -83,68 +107,47 @@ export default function ScanCameraScreen() {
     nav.goBack();
   };
 
+  const renderCamera = () => {
+    if (!device) {
+      return (
+        <View style={S.center}>
+          <Text style={S.authText}>카메라 기기를 찾을 수 없어요.</Text>
+        </View>
+      );
+    }
+
+    if (!hasPermission) {
+      return (
+        <View style={S.center}>
+          <Text style={S.authText}>
+            카메라 권한이 필요합니다. 설정에서 허용해 주세요.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <Camera
+        ref={cameraRef}
+        style={S.cameraPreview}
+        device={device}
+        isActive={!hasCaptured}
+        photo
+      />
+    );
+  };
+
   return (
     <View style={S.container}>
       {/* 카메라 or 촬영 이미지 */}
       {photoUri ? (
         <Image source={{ uri: photoUri }} style={S.cameraPreview} />
       ) : (
-        <RNCamera
-          ref={ref => {
-            cameraRef.current = ref;
-          }}
-          style={S.cameraPreview}
-          type={RNCamera.Constants.Type.back}
-          captureAudio={false}
-          onCameraReady={() => {
-            console.log('[UrineScanCamera] camera ready');
-            setIsCameraReady(true);
-          }}
-          onStatusChange={({
-            cameraStatus,
-          }: Parameters<NonNullable<RNCameraProps['onStatusChange']>>[0]) => {
-            console.log('[UrineScanCamera] status:', cameraStatus);
-            if (cameraStatus === 'READY') {
-              setIsCameraReady(true);
-            }
-          }}
-          onMountError={err => {
-            console.log('[UrineScanCamera] mount error', err);
-            Toast.show({
-              type: 'error',
-              text1: '카메라를 실행할 수 없어요.',
-              text2: '권한 또는 기기 설정을 확인해 주세요.',
-            });
-          }}
-          notAuthorizedView={
-            <View style={S.center}>
-              <Text style={S.authText}>
-                카메라 권한이 필요합니다. 설정에서 허용해 주세요.
-              </Text>
-            </View>
-          }
-          pendingAuthorizationView={
-            <View style={S.center}>
-              <Text style={S.authText}>카메라를 준비하고 있어요…</Text>
-            </View>
-          }
-          androidCameraPermissionOptions={{
-            title: '카메라 권한이 필요합니다',
-            message:
-              '비색판을 촬영하기 위해 카메라 접근을 허용해 주세요.',
-            buttonPositive: '허용',
-            buttonNegative: '취소',
-          }}
-        />
+        renderCamera()
       )}
 
       {/* 상단 오버레이 */}
-      <View
-        style={[
-          S.topOverlay,
-          { paddingTop: insets.top + 16 },
-        ]}
-      >
+      <View style={[S.topOverlay, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity
           onPress={handleBack}
           style={S.topBackButton}
@@ -165,7 +168,7 @@ export default function ScanCameraScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* 가이드 및 하단 버튼은 기존 그대로 */}
+      {/* 가이드 및 하단 버튼들은 기존 그대로 사용 */}
       {!hasCaptured && (
         <>
           <View style={[S.mask, S.maskTop]} />
@@ -192,12 +195,8 @@ export default function ScanCameraScreen() {
         </>
       )}
 
-      <View
-        style={[
-          S.bottomOverlay,
-          { paddingBottom: insets.bottom + 24 },
-        ]}
-      >
+      {/* 하단 버튼 영역 */}
+      <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
         {hasCaptured ? (
           <View style={S.bottomButtonsRow}>
             <TouchableOpacity
@@ -241,6 +240,7 @@ export default function ScanCameraScreen() {
 }
 
 const S = StyleSheet.create({
+  /* 네가 쓰던 스타일 그대로 복붙해도 됨 */
   container: { flex: 1, backgroundColor: 'black' },
   cameraPreview: { ...StyleSheet.absoluteFillObject },
   topOverlay: {
@@ -271,20 +271,8 @@ const S = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
   },
   mask: { backgroundColor: 'rgba(0,0,0,0.4)' },
-  maskTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '25%',
-  },
-  maskBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '35%',
-  },
+  maskTop: { position: 'absolute', top: 0, left: 0, right: 0, height: '25%' },
+  maskBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%' },
   maskMiddleRow: {
     position: 'absolute',
     top: '25%',
@@ -301,30 +289,10 @@ const S = StyleSheet.create({
     height: 32,
     borderColor: '#2DD4BF',
   },
-  cornerTL: {
-    top: -4,
-    left: -4,
-    borderLeftWidth: 4,
-    borderTopWidth: 4,
-  },
-  cornerTR: {
-    top: -4,
-    right: -4,
-    borderRightWidth: 4,
-    borderTopWidth: 4,
-  },
-  cornerBL: {
-    bottom: -4,
-    left: -4,
-    borderLeftWidth: 4,
-    borderBottomWidth: 4,
-  },
-  cornerBR: {
-    bottom: -4,
-    right: -4,
-    borderRightWidth: 4,
-    borderBottomWidth: 4,
-  },
+  cornerTL: { top: -4, left: -4, borderLeftWidth: 4, borderTopWidth: 4 },
+  cornerTR: { top: -4, right: -4, borderRightWidth: 4, borderTopWidth: 4 },
+  cornerBL: { bottom: -4, left: -4, borderLeftWidth: 4, borderBottomWidth: 4 },
+  cornerBR: { bottom: -4, right: -4, borderRightWidth: 4, borderBottomWidth: 4 },
   centerGuideTextWrap: {
     position: 'absolute',
     top: '55%',
@@ -332,11 +300,7 @@ const S = StyleSheet.create({
     right: 0,
     alignItems: 'center',
   },
-  centerGuideTitle: {
-    fontSize: 18,
-    lineHeight: 28,
-    color: '#fff',
-  },
+  centerGuideTitle: { fontSize: 18, lineHeight: 28, color: '#fff' },
   centerGuideSubtitle: {
     fontSize: 14,
     lineHeight: 20,
@@ -409,9 +373,5 @@ const S = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'black',
   },
-  authText: {
-    color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
-  },
+  authText: { color: '#fff', fontSize: 14, textAlign: 'center' },
 });
