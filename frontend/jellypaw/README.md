@@ -1,86 +1,158 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Release APK 빌드 및 추출
 
-# Getting Started
+프로덕션용 Release APK를 빌드하는 방법입니다.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 사전 준비
 
-## Step 1: Start Metro
+### 1. 키스토어 파일 생성 (최초 1회만)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+Release APK를 빌드하기 위해서는 서명용 키스토어 파일이 필요합니다.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```bash
+cd android/app
+keytool -genkeypair -v -storetype PKCS12 -keystore jellypaw-release.keystore -alias jellypaw-key-alias -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-## Step 2: Build and run your app
+**입력 항목:**
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- 키스토어 비밀번호: 원하는 비밀번호 입력 (노션 프론트 메모장 참고고)
+- 이름, 조직 등 정보 입력
+- 키 비밀번호: 키스토어 비밀번호와 동일하게 하려면 Enter
 
-### Android
+**⚠️ 중요:** 키스토어 파일과 비밀번호는 안전하게 보관하세요. 분실 시 앱 업데이트가 불가능합니다.
 
-```sh
-# Using npm
-npm run android
+### 2. gradle.properties 설정
 
-# OR using Yarn
-yarn android
+`android/gradle.properties` 파일에 키스토어 정보를 설정합니다.
+
+```properties
+# Release keystore configuration
+MYAPP_RELEASE_STORE_FILE=jellypaw-release.keystore
+MYAPP_RELEASE_KEY_ALIAS=jellypaw-key-alias
+MYAPP_RELEASE_STORE_PASSWORD=실제-키스토어-비밀번호
+MYAPP_RELEASE_KEY_PASSWORD=실제-키-비밀번호
 ```
 
-### iOS
+**⚠️ 보안:** `gradle.properties` 파일은 `.gitignore`에 포함되어 Git에 커밋되지 않습니다. 템플릿 파일은 `gradle.properties.example`을 참고하세요.
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### 3. build.gradle 설정 확인
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+`android/app/build.gradle` 파일에 release 서명 설정이 포함되어 있는지 확인합니다.
 
-```sh
-bundle install
+```gradle
+signingConfigs {
+    debug {
+        // ... debug 설정
+    }
+    release {
+        if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+            storeFile file(MYAPP_RELEASE_STORE_FILE)
+            storePassword MYAPP_RELEASE_STORE_PASSWORD
+            keyAlias MYAPP_RELEASE_KEY_ALIAS
+            keyPassword MYAPP_RELEASE_KEY_PASSWORD
+        }
+    }
+}
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+        // ... 기타 설정
+    }
+}
 ```
 
-Then, and every time you update your native dependencies, run:
+## Release APK 빌드
 
-```sh
-bundle exec pod install
+### 기본 빌드 명령어
+
+```bash
+cd android
+./gradlew assembleRelease
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Windows에서는:
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+```bash
+cd android
+gradlew.bat assembleRelease
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Lint 오류 발생 시
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+파일 잠금 오류나 lint 오류가 발생하면 lint 검사를 건너뛰고 빌드할 수 있습니다:
 
-## Step 3: Modify your app
+```bash
+cd android
+./gradlew assembleRelease -x lintVitalAnalyzeRelease
+```
 
-Now that you have successfully run the app, let's make changes!
+## 빌드 결과
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+빌드가 성공하면 다음 위치에 APK 파일이 생성됩니다:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```
+android/app/build/outputs/apk/release/app-release.apk
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## APK 설치
 
-## Congratulations! :tada:
+### USB로 연결된 기기에 설치
 
-You've successfully run and modified your React Native App. :partying_face:
+```bash
+adb install android/app/build/outputs/apk/release/app-release.apk
+```
 
-### Now what?
+기존 앱이 설치되어 있다면 덮어쓰기:
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+```bash
+adb install -r android/app/build/outputs/apk/release/app-release.apk
+```
+
+### 직접 설치
+
+1. APK 파일을 휴대폰으로 복사 (USB 파일 전송, 이메일, 클라우드 등)
+2. 휴대폰에서 파일 관리자로 APK 파일 열기
+3. "알 수 없는 출처" 설치 허용 (필요 시)
+
+## Google Play Store 배포
+
+Google Play Store에 배포하려면 AAB(Android App Bundle) 형식을 사용하는 것이 권장됩니다.
+
+### AAB 파일 생성
+
+```bash
+cd android
+./gradlew bundleRelease
+```
+
+생성된 AAB 파일 위치:
+
+```
+android/app/build/outputs/bundle/release/app-release.aab
+```
+
+**참고:** Google Play Store는 2021년 8월부터 새 앱에 대해 AAB 형식을 필수로 요구합니다.
+
+## 문제 해결
+
+### 빌드 실패 시
+
+1. **파일 잠금 오류**: Android Studio를 종료하고 다시 시도
+2. **Lint 오류**: `-x lintVitalAnalyzeRelease` 옵션 사용
+3. **키스토어 오류**: `gradle.properties`의 비밀번호 확인
+
+### 설치 실패 시
+
+1. **서명 불일치**: 기존 앱 삭제 후 재설치
+2. **권한 문제**: "알 수 없는 출처" 설치 허용 확인
+3. **저장 공간**: 기기 저장 공간 확인
+
+## 중요 사항
+
+- ✅ 키스토어 파일(`jellypaw-release.keystore`)은 안전하게 보관
+- ✅ 모든 업데이트는 같은 키스토어로 서명해야 함
+- ✅ 키스토어 분실 시 앱 업데이트 불가능
+- ✅ `gradle.properties`는 Git에 커밋되지 않음 (보안)
 
 # Troubleshooting
 
