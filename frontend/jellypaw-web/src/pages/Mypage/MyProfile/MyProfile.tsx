@@ -42,7 +42,7 @@ export default function MyProfile() {
             <div className="justify-center text-aqua-500 h4-b">{profileData?.followerNum}</div>
           </div>
         </div>
-        <Button size="lg" shape="pillSolid" tone="lightAqua" className="w-full h-11" onClick={() => navigate('/mypage/edit-profile')}>
+        <Button size="lg" shape="solid" tone="lightAqua" className="w-full h-11" onClick={() => navigate('/mypage/edit-profile')}>
           <span className="text-aqua-500 p2-b">프로필 편집</span>
         </Button>
       </CardContent>
