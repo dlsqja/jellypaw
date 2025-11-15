@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react';
 interface GoogleMapProps {
   address: string;
   title: string;
-  position: { lat: number; lng: number } | null;
 }
 
-export default function GoogleMap({ address, title, position }: GoogleMapProps) {
+export default function GoogleMap({ address, title }: GoogleMapProps) {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [mapPosition, setMapPosition] = useState<{ lat: number; lng: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);

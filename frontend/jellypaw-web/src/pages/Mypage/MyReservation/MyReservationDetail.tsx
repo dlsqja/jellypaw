@@ -54,7 +54,6 @@ export default function MyReservationDetail() {
   const reservationData = location.state;
   console.log('state로 받아온 예약데이터:', reservationData);
   const [placeData, setPlaceData] = useState<SearchPlacesDetailResponse | null>(null);
-  const [mapPosition, setMapPosition] = useState<{ lat: number; lng: number } | null>(null);
 
   // 가게 정보 불러오기
   useEffect(() => {
@@ -63,36 +62,13 @@ export default function MyReservationDetail() {
     });
   }, [reservationData.placeId]);
 
-  // 주소를 좌표로 변환
-  useEffect(() => {
-    if (placeData?.address) {
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) return;
-
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(placeData.address)}&key=${apiKey}`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.status === 'OK' && data.results && data.results[0]) {
-            const location = data.results[0].geometry.location;
-            setMapPosition({
-              lat: location.lat,
-              lng: location.lng,
-            });
-          }
-        })
-        .catch((error) => {
-          console.error('Geocoding error:', error);
-        });
-    }
-  }, [placeData?.address]);
-
   console.log('가게 정보:', placeData);
   return (
     <>
       <BackHeader title="예약 상세" />
       <div className="flex flex-col gap-4">
         {/* 카드 1 */}
-        {/* 예약 정본 */}
+        {/* 예약 정보 */}
         <Card className="p-4">
           <CardHeader>
             <h2 className="text-aqua-500 h6-b">예약 정보</h2>
@@ -120,7 +96,7 @@ export default function MyReservationDetail() {
           </CardHeader>
           <CardContent>
             {/* 구글맵 */}
-            <GoogleMap address={placeData?.address || ''} title={placeData?.title || ''} position={mapPosition} />
+            <GoogleMap address={placeData?.address || ''} title={placeData?.title || ''} />
             <div className="flex flex-col gap-3">
               <h2 className="text-aqua-500 h5-b">{placeData?.title}</h2>
               <div className="flex gap-3 items-center">

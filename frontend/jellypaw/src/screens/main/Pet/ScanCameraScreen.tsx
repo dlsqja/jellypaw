@@ -22,32 +22,61 @@ export default function ScanCameraScreen() {
 
   // ✅ 권한 확인 + 요청
   useEffect(() => {
+    let isMounted = true;
+
     (async () => {
-      // 1) 현재 상태 조회
-      const current = await Camera.getCameraPermissionStatus();
-      console.log('[UrineScanCamera] cameraPermission(get):', current);
+      try {
+        // 컴포넌트가 완전히 마운트된 후 권한 확인 (Release 빌드 안정성 향상)
+        await new Promise<void>((resolve) => setTimeout(resolve, 100));
 
-      let finalStatus: CameraPermissionStatus = current;
+        if (!isMounted) return;
 
-      // 2) 아직 한 번도 안 물어본 상태면, 여기서 실제 요청
-      if (current === 'not-determined') {
-        const req = await Camera.requestCameraPermission();
-        console.log('[UrineScanCamera] cameraPermission(request):', req);
-        finalStatus = req;
-      }
+        // 1) 현재 상태 조회
+        const current = await Camera.getCameraPermissionStatus();
+        console.log('[ScanCameraScreen] cameraPermission(get):', current);
 
-      setCameraPermission(finalStatus);
-      // 권한 거부된 경우
-      if (finalStatus === 'denied') {
-        Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
-          { text: '취소', style: 'cancel' },
-          {
-            text: '설정으로 이동',
-            onPress: () => Linking.openSettings(),
-          },
-        ]);
+        if (!isMounted) return;
+
+        let finalStatus: CameraPermissionStatus = current;
+
+        // 2) 아직 한 번도 안 물어본 상태면, 여기서 실제 요청
+        if (current === 'not-determined') {
+          console.log('[ScanCameraScreen] Requesting camera permission...');
+          const req = await Camera.requestCameraPermission();
+          console.log('[ScanCameraScreen] cameraPermission(request):', req);
+          finalStatus = req;
+        }
+
+        if (!isMounted) return;
+
+        setCameraPermission(finalStatus);
+
+        // 권한 거부된 경우 (denied 또는 restricted)
+        if (finalStatus === 'denied' || finalStatus === 'restricted') {
+          // 약간의 지연을 두어 화면이 먼저 렌더링되도록 함
+          setTimeout(() => {
+            if (isMounted) {
+              Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
+                { text: '취소', style: 'cancel' },
+                {
+                  text: '설정으로 이동',
+                  onPress: () => Linking.openSettings(),
+                },
+              ]);
+            }
+          }, 300);
+        }
+      } catch (error) {
+        console.error('[ScanCameraScreen] Permission check error:', error);
+        if (isMounted) {
+          setCameraPermission('denied');
+        }
       }
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 권한이 명시적으로 허용된 경우만 true
