@@ -1,6 +1,6 @@
 // src/screens/main/Pet/ScanCameraScreen.tsx
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, Alert, Linking } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Camera, useCameraDevice, type CameraPermissionStatus } from 'react-native-vision-camera';
 import { useNavigation } from '@react-navigation/native';
@@ -16,8 +16,7 @@ export default function ScanCameraScreen() {
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice('back');
 
-  const [cameraPermission, setCameraPermission] =
-    useState<CameraPermissionStatus | 'granted'>('not-determined');
+  const [cameraPermission, setCameraPermission] = useState<CameraPermissionStatus | 'granted'>('not-determined');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const hasCaptured = !!photoUri;
 
@@ -38,19 +37,24 @@ export default function ScanCameraScreen() {
       }
 
       setCameraPermission(finalStatus);
-
+      // 권한 거부된 경우
       if (finalStatus === 'denied') {
-        Toast.show({
-          type: 'error',
-          text1: '카메라 권한이 필요합니다.',
-          text2: '설정에서 권한을 허용해 주세요.',
-        });
+        Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '설정으로 이동',
+            onPress: () => Linking.openSettings(),
+          },
+        ]);
       }
     })();
   }, []);
 
-const hasPermission =
-  cameraPermission === 'authorized' || cameraPermission === 'granted';
+  // 권한이 명시적으로 허용된 경우만 true
+  // react-native-vision-camera에서는 'granted'를 사용 (iOS는 'authorized'이지만 타입에는 'granted'로 통일)
+  const hasPermission = cameraPermission === 'granted';
+
+  console.log('[ScanCameraScreen] cameraPermission:', cameraPermission, 'hasPermission:', hasPermission, 'hasCaptured:', hasCaptured);
   const handleBack = () => {
     nav.goBack();
   };
@@ -77,7 +81,6 @@ const hasPermission =
 
     try {
       const photo = await cameraRef.current.takePhoto({
-        qualityPrioritization: 'balanced',
         flash: 'off',
       });
 
@@ -119,40 +122,36 @@ const hasPermission =
     if (!hasPermission) {
       return (
         <View style={S.center}>
-          <Text style={S.authText}>
-            카메라 권한이 필요합니다. 설정에서 허용해 주세요.
-          </Text>
+          <Text style={S.authText}>카메라 권한이 필요합니다.{'\n'}설정에서 허용해 주세요.</Text>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다. 설정에서 권한을 허용해 주세요.', [
+                { text: '취소', style: 'cancel' },
+                {
+                  text: '설정으로 이동',
+                  onPress: () => Linking.openSettings(),
+                },
+              ]);
+            }}
+            style={S.settingsButton}
+          >
+            <Text style={S.settingsButtonText}>설정으로 이동</Text>
+          </TouchableOpacity>
         </View>
       );
     }
 
-    return (
-      <Camera
-        ref={cameraRef}
-        style={S.cameraPreview}
-        device={device}
-        isActive={!hasCaptured}
-        photo
-      />
-    );
+    return <Camera ref={cameraRef} style={S.cameraPreview} device={device} isActive={!hasCaptured} photo />;
   };
 
   return (
     <View style={S.container}>
       {/* 카메라 or 촬영 이미지 */}
-      {photoUri ? (
-        <Image source={{ uri: photoUri }} style={S.cameraPreview} />
-      ) : (
-        renderCamera()
-      )}
+      {photoUri ? <Image source={{ uri: photoUri }} style={S.cameraPreview} /> : renderCamera()}
 
       {/* 상단 오버레이 */}
       <View style={[S.topOverlay, { paddingTop: insets.top + 16 }]}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={S.topBackButton}
-          hitSlop={8}
-        >
+        <TouchableOpacity onPress={handleBack} style={S.topBackButton} hitSlop={8}>
           <Feather name="x" size={20} color="#fff" />
         </TouchableOpacity>
 
@@ -160,16 +159,14 @@ const hasPermission =
           <Text weight="bold" style={S.topTitle}>
             비색판 스캔
           </Text>
-          <Text style={S.topSubtitle}>
-            비색판과 검사 스틱을 촬영해주세요
-          </Text>
+          <Text style={S.topSubtitle}>비색판과 검사 스틱을 촬영해주세요</Text>
         </View>
 
         <View style={{ width: 40 }} />
       </View>
 
-      {/* 가이드 및 하단 버튼들은 기존 그대로 사용 */}
-      {!hasCaptured && (
+      {/* 가이드 및 하단 버튼들은 권한이 있을 때만 표시 */}
+      {!hasCaptured && hasPermission && (
         <>
           <View style={[S.mask, S.maskTop]} />
           <View style={S.maskMiddleRow}>
@@ -188,53 +185,41 @@ const hasPermission =
             <Text weight="semiBold" style={S.centerGuideTitle}>
               비색판을 가이드라인에 맞춰주세요
             </Text>
-            <Text style={S.centerGuideSubtitle}>
-              검사 스틱이 비색판 중앙에 위치하도록 해 주세요
-            </Text>
+            <Text style={S.centerGuideSubtitle}>검사 스틱이 비색판 중앙에 위치하도록 해 주세요</Text>
           </View>
         </>
       )}
 
-      {/* 하단 버튼 영역 */}
-      <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
-        {hasCaptured ? (
-          <View style={S.bottomButtonsRow}>
-            <TouchableOpacity
-              onPress={handleRetake}
-              style={S.retakeButton}
-              activeOpacity={0.9}
-            >
-              <Feather name="camera" size={18} color="#fff" />
-              <Text weight="medium" style={S.retakeText}>
-                다시 촬영
-              </Text>
-            </TouchableOpacity>
+      {/* 하단 버튼 영역 - 권한이 있을 때만 표시 */}
+      {hasPermission && (
+        <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
+          {hasCaptured ? (
+            <View style={S.bottomButtonsRow}>
+              <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9}>
+                <Feather name="camera" size={18} color="#fff" />
+                <Text weight="medium" style={S.retakeText}>
+                  다시 촬영
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={handleConfirm}
-              style={S.confirmButton}
-              activeOpacity={0.9}
-            >
-              <Feather name="check" size={18} color="#fff" />
-              <Text weight="medium" style={S.confirmText}>
-                확인
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={S.captureRow}>
-            <View style={S.captureSideIcon} />
-            <TouchableOpacity
-              onPress={handleCapture}
-              style={S.captureButtonOuter}
-              activeOpacity={0.9}
-            >
-              <View style={S.captureButtonInner} />
-            </TouchableOpacity>
-            <View style={S.captureSideIcon} />
-          </View>
-        )}
-      </View>
+              <TouchableOpacity onPress={handleConfirm} style={S.confirmButton} activeOpacity={0.9}>
+                <Feather name="check" size={18} color="#fff" />
+                <Text weight="medium" style={S.confirmText}>
+                  확인
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={S.captureRow}>
+              <View style={S.captureSideIcon} />
+              <TouchableOpacity onPress={handleCapture} style={S.captureButtonOuter} activeOpacity={0.9}>
+                <View style={S.captureButtonInner} />
+              </TouchableOpacity>
+              <View style={S.captureSideIcon} />
+            </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -366,12 +351,21 @@ const S = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: palette.aqua300,
   },
-  confirmText: { color: '#fff', fontSize: 14, marginLeft: 8 },
+  confirmText: { color: '#fff', fontSize: 24, marginLeft: 8 },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black',
+    paddingHorizontal: 32,
   },
-  authText: { color: '#fff', fontSize: 14, textAlign: 'center' },
+  authText: { color: '#fff', fontSize: 20, textAlign: 'center', marginBottom: 24 },
+  settingsButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: palette.aqua300,
+    marginTop: 16,
+  },
+  settingsButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
 });

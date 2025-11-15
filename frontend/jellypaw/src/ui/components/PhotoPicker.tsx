@@ -1,22 +1,8 @@
 // src/ui/components/PhotoPicker.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Image,
-  StyleSheet,
-  Pressable,
-  ViewStyle,
-  Platform,
-  ActionSheetIOS,
-  Modal,
-  Alert,
-} from 'react-native';
+import { View, Image, StyleSheet, Pressable, ViewStyle, Platform, ActionSheetIOS, Modal, Alert, PermissionsAndroid, Linking } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import {
-  launchCamera,
-  launchImageLibrary,
-  ImagePickerResponse,
-} from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../system/variants';
 import { Text } from './Text';
@@ -30,14 +16,7 @@ type Props = {
   onPickFromLibrary?: () => void;
 };
 
-export default function PhotoPicker({
-  uri,
-  size = 112,
-  style,
-  onChangeUri,
-  onTakePhoto,
-  onPickFromLibrary,
-}: Props) {
+export default function PhotoPicker({ uri, size = 112, style, onChangeUri, onTakePhoto, onPickFromLibrary }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const insets = useSafeAreaInsets();
 
@@ -84,9 +63,78 @@ export default function PhotoPicker({
     );
   };
 
-  const takePhoto = () => {
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      try {
+        // 먼저 현재 권한 상태 확인
+        const checkResult = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+
+        console.log('카메라 권한 상태 확인:', checkResult);
+
+        // 이미 권한이 허용되어 있으면 true 반환
+        if (checkResult) {
+          console.log('카메라 권한이 이미 허용되어 있습니다.');
+          return true;
+        }
+
+        console.log('카메라 권한 요청 시작...');
+        // 권한 요청
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+          title: '카메라 권한',
+          message: '사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+          buttonNeutral: '나중에',
+          buttonNegative: '취소',
+          buttonPositive: '허용',
+        });
+
+        console.log('카메라 권한 요청 결과:', granted);
+
+        // 권한 상태에 따른 처리
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          return true;
+        } else if (granted === PermissionsAndroid.RESULTS.DENIED) {
+          Alert.alert('권한 거부됨', '카메라 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.', [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '설정으로 이동',
+              onPress: () => Linking.openSettings(),
+            },
+          ]);
+          return false;
+        } else {
+          // NEVER_ASK_AGAIN인 경우
+          Alert.alert('권한 필요', '카메라 권한이 필요합니다. 설정에서 카메라 권한을 허용해주세요.', [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '설정으로 이동',
+              onPress: () => Linking.openSettings(),
+            },
+          ]);
+          return false;
+        }
+      } catch (err) {
+        console.warn('카메라 권한 요청 오류:', err);
+        Alert.alert('오류', '카메라 권한 요청 중 오류가 발생했습니다.');
+        return false;
+      }
+    }
+    // iOS는 launchCamera가 자동으로 권한을 요청함
+    return true;
+  };
+
+  const takePhoto = async () => {
+    console.log('takePhoto 함수 호출됨');
     if (onTakePhoto) {
       onTakePhoto();
+      return;
+    }
+
+    // 카메라 권한 확인 및 요청
+    console.log('카메라 권한 확인 시작...');
+    const hasPermission = await requestCameraPermission();
+    console.log('권한 확인 결과:', hasPermission);
+    if (!hasPermission) {
+      Alert.alert('권한 필요', '카메라 권한이 필요합니다. 설정에서 권한을 허용해주세요.');
       return;
     }
 
@@ -134,13 +182,7 @@ export default function PhotoPicker({
   return (
     <View style={[{ width: outer, height: outer }, style]}>
       {/* 큰 원 */}
-      <Pressable
-        onPress={openMenu}
-        style={[
-          S.outer,
-          { width: outer, height: outer, borderRadius: outer / 2 },
-        ]}
-      >
+      <Pressable onPress={openMenu} style={[S.outer, { width: outer, height: outer, borderRadius: outer / 2 }]}>
         <View
           style={[
             S.inner,
@@ -163,11 +205,7 @@ export default function PhotoPicker({
               }}
             />
           ) : (
-            <Feather
-              name="camera"
-              size={Math.round(outer * 0.43)}
-              color={theme.icon.active}
-            />
+            <Feather name="camera" size={Math.round(outer * 0.43)} color={theme.icon.active} />
           )}
         </View>
       </Pressable>
@@ -188,30 +226,14 @@ export default function PhotoPicker({
         android_ripple={{ color: '#ffffff22', borderless: true }}
         hitSlop={6}
       >
-        <Feather
-          name="camera"
-          size={Math.round(fab * 0.5)}
-          color={theme.text.onBrand}
-        />
+        <Feather name="camera" size={Math.round(fab * 0.5)} color={theme.text.onBrand} />
       </Pressable>
 
       {/* Android 바텀 시트 */}
-      <Modal
-        transparent
-        visible={sheetOpen}
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent
-        onRequestClose={closeMenu}
-      >
+      <Modal transparent visible={sheetOpen} animationType="fade" presentationStyle="overFullScreen" statusBarTranslucent onRequestClose={closeMenu}>
         <View style={S.modalRoot}>
           <Pressable style={S.backdrop} onPress={closeMenu} />
-          <View
-            style={[
-              S.sheet,
-              { paddingBottom: Math.max(12, insets.bottom + 6) },
-            ]}
-          >
+          <View style={[S.sheet, { paddingBottom: Math.max(12, insets.bottom + 6) }]}>
             <Pressable
               style={[S.sheetItem, S.sheetItemDivider]}
               onPress={() => {
@@ -219,17 +241,9 @@ export default function PhotoPicker({
                 takePhoto();
               }}
             >
-              <Feather
-                name="camera"
-                size={18}
-                color={theme.text.primary}
-              />
+              <Feather name="camera" size={18} color={theme.text.primary} />
               <View style={{ width: 8 }} />
-              <Text
-                style={{ color: theme.text.primary, fontSize: 16 }}
-              >
-                카메라로 촬영
-              </Text>
+              <Text style={{ color: theme.text.primary, fontSize: 16 }}>카메라로 촬영</Text>
             </Pressable>
 
             <Pressable
@@ -239,31 +253,15 @@ export default function PhotoPicker({
                 pickFromLibrary();
               }}
             >
-              <Feather
-                name="image"
-                size={18}
-                color={theme.text.primary}
-              />
+              <Feather name="image" size={18} color={theme.text.primary} />
               <View style={{ width: 8 }} />
-              <Text
-                style={{ color: theme.text.primary, fontSize: 16 }}
-              >
-                갤러리에서 선택
-              </Text>
+              <Text style={{ color: theme.text.primary, fontSize: 16 }}>갤러리에서 선택</Text>
             </Pressable>
 
             <Pressable style={S.sheetItem} onPress={closeMenu}>
-              <Feather
-                name="x"
-                size={18}
-                color={theme.text.muted}
-              />
+              <Feather name="x" size={18} color={theme.text.muted} />
               <View style={{ width: 8 }} />
-              <Text
-                style={{ color: theme.text.muted, fontSize: 16 }}
-              >
-                취소
-              </Text>
+              <Text style={{ color: theme.text.muted, fontSize: 16 }}>취소</Text>
             </Pressable>
           </View>
         </View>
