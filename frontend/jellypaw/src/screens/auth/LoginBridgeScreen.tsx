@@ -6,7 +6,7 @@ import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigato
 import { loginWithKakaoCode } from '../../services/auth/userService';
 import { setTokens } from '../../lib/tokenStorage';
 import { getMessaging, getToken } from '@react-native-firebase/messaging';
-import sendFcmToken from '../../services/auth/fcm';
+import sendFcmToken, { ensureAndroidNotificationPermission } from '../../services/auth/fcm';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginBridge'>;
 
@@ -43,13 +43,15 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
           const messaging = getMessaging();
           // FCM 토큰 발급
           const fcmToken = await getToken(messaging);
-          console.log('FCM Token :: ', fcmToken);
-          // FCM 토큰 전송
-          const response = await sendFcmToken(fcmToken as string);
-          console.log('response', response);
+
+          // FCM 토큰 서버 전송
+          await sendFcmToken(fcmToken as string);
         } catch (error) {
           console.log('[FCM Token Error :: ', error);
         }
+
+        // 피드화면 이동 전에 안드로이드 알림 권한 확인 + 요청
+        await ensureAndroidNotificationPermission();
 
         if (!mounted.current) return;
         navigation.getParent()?.reset({
