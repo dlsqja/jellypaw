@@ -58,7 +58,18 @@ function getUserIdFromToken(token?: string | null): string | undefined {
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     const decoded = base64Decode(padded);
     const json = JSON.parse(decoded);
-    return String(json.user_id || json.sub || json.id || '');
+
+    const cand =
+      json.user_id ??
+      json.userId ??      
+      json.uid ??
+      json.sub ??
+      json.id ??
+      json.user ??
+      json.userID;     
+
+    if (cand == null) return;
+    return String(cand);
   } catch {
     return;
   }
@@ -145,3 +156,5 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
+export { getUserIdFromToken }

@@ -1,73 +1,110 @@
+// src/services/queries/petHooks.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getPetList, getPetDetail, updatePetInfo, updatePetImage, deletePet, deletePetImage } from '../api/pet';
-import type { CreatePetResponse, CreatePetRequest, getPetDetailResponse } from '../../types/main/pet';
+import type { CreatePetResponse, CreatePetRequest } from '../../types/main/pet';
 import { petKeys } from './petKeys';
+import { useAuthCacheKey, useAuthToken } from './authHooks';
+import { createPet } from '../api/pet';
 
-// LIST
 export function usePetList() {
+  const token = useAuthToken();
+  const userKey = useAuthCacheKey();
   return useQuery({
-    queryKey: petKeys.list(),
+    queryKey: petKeys.list(userKey),
     queryFn: getPetList,
+    enabled: !!token,      // 로그인 상태면 호출
   });
 }
 
-// DETAIL
 export function usePetDetail(petId?: number) {
+  const token = useAuthToken();
+  const userKey = useAuthCacheKey();
   return useQuery({
-    queryKey: petId ? petKeys.detail(petId) : ['__noop'],
+    queryKey: petId ? petKeys.detail(userKey, petId) : ['__noop'],
     queryFn: () => getPetDetail(petId as number),
-    enabled: !!petId,
+    enabled: !!token && !!petId,
   });
 }
 
-// UPDATE INFO (JSON)
+// 아래 mutation들 onSuccess에서 invalidate/setQueryData 키도 userKey로!
 export function useUpdatePetInfo(petId: number) {
   const qc = useQueryClient();
+  const userKey = useAuthCacheKey();
   return useMutation({
     mutationFn: (body: CreatePetRequest) => updatePetInfo(petId, body),
     onSuccess: (serverData) => {
-      // 상세 즉시 갱신
-      qc.setQueryData<CreatePetResponse>(petKeys.detail(petId), serverData);
-      // 목록 일부 필드도 변했을 수 있으니 가볍게 무효화
-      qc.invalidateQueries({ queryKey: petKeys.list() });
+      if (userKey) {
+        qc.setQueryData<CreatePetResponse>(petKeys.detail(userKey, petId), serverData);
+        qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+      } else {
+        qc.invalidateQueries({ queryKey: petKeys.all() });
+      }
     },
   });
 }
 
-// UPDATE IMAGE (multipart)
 export function useUpdatePetImage(petId: number) {
   const qc = useQueryClient();
+  const userKey = useAuthCacheKey();
   return useMutation({
     mutationFn: (photoUri: string) => updatePetImage(petId, photoUri),
     onSuccess: (serverData) => {
-      qc.setQueryData<CreatePetResponse>(petKeys.detail(petId), serverData);
-      qc.invalidateQueries({ queryKey: petKeys.list() });
+      if (userKey) {
+        qc.setQueryData<CreatePetResponse>(petKeys.detail(userKey, petId), serverData);
+        qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+      } else {
+        qc.invalidateQueries({ queryKey: petKeys.all() });
+      }
     },
   });
 }
 
-// DELETE
 export function useDeletePet(petId: number) {
   const qc = useQueryClient();
+  const userKey = useAuthCacheKey();
   return useMutation({
     mutationFn: () => deletePet(petId),
     onSuccess: () => {
-      // 상세/리스트 캐시 정리
-      qc.removeQueries({ queryKey: petKeys.detail(petId) });
-      qc.invalidateQueries({ queryKey: petKeys.list() });
+      if (userKey) {
+        qc.removeQueries({ queryKey: petKeys.detail(userKey, petId) });
+        qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+      } else {
+        qc.invalidateQueries({ queryKey: petKeys.all() });
+      }
     },
   });
 }
 
 export function useDeletePetImage(petId: number) {
   const qc = useQueryClient();
+  const userKey = useAuthCacheKey();
   return useMutation({
     mutationFn: () => deletePetImage(petId),
     onSuccess: (serverData) => {
-      // 상세 캐시 갱신(photoUrl null 반영)
-      qc.setQueryData<CreatePetResponse>(petKeys.detail(petId), serverData);
-      // 목록 썸네일도 바뀔 수 있으니 무효화
-      qc.invalidateQueries({ queryKey: petKeys.list() });
+      if (userKey) {
+        qc.setQueryData<CreatePetResponse>(petKeys.detail(userKey, petId), serverData);
+        qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+      } else {
+        qc.invalidateQueries({ queryKey: petKeys.all() });
+      }
+    },
+  });
+}
+
+export function useCreatePet() {
+  const qc = useQueryClient();
+  const userKey = useAuthCacheKey();
+  return useMutation({
+    mutationFn: (body: CreatePetRequest & { photoUri?: string | null }) => createPet(body),
+    onSuccess: (serverData) => {
+      if (userKey) {
+        if (serverData?.petId) {
+          qc.setQueryData(petKeys.detail(userKey, serverData.petId), serverData);
+        }
+        qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+      } else {
+        qc.invalidateQueries({ queryKey: petKeys.all() });
+      }
     },
   });
 }

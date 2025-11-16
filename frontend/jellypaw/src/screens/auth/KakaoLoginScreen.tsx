@@ -1,5 +1,5 @@
 // src/screens/auth/KakaoLoginScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Button } from '../../ui/components/Button';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
