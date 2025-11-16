@@ -48,14 +48,25 @@ export default function App() {
   }, []);
 
   // FCM 포그라운드 메시지 수신 (modular API)
+  // 앱이 켜져 있으면 토스트 (인앱) 알람, 백그라운드 / 앱 종료 상태에선 시스템 알람
   useEffect(() => {
     // FCM 모듈 초기화
     const messaging = getMessaging();
-    console.log('messaging', messaging);
 
     // FCM 메시지 수신
     const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage: any) => {
-      console.log('Remote Message ', JSON.stringify(remoteMessage));
+      console.log('[FCM] Remote Message ', JSON.stringify(remoteMessage));
+
+      const { notification, data } = remoteMessage || {};
+
+      // 알림 타입은 구분하지 않고, 제목/본문만 토스트로 노출
+      if (notification?.title || notification?.body) {
+        Toast.show({
+          type: 'info',
+          text1: notification?.title ?? '새 알림',
+          text2: notification?.body,
+        });
+      }
     });
 
     // FCM 메시지 수신 해제
