@@ -52,20 +52,20 @@ export default function ScanCameraScreen() {
         setCameraPermission(finalStatus);
 
         // 권한 거부된 경우 (denied 또는 restricted)
-        if (finalStatus === 'denied' || finalStatus === 'restricted') {
-          // 약간의 지연을 두어 화면이 먼저 렌더링되도록 함
-          setTimeout(() => {
-            if (isMounted) {
-              Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
-                { text: '취소', style: 'cancel' },
-                {
-                  text: '설정으로 이동',
-                  onPress: () => Linking.openSettings(),
-                },
-              ]);
-            }
-          }, 300);
-        }
+        // if (finalStatus === 'denied' || finalStatus === 'restricted') {
+        //   // 약간의 지연을 두어 화면이 먼저 렌더링되도록 함
+        //   setTimeout(() => {
+        //     if (isMounted) {
+        //       Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
+        //         { text: '취소', style: 'cancel' },
+        //         {
+        //           text: '설정으로 이동',
+        //           onPress: () => Linking.openSettings(),
+        //         },
+        //       ]);
+        //     }
+        //   }, 300);
+        // }
       } catch (error) {
         console.error('[ScanCameraScreen] Permission check error:', error);
         if (isMounted) {
@@ -152,18 +152,7 @@ export default function ScanCameraScreen() {
       return (
         <View style={S.center}>
           <Text style={S.authText}>카메라 권한이 필요합니다.{'\n'}설정에서 허용해 주세요.</Text>
-          <TouchableOpacity
-            onPress={() => {
-              Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다. 설정에서 권한을 허용해 주세요.', [
-                { text: '취소', style: 'cancel' },
-                {
-                  text: '설정으로 이동',
-                  onPress: () => Linking.openSettings(),
-                },
-              ]);
-            }}
-            style={S.settingsButton}
-          >
+          <TouchableOpacity onPress={() => Linking.openSettings()} style={S.settingsButton}>
             <Text style={S.settingsButtonText}>설정으로 이동</Text>
           </TouchableOpacity>
         </View>
