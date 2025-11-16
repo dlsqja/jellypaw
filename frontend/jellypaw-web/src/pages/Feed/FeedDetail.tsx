@@ -190,27 +190,26 @@ export default function FeedDetail() {
     };
   }, [boardId]);
 
-
   useEffect(() => {
-  if (detailData || !boardId) return;
+    if (detailData || !boardId) return;
 
-  (async () => {
-    try {
-      console.log('[WEB] no state feed, fetch list via getFeeds');
-      const feeds = await getFeeds();
-      const matched = feeds.find((f) => f.id === Number(boardId));
+    (async () => {
+      try {
+        console.log('[WEB] no state feed, fetch list via getFeeds');
+        const feeds = await getFeeds();
+        const matched = feeds.find((f) => f.id === Number(boardId));
 
-      if (!matched) {
-        console.log('[WEB] feed not found in list for boardId', boardId);
-        return;
+        if (!matched) {
+          console.log('[WEB] feed not found in list for boardId', boardId);
+          return;
+        }
+
+        setDetailData(matched as GetFeedDetailResponse);
+      } catch (e) {
+        console.error('[WEB] getFeeds in FeedDetail failed', e);
       }
-
-      setDetailData(matched as GetFeedDetailResponse);
-    } catch (e) {
-      console.error('[WEB] getFeeds in FeedDetail failed', e);
-    }
-  })();
-}, [detailData, boardId]);
+    })();
+  }, [detailData, boardId]);
 
   // 댓글 새로고침
   const refreshComments = () => {
@@ -274,10 +273,14 @@ export default function FeedDetail() {
   };
 
   // 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
+  // 백엔드에서 "YYYY-MM-DD HH:mm:ss" 형식(KST 기준)으로 내려오는 문자열을
+  // 항상 한국 시간(+09:00) 기준으로 해석하도록 강제한다.
   const formatRelativeTime = (dateString?: string): string => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
+      // 예: "2025-11-16 12:16:00" -> "2025-11-16T12:16:00+09:00"
+      const normalized = `${dateString.replace(' ', 'T')}+09:00`;
+      const date = new Date(normalized);
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
