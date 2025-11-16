@@ -2,6 +2,8 @@ package a201.user.domain.user.event;
 
 import a201.common.event.FollowEvent;
 import a201.common.util.JsonUtil;
+import a201.user.domain.notification.service.FcmService;
+import a201.user.domain.user.entity.User;
 import a201.user.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowEventConsumer {
 
     private final UserRepository userRepository;
+    private final FcmService fcmService;
 
     @KafkaListener(topics = "follow-topic", groupId = "user-service")
     @Transactional
@@ -29,15 +32,24 @@ public class FollowEventConsumer {
 
             if ("FOLLOW".equals(type)) {
                 // 팔로우: fromUser의 following++, toUser의 follower++
-                userRepository.findById(fromUserId).ifPresent(fromUser -> {
+                User fromUser = userRepository.findById(fromUserId).orElse(null);
+                if (fromUser != null) {
                     fromUser.incrementFollowing();
                     log.info("User ID {}의 팔로잉 수 증가: {}", fromUserId, fromUser.getFollowing());
-                });
+                }
 
-                userRepository.findById(toUserId).ifPresent(toUser -> {
+                User toUser = userRepository.findById(toUserId).orElse(null);
+                if (toUser != null) {
                     toUser.incrementFollower();
                     log.info("User ID {}의 팔로워 수 증가: {}", toUserId, toUser.getFollower());
-                });
+                    
+                    // 팔로우 알림 전송 (팔로우 받은 사용자에게 알림)
+                    if (toUser.getFcmToken() != null && !toUser.getFcmToken().isEmpty()) {
+                        String title = "새로운 팔로워";
+                        String body = fromUser != null ? fromUser.getNickname() + "님이 팔로우했습니다." : "누군가 팔로우했습니다.";
+                        fcmService.sendNotification(toUser.getFcmToken(), title, body);
+                    }
+                }
             } else if ("UNFOLLOW".equals(type)) {
                 // 언팔로우: fromUser의 following--, toUser의 follower--
                 userRepository.findById(fromUserId).ifPresent(fromUser -> {

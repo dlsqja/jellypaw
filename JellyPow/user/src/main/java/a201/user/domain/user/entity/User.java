@@ -50,6 +50,9 @@ public class User {
     @Builder.Default
     private String role = "USER";
 
+    @Column(name = "fcm_token", length = 500)
+    private String fcmToken;
+
     // 팔로워 증가
     public void incrementFollower() {
         this.follower++;

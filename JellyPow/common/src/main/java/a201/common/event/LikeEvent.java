@@ -10,7 +10,9 @@ import lombok.*;
 @ToString
 public class LikeEvent {
 
-    private Long id;
+    private Long id;  // boardId
 
     private String type;
+
+    private Long boardAuthorId;  // 게시글 작성자 userId (알림 전송용)
 }
