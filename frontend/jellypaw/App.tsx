@@ -77,12 +77,15 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* SafeAreaProvider : 안드로이드 상단 표시영역 처리 */}
       <SafeAreaProvider>
+        {/* StatusBar : 상단 상태바 처리 */}
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        {/* RootNavigator : 루트 네비게이터 */}
         <RootNavigator />
+        {/* InsetAwareToast : 토스트 메시지 처리 */}
         <InsetAwareToast />
       </SafeAreaProvider>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   );
 }
