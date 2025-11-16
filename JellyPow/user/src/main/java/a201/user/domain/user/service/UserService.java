@@ -170,5 +170,13 @@ public class UserService {
 				.orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND))
 				.getEmail();
 	}
+
+	// FCM 토큰 업데이트
+	@Transactional
+	public void updateFcmToken(Long userId, String fcmToken) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+		user.setFcmToken(fcmToken);
+	}
 }
 

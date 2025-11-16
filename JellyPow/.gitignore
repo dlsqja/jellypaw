@@ -49,3 +49,4 @@ out/
 **/application-local.properties
 **/common-local-config.properties
 **/user-settings.json
+**/firebase-service-account.json

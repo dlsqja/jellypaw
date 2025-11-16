@@ -41,6 +41,7 @@ public class LikeService {
         LikeEvent likeEvent = LikeEvent.builder()
                 .id(postId)
                 .type("add")
+                .boardAuthorId(board.getUserId().getId())  // 게시글 작성자 ID 추가
                 .build();
 
         kafkaTemplate.send("board-like-topic", JsonUtil.toJsonString(likeEvent));
@@ -49,12 +50,14 @@ public class LikeService {
 
     public void removeLike(Long postId,Long userId) {
 
+        Board board = boardRepository.getBoardById(postId);
         likeRepository.deleteByUserId_IdAndBoard_Id(userId,postId);
 
         //TODO::삭제 이벤트 발생
         LikeEvent likeEvent = LikeEvent.builder()
                 .id(postId)
                 .type("minus")
+                .boardAuthorId(board.getUserId().getId())  // 게시글 작성자 ID 추가
                 .build();
 
         kafkaTemplate.send("board-like-topic", JsonUtil.toJsonString(likeEvent));

@@ -9,6 +9,9 @@ dependencies {
     // Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.3'
@@ -19,6 +22,9 @@ dependencies {
     
     // Swagger (OpenAPI 3)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    
+    // FCM (Firebase Cloud Messaging)
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
     
     // Common 모듈 의존성
     implementation project(':common')
