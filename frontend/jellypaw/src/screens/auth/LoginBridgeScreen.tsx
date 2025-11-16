@@ -34,7 +34,7 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
         }
 
         if (!res.accessToken) throw new Error('accessToken 누락');
-        await setTokens(res.accessToken);
+        await setTokens(res.accessToken, res.refreshToken ?? null);
 
         if (!mounted.current) return;
         navigation.getParent()?.reset({

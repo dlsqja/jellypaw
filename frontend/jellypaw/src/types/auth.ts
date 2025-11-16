@@ -4,6 +4,7 @@ export interface KakaoLoginResponse {
   authId?: number;
   email?: string;
   accessToken?: string;
+  refreshToken?: string;
   user?: {
     userId: number;
     nickname: string;

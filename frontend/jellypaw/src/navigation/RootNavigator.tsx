@@ -15,9 +15,11 @@ import type { MypageStackParamList } from './MypageNavigator';
 import type { AuthStackParamList } from './auth/AuthStackNavigator';
 import { navigationRef } from './navigationRef';
 import { getActiveRoutePath } from './navigationRef';
+import AppGateScreen from '../screens/auth/AppGateScreen';
 
 // stack param list
 export type RootStackParamList = {
+  Gate: undefined;
   AuthStack:
     | undefined
     | {
@@ -67,8 +69,9 @@ export default function RootNavigator() {
       }}>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="AuthStack"
+        initialRouteName="Gate"
       >
+        <Stack.Screen name="Gate" component={AppGateScreen} />
         {/* 로그인/회원가입 */}
         <Stack.Screen name="AuthStack" component={AuthStackNavigator} />
         {/* 피드 메인 - 웹뷰*/}

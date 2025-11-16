@@ -106,12 +106,11 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
     try {
       setLoading(true);
       const res = await signupWithKakao(email, trimmed);
-      const accessToken =
-        res?.data?.accessToken || res?.data?.data?.accessToken;
+      const accessToken = res?.data?.accessToken ?? res?.data?.data?.accessToken;
+      const refreshToken = res?.data?.refreshToken ?? res?.data?.data?.refreshToken ?? null;
       if (accessToken) {
-        await setTokens(accessToken);
+        await setTokens(accessToken, refreshToken); // ★ refresh 저장
       }
-
       navigation.getParent()?.reset({
         index: 0,
         routes: [{ name: 'FeedStack' as never }],
