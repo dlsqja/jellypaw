@@ -19,12 +19,14 @@ pipeline {
       steps {
             script {
               withCredentials([file(credentialsId: 'common-application-properties', variable: 'COMMON_CONFIG'),
-			  file(credentialsId: 'user-settings-json', variable: 'USER_SETTINGS_JSON')]) {
+			  file(credentialsId: 'user-settings-json', variable: 'USER_SETTINGS_JSON'),
+			  file(credentialsId: 'firebase-service-account-json', variable: 'FIREBASE_SERVICE_ACCOUNT_JSON')]) {
                 sh '''
                   mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources
 				  mkdir -p ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch
 				  cat $USER_SETTINGS_JSON > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/elasticsearch/user-settings.json
                   cat $COMMON_CONFIG > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/common-application.properties
+                  cat $FIREBASE_SERVICE_ACCOUNT_JSON > ./${COMPOSE_DIR}/${SERVICE_DIR}/src/main/resources/firebase-service-account.json
 
                   cd ./${COMPOSE_DIR}
                   chmod +x ./gradlew

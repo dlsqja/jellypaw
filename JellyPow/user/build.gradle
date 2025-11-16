@@ -23,6 +23,9 @@ dependencies {
     // Swagger (OpenAPI 3)
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
     
+    // FCM (Firebase Cloud Messaging)
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    
     // Common 모듈 의존성
     implementation project(':common')
 }

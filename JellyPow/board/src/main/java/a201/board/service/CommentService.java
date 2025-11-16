@@ -50,6 +50,8 @@ public class CommentService {
         CommentEvent commentEvent = CommentEvent.builder()
                 .id(postId)
                 .type("add")
+                .boardAuthorId(board.getUserId().getId())  // 게시글 작성자 ID 추가
+                .commentAuthorId(userId)  // 댓글 작성자 ID 추가
                 .build();
         kafkaTemplate.send("board-comment-topic", JsonUtil.toJsonString(commentEvent));
 
@@ -78,6 +80,7 @@ public class CommentService {
         int cnt=1;
         //대댓글 삭제
         cnt += comment.getChildren().size();
+        Board board = comment.getBoard();
         commentRepository.delete(comment);
 
         //TODO::댓글 삭제 이벤트 발생
@@ -85,6 +88,7 @@ public class CommentService {
                 .id(boardId)
                 .count(cnt)
                 .type("minus")
+                .boardAuthorId(board.getUserId().getId())  // 게시글 작성자 ID 추가
                 .build();
         kafkaTemplate.send("board-comment-topic", JsonUtil.toJsonString(commentEvent));
     }

@@ -103,5 +103,18 @@ public class UserController {
 			return ApiResponse.error(e.getErrorCode());
 		}
 	}
+
+	@Operation(summary = "FCM 토큰 저장/업데이트", description = "사용자의 FCM 토큰을 저장하거나 업데이트합니다.")
+	@PostMapping("/fcm-token")
+	public ApiResponse<String> updateFcmToken(
+			@RequestHeader("X-User-Id") Long userId,
+			@RequestParam String fcmToken) {
+		try {
+			userService.updateFcmToken(userId, fcmToken);
+			return ApiResponse.success("FCM 토큰이 성공적으로 저장되었습니다.");
+		} catch (CustomException e) {
+			return ApiResponse.error(e.getErrorCode());
+		}
+	}
 }
 
