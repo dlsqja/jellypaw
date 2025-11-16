@@ -5,6 +5,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/auth/AuthStackNavigator';
 import { loginWithKakaoCode } from '../../services/auth/userService';
 import { setTokens } from '../../lib/tokenStorage';
+import { getMessaging, getToken } from '@react-native-firebase/messaging';
+import sendFcmToken from '../../services/auth/fcm';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'LoginBridge'>;
 
@@ -36,6 +38,19 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
         if (!res.accessToken) throw new Error('accessToken 누락');
         await setTokens(res.accessToken);
 
+        // 로그인 성공 시 FCM 토큰 발급 및 로그 출력
+        try {
+          const messaging = getMessaging();
+          // FCM 토큰 발급
+          const fcmToken = await getToken(messaging);
+          console.log('FCM Token :: ', fcmToken);
+          // FCM 토큰 전송
+          const response = await sendFcmToken(fcmToken as string);
+          console.log('response', response);
+        } catch (error) {
+          console.log('[FCM Token Error :: ', error);
+        }
+
         if (!mounted.current) return;
         navigation.getParent()?.reset({
           index: 0,
@@ -57,12 +72,7 @@ export default function LoginBridgeScreen({ route, navigation }: Props) {
     <View style={S.root}>
       <ActivityIndicator size="large" />
       <Text style={S.msg}>{err ?? '로그인 중입니다...'}</Text>
-      {err && (
-        <Button
-          title="다시 시도"
-          onPress={() => navigation.replace('LoginBridge', { code })}
-        />
-      )}
+      {err && <Button title="다시 시도" onPress={() => navigation.replace('LoginBridge', { code })} />}
     </View>
   );
 }
