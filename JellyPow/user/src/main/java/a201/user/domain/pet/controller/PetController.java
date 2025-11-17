@@ -14,12 +14,20 @@ import a201.user.domain.pet.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+@Slf4j
 @Tag(name = "Pet", description = "반려동물 관리 API")
 @RestController
 @RequestMapping("/pets")
@@ -108,6 +116,12 @@ public class PetController {
             @PathVariable Long petId,
             @RequestPart("file") MultipartFile file) {
         
+        // 임시 파일 저장 (디버깅/확인용)
+        String savedFilePath = saveTemporaryFile(file, userId, petId);
+        if (savedFilePath != null) {
+            log.info("임시 파일 저장 완료: {}", savedFilePath);
+        }
+        
         // AI 서버로 이미지 분석 요청 (비동기, 즉시 202 반환)
         // userId, petId를 함께 전달하여 나중에 Kafka 이벤트에서 구분 가능하도록 함
         Map<String, Object> response = aiClient.analyzeImage(file, userId, petId);
@@ -115,6 +129,51 @@ public class PetController {
         // 202 Accepted 응답 (요청이 큐에 추가되었음을 알림)
         // 실제 분석 결과는 Kafka 이벤트를 통해 나중에 받게 됨
         return ApiResponse.success(response);
+    }
+    
+    /**
+     * 임시 파일 저장 (디버깅/확인용)
+     * @param file 업로드된 파일
+     * @param userId 사용자 ID
+     * @param petId 반려동물 ID
+     * @return 저장된 파일 경로 (실패 시 null)
+     */
+    private String saveTemporaryFile(MultipartFile file, Long userId, Long petId) {
+        try {
+            // 임시 디렉토리 생성
+            String tempDir = System.getProperty("java.io.tmpdir") + File.separator + "jellypaw_uploads";
+            Path tempDirPath = Paths.get(tempDir);
+            if (!Files.exists(tempDirPath)) {
+                Files.createDirectories(tempDirPath);
+            }
+            
+            // 고유한 파일명 생성 (userId_petId_UUID.확장자)
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String uniqueFilename = String.format("%d_%d_%s%s", userId, petId, UUID.randomUUID(), extension);
+            Path tempFilePath = tempDirPath.resolve(uniqueFilename);
+            
+            // 파일 저장
+            file.transferTo(tempFilePath.toFile());
+            
+            // 로그 출력
+            log.info("=== 임시 파일 저장 완료 ===");
+            log.info("원본 파일명: {}", originalFilename);
+            log.info("저장 파일명: {}", uniqueFilename);
+            log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
+            log.info("파일 크기: {} bytes ({} KB)", file.getSize(), file.getSize() / 1024.0);
+            log.info("Content-Type: {}", file.getContentType());
+            log.info("userId: {}, petId: {}", userId, petId);
+            
+            return tempFilePath.toAbsolutePath().toString();
+            
+        } catch (IOException e) {
+            log.error("임시 파일 저장 실패: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     @Operation(summary = "반려동물 분석 결과 목록 조회", description = "특정 반려동물의 분석 결과 목록을 최신순으로 조회합니다.")
