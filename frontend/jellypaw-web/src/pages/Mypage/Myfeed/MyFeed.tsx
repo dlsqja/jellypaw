@@ -50,24 +50,31 @@ export default function MyFeed() {
   const selectedCategoryLabel = categoriesData[activeCategory].label;
   const selectedCategoryValues = categoryLabelToValue[selectedCategoryLabel] || [];
 
-  // 카테고리별 게시글 필터링 (useMemo로 최적화)
+  // 카테고리별 게시글 필터링 및 최신순 정렬 (useMemo로 최적화)
   const filteredArticles = useMemo(() => {
     if (!myFeeds || myFeeds.length === 0) {
       return [];
     }
 
+    let filtered: typeof myFeeds;
+
     if (selectedCategoryLabel === '전체') {
-      return myFeeds; // 전체는 모든 게시글 포함
+      filtered = myFeeds; // 전체는 모든 게시글 포함
+    } else {
+      // 선택된 카테고리 값들 중 하나와 일치하는 게시글만 필터링
+      filtered = myFeeds.filter((article) => {
+        const articleCategory = article.category || '';
+        const isMatch = selectedCategoryValues.includes(articleCategory);
+        return isMatch;
+      });
     }
 
-    // 선택된 카테고리 값들 중 하나와 일치하는 게시글만 필터링
-    const filtered = myFeeds.filter((article) => {
-      const articleCategory = article.category || '';
-      const isMatch = selectedCategoryValues.includes(articleCategory);
-      return isMatch;
+    // 최신순으로 정렬 (createdAt 기준 내림차순)
+    return [...filtered].sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // 내림차순 (최신이 먼저)
     });
-
-    return filtered;
   }, [myFeeds, selectedCategoryLabel, selectedCategoryValues]);
 
   // 카테고리별 게시글 수 계산
@@ -88,6 +95,7 @@ export default function MyFeed() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 카테고리 */}
       <p className="text-aqua-500 h4-b">카테고리</p>
       <div className="grid grid-cols-3 gap-3">
         {categoriesData.map((category, index) => (
@@ -108,6 +116,7 @@ export default function MyFeed() {
           </Button>
         ))}
       </div>
+      {/* 카테고리별 게시글 */}
       <p className="text-aqua-500 h4-b">{categoriesData[activeCategory].label} 게시글</p>
       {filteredArticles && filteredArticles.length > 0 ? (
         <div className="mb-4">

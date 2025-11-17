@@ -60,13 +60,15 @@ export default function Mypage() {
         </div>
 
         <div className="inline-flex flex-col gap-6">
+          {/* 프로필 */}
           <MyProfile />
+          {/* 탭 네비게이션 */}
           <TabNavbar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
           {activeTab === 'feed' && <MyFeed />}
           {activeTab === 'reservation' && <MyReservation />}
         </div>
 
-        {/* overlay */}
+        {/* 설정 모달 배경 */}
         {showDrawer && (
           <div
             className={`fixed inset-0 z-40 bg-black/30 transition-opacity duration-300 ${isDrawerOpen ? 'opacity-100' : 'opacity-0'}`}
@@ -125,7 +127,7 @@ export default function Mypage() {
         )}
       </div>
 
-      {/* ✅ 확인 모달 */}
+      {/* 확인 모달 */}
       {confirmOpen && (
         <>
           <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setConfirmOpen(false)} />
