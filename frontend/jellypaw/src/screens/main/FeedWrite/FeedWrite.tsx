@@ -53,6 +53,8 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const pendingLocationRef = useRef<string | null>(null);
+  const titleInputRef = useRef<TextInput>(null);
+  const contentInputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
   const [category, setCategory] = useState<string>(categoryValue || '');
   const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
@@ -403,8 +405,9 @@ export default function FeedWrite({ route, navigation }: Props) {
             <View style={styles.labelContainer}>
               <Text style={styles.label}>제목</Text>
             </View>
-            <View style={styles.inputContainer}>
+            <Pressable style={styles.inputContainer} onPress={() => titleInputRef.current?.focus()}>
               <TextInput
+                ref={titleInputRef}
                 style={styles.input}
                 placeholder="제목을 입력하세요"
                 placeholderTextColor="#A3A3A3"
@@ -412,7 +415,7 @@ export default function FeedWrite({ route, navigation }: Props) {
                 onChangeText={setTitle}
                 maxLength={50}
               />
-            </View>
+            </Pressable>
             <View style={styles.counterContainer}>
               <Text style={styles.counter}>{title.length}/50</Text>
             </View>
@@ -423,8 +426,9 @@ export default function FeedWrite({ route, navigation }: Props) {
             <View style={styles.labelContainer}>
               <Text style={styles.label}>내용</Text>
             </View>
-            <View style={[styles.inputContainer, styles.textAreaContainer]}>
+            <Pressable style={[styles.inputContainer, styles.textAreaContainer]} onPress={() => contentInputRef.current?.focus()}>
               <TextInput
+                ref={contentInputRef}
                 style={[styles.input, styles.textArea]}
                 placeholder="내용을 입력하세요"
                 placeholderTextColor="#A3A3A3"
@@ -434,7 +438,7 @@ export default function FeedWrite({ route, navigation }: Props) {
                 multiline
                 textAlignVertical="top"
               />
-            </View>
+            </Pressable>
             <View style={styles.counterContainer}>
               <Text style={styles.counter}>{content.length}/500</Text>
             </View>
