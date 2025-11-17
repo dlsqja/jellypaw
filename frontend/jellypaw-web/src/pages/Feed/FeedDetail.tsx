@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
 import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
-import { getFeeds, getComments, deleteFeed, addLike, cancelLike } from '@/services/api/feed';
+import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike, getLikedFeeds } from '@/services/api/feed';
 import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
@@ -18,6 +18,7 @@ import { IoLocation, IoClose } from 'react-icons/io5';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { saveBoardToRedis } from '@/services/api/redis';
 import { debugToRN } from '@/lib/utils';
+import { getFeeds } from '@/services/api/feed';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function FeedDetail() {
@@ -26,6 +27,7 @@ export default function FeedDetail() {
   const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const feedFromState = (location.state as { feed?: GetFeedDetailResponse } | undefined)?.feed ?? null;
+  const likeInfoFromState = (location.state as { isLiked?: boolean; currentLikeCount?: number } | undefined) ?? null;
 
   // 게시글에서 가져온 데이터
   const [detailData, setDetailData] = useState<GetFeedDetailResponse | null>(feedFromState);
@@ -42,8 +44,8 @@ export default function FeedDetail() {
   // 모달 상태
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   // 좋아요 상태
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentLikeCount, setCurrentLikeCount] = useState(detailData?.likeCount ?? 0);
+  const [isLiked, setIsLiked] = useState(likeInfoFromState?.isLiked ?? false);
+  const [currentLikeCount, setCurrentLikeCount] = useState(likeInfoFromState?.currentLikeCount ?? detailData?.likeCount ?? 0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   // 게시글 소유자 확인
@@ -51,8 +53,31 @@ export default function FeedDetail() {
 
   // 좋아요 개수 초기화
   useEffect(() => {
-    setCurrentLikeCount(detailData?.likeCount ?? 0);
-  }, [detailData?.likeCount]);
+    // state에서 받은 좋아요 정보가 있으면 우선 사용, 없으면 detailData 사용
+    if (likeInfoFromState?.currentLikeCount !== undefined) {
+      setCurrentLikeCount(likeInfoFromState.currentLikeCount);
+    } else {
+      setCurrentLikeCount(detailData?.likeCount ?? 0);
+    }
+  }, [detailData?.likeCount, likeInfoFromState?.currentLikeCount]);
+
+  // 초기 좋아요 상태 확인
+  useEffect(() => {
+    // state에서 받은 좋아요 정보가 있으면 우선 사용
+    if (likeInfoFromState?.isLiked !== undefined) {
+      setIsLiked(likeInfoFromState.isLiked);
+    } else if (detailData?.id) {
+      // state에 정보가 없으면 API로 조회
+      getLikedFeeds()
+        .then((likedFeeds) => {
+          const isLikedFeed = likedFeeds.some((likedFeed) => likedFeed.boardId === detailData.id);
+          setIsLiked(isLikedFeed);
+        })
+        .catch((error) => {
+          console.error('좋아요 상태 확인 실패:', error);
+        });
+    }
+  }, [detailData?.id, likeInfoFromState?.isLiked]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
@@ -64,14 +89,20 @@ export default function FeedDetail() {
     const previousIsLiked = isLiked;
     const previousLikeCount = currentLikeCount;
 
-    // 좋아요 상태 업데이트
+    // 로컬 state만 즉시 업데이트 (UI 반영)
     setIsLiked(!previousIsLiked);
-    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
+    if (previousIsLiked) {
+      // 좋아요 취소: 1개 감소
+      setCurrentLikeCount(Math.max(0, previousLikeCount - 1));
+    } else {
+      // 좋아요 추가: 1개 증가
+      setCurrentLikeCount(previousLikeCount + 1);
+    }
 
     // 좋아요 로딩 상태 업데이트
     setIsLikeLoading(true);
 
-    // 좋아요 처리
+    // 좋아요 처리 (API 호출)
     try {
       // 이전 좋아요 상태가 true면 좋아요 취소, false면 좋아요 추가
       if (previousIsLiked) {
@@ -81,8 +112,7 @@ export default function FeedDetail() {
         await addLike(Number(boardId));
         console.log('좋아요 추가되었습니다.');
       }
-      // 성공 시 detailData도 업데이트
-      setDetailData((prev) => (prev ? { ...prev, likeCount: previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1 } : null));
+      // 실제 데이터는 Feed 전체 목록이 로드될 때 업데이트되므로 여기서는 API 호출만 수행
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
       // 에러 발생 시 롤백
@@ -131,36 +161,57 @@ export default function FeedDetail() {
   }, [boardId]);
 
   // 게시글 수정 시 데이터 다시 가져오기
-useEffect(() => {
-  const handler = (event: any) => {
-    const updatedId = event.detail?.boardId;
-    if (!boardId) return;
-    if (Number(updatedId) !== Number(boardId)) return;
+  useEffect(() => {
+    const handler = (event: any) => {
+      const updatedId = event.detail?.boardId;
+      if (!boardId) return;
+      if (Number(updatedId) !== Number(boardId)) return;
 
-    console.log('[WEB] FEED_UPDATED for this detail. refetching from list...');
+      console.log('[WEB] FEED_UPDATED for this detail. refetching from list...');
 
-    getFeeds()
-      .then((feeds) => {
-        const updated = feeds.find((feed) => feed.id === Number(boardId));
-        if (!updated) {
-          console.log('[WEB] updated feed not found in list');
-          return;
-        }
+      getFeeds()
+        .then((feeds) => {
+          const updated = feeds.find((feed) => feed.id === Number(boardId));
+          if (!updated) {
+            console.log('[WEB] updated feed not found in list');
+            return;
+          }
 
-        setDetailData(updated as GetFeedDetailResponse);
-      })
-      .catch((error) => {
-        console.error('[WEB] getFeeds after FEED_UPDATED failed', error);
-      });
-  };
+          setDetailData(updated as GetFeedDetailResponse);
+        })
+        .catch((error) => {
+          console.error('[WEB] getFeeds after FEED_UPDATED failed', error);
+        });
+    };
 
-  window.addEventListener('FEED_UPDATED', handler as any);
-  return () => {
-    window.removeEventListener('FEED_UPDATED', handler as any);
-  };
-}, [boardId]);
+    window.addEventListener('FEED_UPDATED', handler as any);
+    return () => {
+      window.removeEventListener('FEED_UPDATED', handler as any);
+    };
+  }, [boardId]);
 
-  
+
+  useEffect(() => {
+  if (detailData || !boardId) return;
+
+  (async () => {
+    try {
+      console.log('[WEB] no state feed, fetch list via getFeeds');
+      const feeds = await getFeeds();
+      const matched = feeds.find((f) => f.id === Number(boardId));
+
+      if (!matched) {
+        console.log('[WEB] feed not found in list for boardId', boardId);
+        return;
+      }
+
+      setDetailData(matched as GetFeedDetailResponse);
+    } catch (e) {
+      console.error('[WEB] getFeeds in FeedDetail failed', e);
+    }
+  })();
+}, [detailData, boardId]);
+
   // 댓글 새로고침
   const refreshComments = () => {
     if (!boardId) {
@@ -173,48 +224,21 @@ useEffect(() => {
   };
 
   // 댓글 작성 성공 시 댓글 리스트 업데이트
-  const handleCommentSubmitSuccess = (newComment: GetCommentsResponse | GetCommentsResponse[]) => {
-    if (!newComment) return;
-
-    // API는 GetCommentsResponse[] 배열을 반환
-    let comments: GetCommentsResponse[] = [];
-
-    if (Array.isArray(newComment)) {
-      // 배열인 경우 직접 사용
-      comments = newComment;
-    } else {
-      // 단일 객체인 경우 배열로 변환
-      comments = [newComment];
+  const handleCommentSubmitSuccess = (newComments: GetCommentsResponse[]) => {
+    if (!newComments || !Array.isArray(newComments) || newComments.length === 0) {
+      // response가 없거나 빈 배열이면 새로고침만 수행
+      refreshComments();
+      return;
     }
 
-    if (comments.length === 0) return;
-    const comment = comments[0];
-    if (!comment || !comment.id) return;
-
-    // 대댓글인 경우 (parentId가 있음)
-    if (replyTargetId) {
-      setComments((prevComments) =>
-        prevComments.map((prevComment) => {
-          if (prevComment.id === replyTargetId) {
-            // 해당 댓글의 childs 배열에 새 대댓글 추가
-            return {
-              ...prevComment,
-              childs: [...(prevComment.childs || []), comment],
-            };
-          }
-          return prevComment;
-        }),
-      );
-      // 댓글 수 증가
-      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
-    } else {
-      // 일반 댓글인 경우 최상위에 추가
-      setComments((prevComments) => [comment, ...prevComments]);
-      // 댓글 수 증가
-      setDetailData((prev) => (prev ? { ...prev, commentCount: (prev.commentCount || 0) + 1 } : null));
-    }
+    // response로 받은 댓글 리스트로 교체
+    setComments(newComments);
+    // 댓글 수 업데이트
+    setDetailData((prev) => (prev ? { ...prev, commentCount: newComments.length } : null));
     // 답글 대상 초기화
     setReplyTargetId(null);
+    // 새로고침
+    refreshComments();
   };
 
   // 답글 선택
@@ -338,7 +362,7 @@ useEffect(() => {
         </CardHeader>
 
         {/* 댓글 입력창과의 간격을 위해 padding 추가 */}
-        <CardContent className="flex flex-col gap-3">
+        <CardContent className="flex flex-col gap-3 pb-16">
           {/* 날짜 및 평점 */}
           <div className="flex items-center gap-2">
             <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(detailData?.createdAt)}</Badge>
@@ -416,13 +440,8 @@ useEffect(() => {
           <div className="flex flex-col gap-4 mb-4">
             {comments
               .filter((comment): comment is GetCommentsResponse => !!comment && !!comment.userId)
-              .map((comment) => (
-                <Comment
-                  key={comment.id ?? `${comment.userId.id}-${comment.createdAt}`}
-                  {...comment}
-                  boardId={Number(boardId) || null}
-                  onReply={handleReplySelect}
-                />
+              .map((comment, index) => (
+                <Comment key={index} {...comment} boardId={Number(boardId) || null} onReply={handleReplySelect} />
               ))}
           </div>
           {/* 댓글 입력창 */}

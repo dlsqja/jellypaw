@@ -27,14 +27,14 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
     })();
   }, []);
 
-useEffect(() => {
-  const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
-    console.log('[AuthorizedWebView] FEED_UPDATED', payload);
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
+      console.log('[AuthorizedWebView] FEED_UPDATED', payload);
 
-    const boardId = payload?.boardId;
-    if (!boardId) return;
+      const boardId = payload?.boardId;
+      if (!boardId) return;
 
-    webRef.current?.injectJavaScript(`
+      webRef.current?.injectJavaScript(`
       (function() {
         try {
           const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
@@ -46,13 +46,12 @@ useEffect(() => {
       })();
       true;
     `);
-  });
+    });
 
-  return () => {
-    sub.remove();
-  };
-}, []);
-
+    return () => {
+      sub.remove();
+    };
+  }, []);
 
   const injectedJavaScript = useMemo(
     () => `
@@ -129,14 +128,26 @@ useEffect(() => {
 
   return (
     <WebView
-      ref={webRef}                 // ← 추가
+      ref={webRef}
       source={{ uri }}
+      javaScriptEnabled={true}
+      domStorageEnabled={true}
       sharedCookiesEnabled
       thirdPartyCookiesEnabled
       cacheEnabled={false}
       cacheMode="LOAD_NO_CACHE"
       injectedJavaScript={injectedJavaScript}
       onMessage={handleMessage}
+      allowsInlineMediaPlayback={true}
+      mediaPlaybackRequiresUserAction={false}
+      onError={(syntheticEvent) => {
+        const { nativeEvent } = syntheticEvent;
+        console.error('[AuthorizedWebView] WebView error:', nativeEvent);
+      }}
+      onHttpError={(syntheticEvent) => {
+        const { nativeEvent } = syntheticEvent;
+        console.error('[AuthorizedWebView] HTTP error:', nativeEvent.statusCode, nativeEvent.url);
+      }}
       {...rest}
     />
   );

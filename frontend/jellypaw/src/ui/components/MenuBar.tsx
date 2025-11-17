@@ -18,8 +18,7 @@ const INACTIVE = '#A3A3A3';
 
 export default function MenuBar() {
   const insets = useSafeAreaInsets();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
 
   // 현재 활성 탭 결정
@@ -67,52 +66,30 @@ export default function MenuBar() {
     <View style={[S.wrap, { paddingBottom: insets.bottom }]}>
       <View style={S.inner}>
         {/* 피드 */}
-        <TouchableOpacity
-          onPress={handleFeedPress}
-          style={S.menuItem}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handleFeedPress} style={S.menuItem} activeOpacity={0.7}>
           <Entypo name="home" size={20} color={color('feed')} />
-          <Text
-            weight="semiBold"
-            style={[S.tabLabel, { color: color('feed') }]}
-          >
+          <Text weight="semiBold" style={[S.tabLabel, { color: color('feed') }]}>
             피드
           </Text>
         </TouchableOpacity>
 
         {/* 검색 */}
-        <TouchableOpacity
-          onPress={handleSearchPress}
-          style={S.menuItem}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handleSearchPress} style={S.menuItem} activeOpacity={0.7}>
           <Ionicons name="search" size={20} color={color('search')} />
-          <Text
-            weight="semiBold"
-            style={[S.tabLabel, { color: color('search') }]}
-          >
+          <Text weight="semiBold" style={[S.tabLabel, { color: color('search') }]}>
             검색
           </Text>
         </TouchableOpacity>
 
         {/* + (FAB) */}
-        <TouchableOpacity
-          onPress={handleWritePress}
-          style={S.fabContainer}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handleWritePress} style={S.fabContainer} activeOpacity={0.7}>
           <View style={S.fab}>
             <Feather name="plus" size={20} color="#FFFFFF" />
           </View>
         </TouchableOpacity>
 
         {/* 동물관리 */}
-        <TouchableOpacity
-          onPress={handlePetPress}
-          style={S.menuItem}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handlePetPress} style={S.menuItem} activeOpacity={0.7}>
           <FontAwesome5 name="paw" solid size={20} color={color('pet')} />
           <Text weight="semiBold" style={[S.tabLabel, { color: color('pet') }]}>
             동물관리
@@ -120,16 +97,9 @@ export default function MenuBar() {
         </TouchableOpacity>
 
         {/* 내 공간 */}
-        <TouchableOpacity
-          onPress={handleMyPagePress}
-          style={S.menuItem}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handleMyPagePress} style={S.menuItem} activeOpacity={0.7}>
           <Feather name="user" size={20} color={color('mypage')} />
-          <Text
-            weight="semiBold"
-            style={[S.tabLabel, { color: color('mypage') }]}
-          >
+          <Text weight="semiBold" style={[S.tabLabel, { color: color('mypage') }]}>
             내 공간
           </Text>
         </TouchableOpacity>

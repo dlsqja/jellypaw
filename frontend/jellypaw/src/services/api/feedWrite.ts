@@ -1,11 +1,13 @@
 import apiClient from '../../lib/apiClient';
+import { ApiResponse } from '../../types/common/api';
+
 import type { FeedWriteRequest, FeedDetailResponse, FeedWritePlaceRequest } from '../../types/main/feedWrite';
-// API 응답 래퍼 타입
-interface ApiResponse<T> {
-  code: number;
-  message: string;
-  data: T;
-}
+import { FeedListItem } from '../../types/main/feedList';
+
+export const getFeeds = async (): Promise<FeedListItem[]> => {
+  const res = await apiClient.get<ApiResponse<{ boards: FeedListItem[] }>>('/board-view');
+  return res.data.data?.boards ?? [];
+};
 
 // 게시글 상세 조회
 export const getFeedDetail = async (boardId: string): Promise<FeedDetailResponse> => {
@@ -60,10 +62,11 @@ validImageUris.forEach((uri) => {
   console.log('form', form);
   const response = await apiClient.post<ApiResponse<any>>('/boards', form, {
     headers: { Accept: 'application/json' },
-    transformRequest: (data) => {
-      return data;
-    },
+    transformRequest: (data) => data,
+
   });
+
+  const data = response.data.data as any;
 
   // 200(성공) 아닌 경우
   if (response.data?.code && response.data.code !== 200) {
@@ -76,7 +79,7 @@ validImageUris.forEach((uri) => {
     error.config = response.config;
     throw error;
   }
-  return response.data.data;
+  return 
 };
 
 export const updateFeed = async (
