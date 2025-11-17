@@ -94,9 +94,8 @@ public class BoardEventConsumer {
                             likeUserName = likeUser.getNickname();
                         }
                     }
-                    
-                    String title = likeEvent.getId() % 2 == 0 ? "멍멍🐕" : "야옹🐈";
-                    String body = likeUserName + "님이 좋아요를 눌렀습니다.";
+                    String title = "JellyPaw🐾";
+                    String body = likeEvent.getId() % 2 == 0 ? "멍멍🐕" : "야옹🐈" + "\n" + likeUserName + "님이 좋아요를 눌렀습니다.";
                     fcmService.sendNotification(boardAuthor.getFcmToken(), title, body);
                     // log.info("좋아요 알림 전송: boardId={}, authorId={}, likeUserId={}", likeEvent.getId(), likeEvent.getBoardAuthorId(), likeEvent.getLikeUserId());
                 }
@@ -125,8 +124,8 @@ public class BoardEventConsumer {
                     User boardAuthor = userRepository.findById(commentEvent.getBoardAuthorId()).orElse(null);
                     
                     if (boardAuthor != null && boardAuthor.getFcmToken() != null && !boardAuthor.getFcmToken().isEmpty()) {
-                        String title = "댓글 알림🐾";
-                        String body = commentAuthor != null ? commentAuthor.getNickname() + "님이 댓글을 달았습니다." : "누군가 댓글을 달았습니다.";
+                        String title = "JellyPaw🐾";
+                        String body = "댓글 알림\n" + (commentAuthor != null ? commentAuthor.getNickname() + "님이 댓글을 달았습니다." : "누군가 댓글을 달았습니다.");
                         fcmService.sendNotification(boardAuthor.getFcmToken(), title, body);
                         // log.info("댓글 알림 전송: boardId={}, authorId={}", commentEvent.getId(), commentEvent.getBoardAuthorId());
                     }
