@@ -18,6 +18,15 @@ export const palette = {
   gray700: '#4B5563',
   gray800: '#111827',
 
+  gold100: '#FCF9EA',
+  gold200: '#F9F4D8',
+  gold700: '#F7DE64',
+  gold800: '#E6AF1F',
+
+  green100: '#F0FDF4',
+  green200: '#BBF7D0',
+  green400: '#16A34A',
+
   white: '#ffffff',
   kakao: '#FEE500',
 } as const;

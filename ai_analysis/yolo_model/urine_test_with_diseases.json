@@ -1,0 +1,682 @@
+{
+  "Urobilinogen": {
+    "test_name_ko": "유로빌리노겐",
+    "test_name_en": "Urobilinogen",
+    "unit": "mg/dL (μmol/L)",
+    "colors": {
+      "negative": {
+        "value": "0.1",
+        "display": "0.1 (<Normal> 1(16))",
+        "hex": "fef8e0",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [254, 248, 224],
+        "LAB": [97, 126, 140]
+      },
+      "level_1": {
+        "value": "2",
+        "display": "2(33)",
+        "hex": "fbf1eb",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [251, 241, 235],
+        "LAB": [95, 130, 132]
+      },
+      "level_2": {
+        "value": "4",
+        "display": "4(66)",
+        "hex": "fbdeda",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [251, 222, 218],
+        "LAB": [90, 137, 133]
+      },
+      "level_3": {
+        "value": "8",
+        "display": "8(131)",
+        "hex": "f7bcb7",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [247, 188, 183],
+        "LAB": [81, 148, 138]
+      },
+      "level_4": {
+        "value": "16",
+        "display": "16(?)",
+        "hex": "f28c99",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "very_severe",
+        "RGB": [242, 140, 153],
+        "LAB": [69, 168, 138]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "간 기능 저하",
+          "울혈성 심부전",
+          "용혈성 빈혈",
+          "악성 빈혈"
+        ]
+      }
+    }
+  },
+  "Glucose": {
+    "test_name_ko": "포도당",
+    "test_name_en": "Glucose",
+    "unit": "mg/dL (mmol/L)",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "7bc8ee",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [123, 200, 238],
+        "LAB": [77, 114, 101]
+      },
+      "trace": {
+        "value": "100",
+        "display": "±100(5.5)",
+        "hex": "a0d28e",
+        "result": "trace",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [160, 210, 142],
+        "LAB": [79, 99, 156]
+      },
+      "level_1": {
+        "value": "250",
+        "display": "+250(14)",
+        "hex": "b4ae3c",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [180, 174, 60],
+        "LAB": [69, 116, 184]
+      },
+      "level_2": {
+        "value": "500",
+        "display": "++500(28)",
+        "hex": "a68645",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [166, 134, 69],
+        "LAB": [57, 132, 167]
+      },
+      "level_3": {
+        "value": "1000",
+        "display": "+++1000(55)",
+        "hex": "914427",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [145, 68, 39],
+        "LAB": [38, 158, 160]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "당뇨병",
+          "췌장염",
+          "신장 질환",
+          "임신"
+        ]
+      }
+    }
+  },
+  "Bilirubin": {
+    "test_name_ko": "빌리루빈",
+    "test_name_en": "Bilirubin",
+    "unit": "mg/dL",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "fef3d3",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [254, 243, 211],
+        "LAB": [95, 126, 144]
+      },
+      "level_1": {
+        "value": "+",
+        "display": "+",
+        "hex": "f7e6ca",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [247, 230, 202],
+        "LAB": [91, 129, 143]
+      },
+      "level_2": {
+        "value": "++",
+        "display": "++",
+        "hex": "ebd1ba",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [235, 209, 186],
+        "LAB": [85, 133, 142]
+      },
+      "level_3": {
+        "value": "+++",
+        "display": "+++",
+        "hex": "d8aba5",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [216, 171, 165],
+        "LAB": [73, 143, 137]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "간 질환 (간세포 장애, 담도 폐색)",
+          "황달"
+        ]
+      }
+    }
+  },
+  "Ketones": {
+    "test_name_ko": "케톤체",
+    "test_name_en": "Ketones",
+    "unit": "mg/dL (mmol/L)",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "fdf0dd",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [253, 240, 221],
+        "LAB": [95, 129, 138]
+      },
+      "trace": {
+        "value": "5",
+        "display": "±5(0.5)",
+        "hex": "f5dccd",
+        "result": "trace",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [245, 220, 205],
+        "LAB": [89, 134, 138]
+      },
+      "level_1": {
+        "value": "15",
+        "display": "+15(1.5)",
+        "hex": "edc5c1",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [237, 197, 193],
+        "LAB": [82, 141, 135]
+      },
+      "level_2": {
+        "value": "40",
+        "display": "++40(3.9)",
+        "hex": "c88699",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [200, 134, 153],
+        "LAB": [63, 155, 128]
+      },
+      "level_3": {
+        "value": "100",
+        "display": "+++100(10)",
+        "hex": "9b4e62",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [155, 78, 98],
+        "LAB": [43, 162, 131]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "케톤산혈증",
+          "당뇨병성 케토시스 (Ketosis)"
+        ]
+      }
+    }
+  },
+  "Specific_Gravity": {
+    "test_name_ko": "비중",
+    "test_name_en": "Specific Gravity",
+    "unit": "specific gravity",
+    "colors": {
+      "level_0": {
+        "value": "1.000",
+        "display": "1.000",
+        "hex": "066732",
+        "result": "normal",
+        "is_normal": true,
+        "RGB": [6, 103, 50],
+        "LAB": [37, 89, 150]
+      },
+      "level_1": {
+        "value": "1.010",
+        "display": "1.010",
+        "hex": "097065",
+        "result": "abnormal",
+        "is_normal": false,
+        "RGB": [9, 112, 101],
+        "LAB": [42, 90, 133],
+        "severity": "low"
+      },
+      "level_2": {
+        "value": "1.020",
+        "display": "1.020",
+        "hex": "758f6c",
+        "result": "abnormal",
+        "is_normal": false,
+        "RGB": [117, 143, 108],
+        "LAB": [56, 111, 143],
+        "severity": "low"
+      },
+      "level_3": {
+        "value": "1.030",
+        "display": "1.030",
+        "hex": "92a341",
+        "result": "abnormal",
+        "is_normal": false,
+        "RGB": [146, 163, 65],
+        "LAB": [63, 107, 175],
+        "severity": "mild"
+      },
+      "level_4": {
+        "value": "1.040",
+        "display": "1.040",
+        "hex": "b0ac3f",
+        "result": "abnormal",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [176, 172, 63],
+        "LAB": [68, 115, 182]
+      },
+      "level_5": {
+        "value": "1.050",
+        "display": "1.050",
+        "hex": "d2bc31",
+        "result": "abnormal",
+        "is_normal": false,
+        "severity": "high",
+        "RGB": [210, 188, 49],
+        "LAB": [76, 121, 195]
+      },
+      "level_6": {
+        "value": "1.060",
+        "display": "1.060",
+        "hex": "edc02d",
+        "result": "abnormal",
+        "is_normal": false,
+        "severity": "high",
+        "RGB": [237, 192, 45],
+        "LAB": [79, 130, 201]
+      }
+    },
+    "disease_info": {
+      "low": {
+        "conditions": [
+          "수분 과잉섭취",
+          "신부전",
+          "신우신염"
+        ]
+      },
+      "high": {
+        "conditions": [
+          "수분섭취 제한",
+          "탈수증",
+          "당뇨병"
+        ]
+      }
+    }
+  },
+  "Blood": {
+    "test_name_ko": "잠혈",
+    "test_name_en": "Blood",
+    "unit": "RBC/μL",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "f9f039",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [249, 240, 57],
+        "LAB": [92, 112, 210]
+      },
+      "hemolysis_1": {
+        "value": "Hemolysis+10",
+        "display": "Hemolysis+10",
+        "hex": "c3d95c",
+        "result": "positive_hemolysis",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [195, 217, 92],
+        "LAB": [82, 103, 185]
+      },
+      "hemolysis_2": {
+        "value": "++50",
+        "display": "++50 (Hemolysis)",
+        "hex": "6cb46c",
+        "result": "positive_hemolysis",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [108, 180, 108],
+        "LAB": [67, 90, 157]
+      },
+      "hemolysis_3": {
+        "value": "+++250",
+        "display": "+++250 (Hemolysis)",
+        "hex": "0a7988",
+        "result": "positive_hemolysis",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [10, 121, 136],
+        "LAB": [46, 105, 111]
+      },
+      "non_hemolysis_1": {
+        "value": "Non-Hemolysis+10",
+        "display": "Non-Hemolysis+10",
+        "hex": "f9f039",
+        "result": "positive_non_hemolysis",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [249, 240, 57],
+        "LAB": [92, 112, 210]
+      },
+      "non_hemolysis_2": {
+        "value": "++50",
+        "display": "++50 (Non-Hemolysis)",
+        "hex": "f9f039",
+        "result": "positive_non_hemolysis",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [249, 240, 57],
+        "LAB": [92, 112, 210]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "신장 질환",
+          "전립선 질환",
+          "방광 질환",
+          "요로 질환",
+          "생리혈 오염"
+        ]
+      }
+    }
+  },
+  "pH": {
+    "test_name_ko": "pH",
+    "test_name_en": "pH",
+    "unit": "pH",
+    "colors": {
+      "level_0": {
+        "value": "5",
+        "display": "5",
+        "hex": "f8be75",
+        "result": "normal",
+        "is_normal": true,
+        "RGB": [248, 190, 117],
+        "LAB": [80, 140, 172]
+      },
+      "level_1": {
+        "value": "6",
+        "display": "6",
+        "hex": "fbd666",
+        "result": "acidic",
+        "is_normal": false,
+        "RGB": [251, 214, 102],
+        "LAB": [86, 128, 186],
+        "severity": "mild_acidic"
+      },
+      "level_2": {
+        "value": "6.5",
+        "display": "6.5",
+        "hex": "e4cd64",
+        "result": "acidic",
+        "is_normal": false,
+        "RGB": [228, 205, 100],
+        "LAB": [82, 123, 182],
+        "severity": "slight_acidic"
+      },
+      "level_3": {
+        "value": "7",
+        "display": "7",
+        "hex": "c4cd4d",
+        "result": "alkaline",
+        "is_normal": false,
+        "RGB": [196, 205, 77],
+        "LAB": [79, 108, 188],
+        "severity": "mild_alkaline"
+      },
+      "level_4": {
+        "value": "8",
+        "display": "8",
+        "hex": "309960",
+        "result": "alkaline",
+        "is_normal": false,
+        "severity": "moderate_alkaline",
+        "RGB": [48, 153, 96],
+        "LAB": [56, 84, 149]
+      },
+      "level_5": {
+        "value": "9",
+        "display": "9",
+        "hex": "068999",
+        "result": "alkaline",
+        "is_normal": false,
+        "severity": "strong_alkaline",
+        "RGB": [6, 137, 153],
+        "LAB": [52, 95, 117]
+      }
+    },
+    "disease_info": {
+      "acidic": {
+        "conditions": [
+          "당뇨",
+          "통풍",
+          "신장염",
+          "탈수증",
+          "결석증"
+        ]
+      },
+      "alkaline": {
+        "conditions": [
+          "요로 감염증",
+          "결석증",
+          "구토"
+        ]
+      }
+    }
+  },
+  "Protein": {
+    "test_name_ko": "단백질",
+    "test_name_en": "Protein",
+    "unit": "mg/dL (g/L)",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "eee969",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [238, 233, 105],
+        "LAB": [90, 113, 189]
+      },
+      "trace": {
+        "value": "trace",
+        "display": "trace",
+        "hex": "e8e886",
+        "result": "trace",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [232, 232, 134],
+        "LAB": [90, 114, 175]
+      },
+      "level_1": {
+        "value": "30",
+        "display": "+30(0.3)",
+        "hex": "dce281",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [220, 226, 129],
+        "LAB": [87, 112, 174]
+      },
+      "level_2": {
+        "value": "100",
+        "display": "++100(1.0)",
+        "hex": "b4cf80",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [180, 207, 128],
+        "LAB": [79, 105, 164]
+      },
+      "level_3": {
+        "value": "300",
+        "display": "+++300(3.0)",
+        "hex": "a2ca95",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [162, 202, 149],
+        "LAB": [77, 104, 150]
+      },
+      "level_4": {
+        "value": "1000",
+        "display": "++++1000(10)",
+        "hex": "78b387",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "very_severe",
+        "RGB": [120, 179, 135],
+        "LAB": [68, 99, 144]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "신장 질환",
+          "신부전",
+          "요로 감염증",
+          "임신 중독증",
+          "생리적 단백뇨"
+        ]
+      }
+    }
+  },
+  "Nitrite": {
+    "test_name_ko": "아질산염",
+    "test_name_en": "Nitrite",
+    "unit": "qualitative",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "fef8e0",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [254, 248, 224],
+        "LAB": [97, 126, 140]
+      },
+      "trace": {
+        "value": "trace",
+        "display": "trace",
+        "hex": "fbe4ea",
+        "result": "trace",
+        "is_normal": false,
+        "severity": "trace",
+        "RGB": [251, 228, 234],
+        "LAB": [92, 136, 127]
+      },
+      "positive": {
+        "value": "pos",
+        "display": "pos.",
+        "hex": "d65e9e",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "positive",
+        "RGB": [214, 94, 158],
+        "LAB": [56, 182, 116]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "방광염",
+          "신우신염",
+          "요로 감염"
+        ]
+      }
+    }
+  },
+  "Leukocytes": {
+    "test_name_ko": "백혈구",
+    "test_name_en": "Leukocytes",
+    "unit": "WBC/μL",
+    "colors": {
+      "negative": {
+        "value": "neg",
+        "display": "neg.",
+        "hex": "fef1de",
+        "result": "negative",
+        "is_normal": true,
+        "RGB": [254, 241, 222],
+        "LAB": [95, 129, 138]
+      },
+      "level_1": {
+        "value": "25",
+        "display": "+25",
+        "hex": "fae2ca",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "mild",
+        "RGB": [250, 226, 202],
+        "LAB": [91, 132, 142]
+      },
+      "level_2": {
+        "value": "75",
+        "display": "++75",
+        "hex": "f5dfe2",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "RGB": [245, 223, 226],
+        "LAB": [90, 136, 129]
+      },
+      "level_3": {
+        "value": "500",
+        "display": "+++500",
+        "hex": "c397bb",
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "RGB": [195, 151, 187],
+        "LAB": [67, 150, 115]
+      }
+    },
+    "disease_info": {
+      "positive": {
+        "conditions": [
+          "방광염",
+          "신우신염",
+          "무균성 농뇨",
+          "요로 감염"
+        ]
+      }
+    }
+  }
+}
