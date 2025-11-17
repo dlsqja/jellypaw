@@ -1,13 +1,25 @@
 // src/screens/main/Pet/ScanCameraScreen.tsx
-import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, Alert, Linking, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+  Linking,
+  ActivityIndicator,
+  Platform,
+  PermissionsAndroid,
+  ActionSheetIOS,
+} from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
-import { Camera, useCameraDevice, type CameraPermissionStatus } from 'react-native-vision-camera';
+import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import { palette } from '../../../ui/system/variants';
 import Toast from 'react-native-toast-message';
+import RNImageManipulator from 'react-native-image-manipulator';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 
@@ -15,161 +27,228 @@ type Props = NativeStackScreenProps<PetStackParamList, 'ScanCamera'>;
 
 export default function ScanCameraScreen({ navigation: nav, route }: Props) {
   const insets = useSafeAreaInsets();
-
-  const cameraRef = useRef<Camera | null>(null);
-  const device = useCameraDevice('back');
-
-  const [cameraPermission, setCameraPermission] = useState<CameraPermissionStatus | 'granted'>('not-determined');
   const petId = route.params?.petId;
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [processedPhotoUri, setProcessedPhotoUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const hasCaptured = !!photoUri;
 
-  // ✅ 권한 확인 + 요청
-  useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
-      try {
-        // 컴포넌트가 완전히 마운트된 후 권한 확인 (Release 빌드 안정성 향상)
-        await new Promise<void>((resolve) => setTimeout(resolve, 100));
-
-        if (!isMounted) return;
-
-        // 1) 현재 상태 조회
-        const current = await Camera.getCameraPermissionStatus();
-        console.log('[ScanCameraScreen] cameraPermission(get):', current);
-
-        if (!isMounted) return;
-
-        let finalStatus: CameraPermissionStatus = current;
-
-        // 2) 아직 한 번도 안 물어본 상태면, 여기서 실제 요청
-        if (current === 'not-determined') {
-          console.log('[ScanCameraScreen] Requesting camera permission...');
-          const req = await Camera.requestCameraPermission();
-          console.log('[ScanCameraScreen] cameraPermission(request):', req);
-          finalStatus = req;
-        }
-
-        if (!isMounted) return;
-
-        setCameraPermission(finalStatus);
-
-        // 권한 거부된 경우 (denied 또는 restricted)
-        // if (finalStatus === 'denied' || finalStatus === 'restricted') {
-        //   // 약간의 지연을 두어 화면이 먼저 렌더링되도록 함
-        //   setTimeout(() => {
-        //     if (isMounted) {
-        //       Alert.alert('카메라 권한 필요', '카메라 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.', [
-        //         { text: '취소', style: 'cancel' },
-        //         {
-        //           text: '설정으로 이동',
-        //           onPress: () => Linking.openSettings(),
-        //         },
-        //       ]);
-        //     }
-        //   }, 300);
-        // }
-      } catch (error) {
-        console.error('[ScanCameraScreen] Permission check error:', error);
-        if (isMounted) {
-          setCameraPermission('denied');
-        }
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 권한이 명시적으로 허용된 경우만 true
-  // react-native-vision-camera에서는 'granted'를 사용 (iOS는 'authorized'이지만 타입에는 'granted'로 통일)
-  const hasPermission = cameraPermission === 'granted';
-
-  console.log('[ScanCameraScreen] cameraPermission:', cameraPermission, 'hasPermission:', hasPermission, 'hasCaptured:', hasCaptured);
   const handleBack = () => {
     nav.goBack();
   };
 
-  // 파일이 완전히 저장될 때까지 대기하는 함수
-  // React Native Vision Camera의 takePhoto는 파일 저장이 완료된 후 resolve되지만,
-  // 추가 안정성을 위해 약간의 지연을 둡니다
-  const waitForFileReady = async (filePath: string): Promise<boolean> => {
-    try {
-      // takePhoto가 완료된 후에도 파일 시스템에 완전히 반영될 때까지 대기
-      // 일반적으로 100-300ms면 충분하지만, 안전을 위해 500ms 대기
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
+  // 카메라 권한 요청 (Android)
+  const requestCameraPermission = async (): Promise<boolean> => {
+    if (Platform.OS === 'android') {
+      try {
+        const checkResult = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.CAMERA);
+        if (checkResult) {
+          return true;
+        }
 
-      // Image 컴포넌트가 파일을 로드할 수 있도록 추가 대기
-      // 실제로는 takePhoto가 완료되면 파일이 저장되어 있지만,
-      // 카메라가 비활성화되기 전에 파일이 완전히 쓰여지도록 보장
-      console.log('[ScanCameraScreen] 파일 저장 대기 완료:', filePath);
-      return true;
-    } catch (error) {
-      console.log('[ScanCameraScreen] 파일 확인 중 오류:', error);
-      return false;
+        const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
+          title: '카메라 권한',
+          message: '사진을 촬영하기 위해 카메라 권한이 필요합니다.',
+          buttonNeutral: '나중에',
+          buttonNegative: '취소',
+          buttonPositive: '허용',
+        });
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          return true;
+        } else {
+          Alert.alert('권한 필요', '카메라 권한이 필요합니다. 설정에서 권한을 허용해주세요.', [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '설정으로 이동',
+              onPress: () => Linking.openSettings(),
+            },
+          ]);
+          return false;
+        }
+      } catch (err) {
+        console.warn('카메라 권한 요청 오류:', err);
+        return false;
+      }
     }
+    // iOS는 launchCamera가 자동으로 권한을 요청함
+    return true;
   };
 
-  const handleCapture = async () => {
-    if (!cameraRef.current) {
-      Toast.show({
-        type: 'error',
-        text1: '카메라를 불러오지 못했어요.',
-      });
-      return;
-    }
-
-    if (!device || !hasPermission) {
-      Toast.show({
-        type: 'error',
-        text1: '카메라를 사용할 수 없어요.',
-        text2: '권한 또는 기기 설정을 확인해 주세요.',
-      });
-      return;
-    }
-
-    if (hasCaptured || isProcessing) return;
-
+  // 이미지 처리 (리사이징 + 압축)
+  const processImage = async (imageUri: string): Promise<string> => {
     try {
-      setIsProcessing(true);
-      console.log('[ScanCameraScreen] 촬영 시작...');
+      console.log('[ScanCameraScreen] 이미지 처리 시작 (리사이징 + 압축)...');
+      console.log('[ScanCameraScreen] 원본 URI:', imageUri);
 
-      // 사진 촬영
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-      });
-
-      const filePath = photo.path;
-      const uri = 'file://' + filePath;
-
-      console.log('[ScanCameraScreen] takePhoto 완료, 파일 경로:', filePath);
-
-      // 파일이 완전히 저장될 때까지 대기
-      const isReady = await waitForFileReady(filePath);
-
-      if (!isReady) {
-        throw new Error('파일 저장이 완료되지 않았습니다.');
+      // react-native-image-manipulator 모듈 확인
+      if (!RNImageManipulator || typeof RNImageManipulator.manipulate !== 'function') {
+        console.warn('[ScanCameraScreen] react-native-image-manipulator 모듈이 로드되지 않았습니다. 원본 이미지를 사용합니다.');
+        return imageUri;
       }
 
-      // 파일이 완전히 저장된 후에만 photoUri 설정 (카메라 비활성화)
-      console.log('[ScanCameraScreen] 파일 저장 완료, photoUri 설정:', uri);
-      setPhotoUri(uri);
-    } catch (e: any) {
-      console.error('[ScanCameraScreen] 촬영 오류:', e);
-      Toast.show({
-        type: 'error',
-        text1: '촬영에 실패했어요.',
-        text2: e?.message || '카메라 권한 또는 설정을 확인해 주세요.',
+      // react-native-image-manipulator가 자동으로 EXIF orientation 처리
+      // 최대 너비 1920px로 리사이징 (원본 비율 유지)
+      const manipulatedImage = await RNImageManipulator.manipulate(imageUri, [{ resize: { width: 1920 } }], {
+        compress: 0.8, // 80% 품질로 압축
+        format: 'jpeg', // JPEG 형식으로 저장
       });
-    } finally {
-      setIsProcessing(false);
+
+      console.log('[ScanCameraScreen] 이미지 처리 완료:', manipulatedImage.uri);
+      return manipulatedImage.uri;
+    } catch (compressError: any) {
+      console.error('[ScanCameraScreen] 이미지 처리 실패:', compressError);
+      console.error('[ScanCameraScreen] 에러 상세:', {
+        message: compressError?.message,
+        code: compressError?.code,
+        name: compressError?.name,
+      });
+      // 처리 실패 시 원본 사용
+      console.warn('[ScanCameraScreen] 원본 이미지를 사용합니다.');
+      return imageUri;
     }
   };
 
-  const handleRetake = () => setPhotoUri(null);
+  // 카메라로 촬영
+  const handleTakePhoto = async () => {
+    const hasPermission = await requestCameraPermission();
+    if (!hasPermission) {
+      return;
+    }
+
+    launchCamera(
+      {
+        mediaType: 'photo',
+        quality: 1.0, // 최대 품질로 촬영 (나중에 압축)
+        saveToPhotos: false,
+      },
+      async (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          return;
+        }
+        if (response.errorMessage) {
+          Toast.show({
+            type: 'error',
+            text1: '촬영에 실패했어요.',
+            text2: response.errorMessage,
+          });
+          return;
+        }
+
+        const imageUri = response.assets?.[0]?.uri;
+        if (!imageUri) {
+          Toast.show({
+            type: 'error',
+            text1: '이미지를 불러올 수 없어요.',
+          });
+          return;
+        }
+
+        try {
+          setIsProcessing(true);
+          console.log('[ScanCameraScreen] 촬영 완료, 이미지 URI:', imageUri);
+
+          // 이미지 처리 (리사이징 + 압축)
+          const processedUri = await processImage(imageUri);
+
+          setPhotoUri(imageUri);
+          setProcessedPhotoUri(processedUri);
+        } catch (error: any) {
+          console.error('[ScanCameraScreen] 이미지 처리 오류:', error);
+          Toast.show({
+            type: 'error',
+            text1: '이미지 처리에 실패했어요.',
+            text2: error?.message || '다시 시도해주세요.',
+          });
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+    );
+  };
+
+  // 갤러리에서 선택
+  const handlePickFromLibrary = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 1.0, // 최대 품질로 선택 (나중에 압축)
+        selectionLimit: 1,
+      },
+      async (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          return;
+        }
+        if (response.errorMessage) {
+          Toast.show({
+            type: 'error',
+            text1: '이미지 선택에 실패했어요.',
+            text2: response.errorMessage,
+          });
+          return;
+        }
+
+        const imageUri = response.assets?.[0]?.uri;
+        if (!imageUri) {
+          Toast.show({
+            type: 'error',
+            text1: '이미지를 불러올 수 없어요.',
+          });
+          return;
+        }
+
+        try {
+          setIsProcessing(true);
+          console.log('[ScanCameraScreen] 이미지 선택 완료, URI:', imageUri);
+
+          // 이미지 처리 (리사이징 + 압축)
+          const processedUri = await processImage(imageUri);
+
+          setPhotoUri(imageUri);
+          setProcessedPhotoUri(processedUri);
+        } catch (error: any) {
+          console.error('[ScanCameraScreen] 이미지 처리 오류:', error);
+          Toast.show({
+            type: 'error',
+            text1: '이미지 처리에 실패했어요.',
+            text2: error?.message || '다시 시도해주세요.',
+          });
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+    );
+  };
+
+  // 카메라/갤러리 선택 메뉴 표시
+  const handleCapture = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['취소', '카메라로 촬영', '갤러리에서 선택'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            handleTakePhoto();
+          } else if (buttonIndex === 2) {
+            handlePickFromLibrary();
+          }
+        },
+      );
+    } else {
+      // Android: Alert로 선택
+      Alert.alert('이미지 선택', '이미지를 가져올 방법을 선택해주세요.', [
+        { text: '취소', style: 'cancel' },
+        { text: '카메라로 촬영', onPress: handleTakePhoto },
+        { text: '갤러리에서 선택', onPress: handlePickFromLibrary },
+      ]);
+    }
+  };
+
+  const handleRetake = () => {
+    setPhotoUri(null);
+    setProcessedPhotoUri(null);
+  };
 
   const handleConfirm = () => {
     if (!photoUri) return;
@@ -179,38 +258,28 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
       return;
     }
 
-    // photoUri가 설정된 시점에 이미 파일 저장이 완료된 상태이므로 바로 전송
-    console.log('[ScanCameraScreen] 확인 버튼 클릭, 전송할 파일:', photoUri);
-    nav.navigate('ScanLoading', { imageUri: photoUri, petId });
-  };
-
-  const renderCamera = () => {
-    if (!device) {
-      return (
-        <View style={S.center}>
-          <Text style={S.authText}>카메라 기기를 찾을 수 없어요.</Text>
-        </View>
-      );
-    }
-
-    if (!hasPermission) {
-      return (
-        <View style={S.center}>
-          <Text style={S.authText}>카메라 권한이 필요합니다.{'\n'}설정에서 허용해 주세요.</Text>
-          <TouchableOpacity onPress={() => Linking.openSettings()} style={S.settingsButton}>
-            <Text style={S.settingsButtonText}>설정으로 이동</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return <Camera ref={cameraRef} style={S.cameraPreview} device={device} isActive={!hasCaptured && !isProcessing} photo />;
+    // processedPhotoUri가 있으면 처리된 이미지 사용, 없으면 원본 사용
+    const imageToSend = processedPhotoUri || photoUri;
+    console.log('[ScanCameraScreen] 확인 버튼 클릭, 전송할 파일:', imageToSend);
+    console.log('[ScanCameraScreen] 원본 파일:', photoUri);
+    console.log('[ScanCameraScreen] 처리된 파일:', processedPhotoUri);
+    nav.navigate('ScanLoading', { imageUri: imageToSend, petId });
   };
 
   return (
     <View style={S.container}>
-      {/* 카메라 or 촬영 이미지 */}
-      {photoUri ? <Image source={{ uri: photoUri }} style={S.cameraPreview} /> : renderCamera()}
+      {/* 촬영/선택한 이미지 또는 안내 화면 */}
+      {photoUri ? (
+        <Image source={{ uri: photoUri }} style={S.cameraPreview} resizeMode="contain" />
+      ) : (
+        <View style={S.placeholderContainer}>
+          <Feather name="camera" size={64} color="rgba(255,255,255,0.5)" />
+          <Text weight="semiBold" style={S.placeholderTitle}>
+            비색판 스캔
+          </Text>
+          <Text style={S.placeholderSubtitle}>비색판과 검사 스틱을 촬영해주세요</Text>
+        </View>
+      )}
 
       {/* 상단 오버레이 */}
       <View style={[S.topOverlay, { paddingTop: insets.top + 16 }]}>
@@ -228,82 +297,74 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* 가이드 및 하단 버튼들은 권한이 있을 때만 표시 */}
-      {!hasCaptured && hasPermission && (
-        <>
-          <View style={[S.mask, S.maskTop]} />
-          <View style={S.maskMiddleRow}>
-            <View style={[S.mask, S.maskSide]} />
-            <View style={S.guideBox}>
-              <View style={[S.corner, S.cornerTL]} />
-              <View style={[S.corner, S.cornerTR]} />
-              <View style={[S.corner, S.cornerBL]} />
-              <View style={[S.corner, S.cornerBR]} />
-            </View>
-            <View style={[S.mask, S.maskSide]} />
-          </View>
-          <View style={[S.mask, S.maskBottom]} />
-
-          <View style={S.centerGuideTextWrap}>
-            <Text weight="semiBold" style={S.centerGuideTitle}>
-              비색판을 가이드라인에 맞춰주세요
-            </Text>
-            <Text style={S.centerGuideSubtitle}>검사 스틱이 비색판 중앙에 위치하도록 해 주세요</Text>
-          </View>
-        </>
-      )}
-
       {/* 처리 중 오버레이 */}
       {isProcessing && (
         <View style={S.processingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
-          <Text style={S.processingText}>사진 저장 중...</Text>
+          <Text style={S.processingText}>이미지 처리 중...</Text>
         </View>
       )}
 
-      {/* 하단 버튼 영역 - 권한이 있을 때만 표시 */}
-      {hasPermission && (
-        <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
-          {hasCaptured ? (
-            <View style={S.bottomButtonsRow}>
-              <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9} disabled={isProcessing}>
-                <Feather name="camera" size={18} color="#fff" />
-                <Text weight="medium" style={S.retakeText}>
-                  다시 촬영
-                </Text>
-              </TouchableOpacity>
+      {/* 하단 버튼 영역 */}
+      <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
+        {photoUri ? (
+          <View style={S.bottomButtonsRow}>
+            <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9} disabled={isProcessing}>
+              <Feather name="camera" size={18} color="#fff" />
+              <Text weight="medium" style={S.retakeText}>
+                다시 선택
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleConfirm} style={S.confirmButton} activeOpacity={0.9} disabled={isProcessing}>
-                <Feather name="check" size={18} color="#fff" />
-                <Text weight="medium" style={S.confirmText}>
-                  확인
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={S.captureRow}>
-              <View style={S.captureSideIcon} />
-              <TouchableOpacity
-                onPress={handleCapture}
-                style={[S.captureButtonOuter, isProcessing && S.captureButtonDisabled]}
-                activeOpacity={0.9}
-                disabled={isProcessing}
-              >
-                {isProcessing ? <ActivityIndicator size="small" color="#fff" /> : <View style={S.captureButtonInner} />}
-              </TouchableOpacity>
-              <View style={S.captureSideIcon} />
-            </View>
-          )}
-        </View>
-      )}
+            <TouchableOpacity onPress={handleConfirm} style={S.confirmButton} activeOpacity={0.9} disabled={isProcessing}>
+              <Feather name="check" size={18} color="#fff" />
+              <Text weight="medium" style={S.confirmText}>
+                확인
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={S.captureRow}>
+            <View style={S.captureSideIcon} />
+            <TouchableOpacity
+              onPress={handleCapture}
+              style={[S.captureButtonOuter, isProcessing && S.captureButtonDisabled]}
+              activeOpacity={0.9}
+              disabled={isProcessing}
+            >
+              {isProcessing ? <ActivityIndicator size="small" color="#fff" /> : <View style={S.captureButtonInner} />}
+            </TouchableOpacity>
+            <View style={S.captureSideIcon} />
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
 const S = StyleSheet.create({
-  /* 네가 쓰던 스타일 그대로 복붙해도 됨 */
   container: { flex: 1, backgroundColor: 'black' },
-  cameraPreview: { ...StyleSheet.absoluteFillObject },
+  cameraPreview: { ...StyleSheet.absoluteFillObject, backgroundColor: 'black' },
+  placeholderContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'black',
+    paddingHorizontal: 32,
+  },
+  placeholderTitle: {
+    fontSize: 24,
+    lineHeight: 32,
+    color: '#fff',
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  placeholderSubtitle: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
+  },
   topOverlay: {
     position: 'absolute',
     top: 0,
@@ -330,43 +391,6 @@ const S = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: 'rgba(255,255,255,0.8)',
-  },
-  mask: { backgroundColor: 'rgba(0,0,0,0.4)' },
-  maskTop: { position: 'absolute', top: 0, left: 0, right: 0, height: '25%' },
-  maskBottom: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%' },
-  maskMiddleRow: {
-    position: 'absolute',
-    top: '25%',
-    bottom: '35%',
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-  },
-  maskSide: { flex: 1 },
-  guideBox: { width: 320, height: 240, alignSelf: 'center' },
-  corner: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    borderColor: '#2DD4BF',
-  },
-  cornerTL: { top: -4, left: -4, borderLeftWidth: 4, borderTopWidth: 4 },
-  cornerTR: { top: -4, right: -4, borderRightWidth: 4, borderTopWidth: 4 },
-  cornerBL: { bottom: -4, left: -4, borderLeftWidth: 4, borderBottomWidth: 4 },
-  cornerBR: { bottom: -4, right: -4, borderRightWidth: 4, borderBottomWidth: 4 },
-  centerGuideTextWrap: {
-    position: 'absolute',
-    top: '55%',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  centerGuideTitle: { fontSize: 18, lineHeight: 28, color: '#fff' },
-  centerGuideSubtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
   },
   bottomOverlay: {
     position: 'absolute',
@@ -428,22 +452,6 @@ const S = StyleSheet.create({
     backgroundColor: palette.aqua300,
   },
   confirmText: { color: '#fff', fontSize: 14, marginLeft: 8 },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'black',
-    paddingHorizontal: 32,
-  },
-  authText: { color: '#fff', fontSize: 20, textAlign: 'center', marginBottom: 24 },
-  settingsButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: palette.aqua300,
-    marginTop: 16,
-  },
-  settingsButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
   processingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.7)',

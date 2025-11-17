@@ -283,9 +283,28 @@ export const analyzeUrineTest = async (petId: number, imageUri: string): Promise
   }
 };
 
-// 분석결과 목록 조회
-export const getUrineAnalysisList = async (petId: number): Promise<getUrineAnalysisListResponse[]> => {
-  const response = await apiClient.get<getUrineAnalysisListResponse[]>(`/pets/${petId}/analysis`);
-  console.log('[getUrineAnalysisList] ▶ 분석결과 목록', response.data);
-  return response.data;
+// ────────────────────────────────────────────────────────────
+// 소변 검사 분석 결과 조회 (GET /pets/{petId}/analyze/{analysisId})
+// ────────────────────────────────────────────────────────────
+export const getUrineAnalysisResult = async (petId: number, analysisId: string): Promise<UrineAnalysisResponse> => {
+  if (!analysisId) {
+    throw new Error('[getUrineAnalysisResult] analysisId required');
+  }
+
+  try {
+    const res = await apiClient.get<ApiResponse<UrineAnalysisResponse>>(`/pets/${petId}/analyze/${analysisId}`);
+
+    if (res.data?.code && res.data.code !== 200 && res.data.code !== 0) {
+      throw new Error(`[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`);
+    }
+
+    return res.data.data;
+  } catch (err: any) {
+    console.log('[getUrineAnalysisResult] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
 };
