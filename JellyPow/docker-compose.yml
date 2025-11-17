@@ -9,8 +9,8 @@ services:
     volumes:
       - ./init:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
-#    networks:
-#      - msa-net
+    networks:
+      - msa-net
 
   kafka:
     image: apache/kafka:3.8.1
@@ -18,35 +18,76 @@ services:
     environment:
       TZ: Asia/Seoul
 
-#      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
-#      KAFKA_PROCESS_ROLES: "broker,controller"
-#      KAFKA_NODE_ID: 1
-#      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
-#      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:29093"
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-#      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-#      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#
+    #      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
+    #      KAFKA_PROCESS_ROLES: "broker,controller"
+    #      KAFKA_NODE_ID: 1
+    #      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+    #      KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:29093"
+    #      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+    #      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+    #      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+    #      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    #      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    #      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    #      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    #
     ports:
       - "9092:9092"
-#    networks:
-#      - msa-net
+    networks:
+      - msa-net
+
+  # kafka:
+  #   image: apache/kafka:3.8.1
+  #   container_name: kafka
+  #   environment:
+  #     TZ: Asia/Seoul
+  #     #이 노드가 broker + controller 둘 다 한다
+  #     KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
+  #     KAFKA_PROCESS_ROLES: "broker,controller"
+  #     KAFKA_NODE_ID: 1
+  #     #컨트롤러 합의는 이 컨테이너의 29093 포트로
+  #     KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+  #     #실제로 바인딩할 포트들 (컨테이너 내부)
+  #     # EXTERNAL: Spring 애플리케이션용 (localhost:9092)
+  #     # INTERNAL: Docker 내부 컨테이너용 (kafka:9092)
+  #     # CONTROLLER: 컨트롤러 통신용
+  #     KAFKA_LISTENERS: "EXTERNAL://:9092,INTERNAL://:9093,CONTROLLER://:29093"
+  #     #리스너 이름 → 프로토콜 매핑
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT"
+  #     #컨트롤러들끼리 통신할 때 CONTROLLER 리스너 쓴다
+  #     KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  #     #각 리스너별로 다른 주소 광고
+  #     # EXTERNAL: Spring(localhost)에서 접근
+  #     # INTERNAL: Docker 내부 컨테이너(kafka)에서 접근
+  #     KAFKA_ADVERTISED_LISTENERS: "EXTERNAL://localhost:9092,INTERNAL://kafka:9093"
+  #     #외부 리스너를 기본값으로 설정 (Spring이 사용)
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+  #     KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  #     # 메시지 크기 제한 설정 (10MB)
+  #     KAFKA_MESSAGE_MAX_BYTES: 10485760
+  #     KAFKA_REPLICA_FETCH_MAX_BYTES: 10485760
+  #     KAFKA_SOCKET_REQUEST_MAX_BYTES: 10485760
+  #   ports:
+  #     - "9092:9092" # EXTERNAL 리스너 (Spring용)
+  #     - "9093:9093" # INTERNAL 리스너 (Docker 내부용)
+  #   networks:
+  #     - msa-net
 
   mongo:
     image: mongo:8
     container_name: mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
       - ./mongo-data:/data/db
-#    networks:
-#      - msa-net # ✅ 추가
+    networks:
+      - msa-net # ✅ 추가
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -87,8 +128,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    # networks:
-    #   - msa-net
+    networks:
+      - msa-net
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
