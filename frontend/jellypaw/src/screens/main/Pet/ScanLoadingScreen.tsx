@@ -1,22 +1,25 @@
 // src/screens/main/Pet/ScanLoadingScreen.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
   Animated,
   Easing,
-  Pressable,   // ✅ 추가
+  Pressable,
 } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { palette, theme } from '../../../ui/system/variants';
+import { analyzeUrineTest } from '../../../services/api/pet';
+import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ScanLoading'>;
 
 export default function ScanLoadingScreen({ navigation, route }: Props) {
   const { imageUri, petId } = route.params;
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -32,17 +35,60 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
   }, [progress]);
 
   useEffect(() => {
-    // 🔜 여기서 imageUri로 AI API 호출 후
-    // 성공: navigation.replace('ResultSummary', { analysisId: '...', petId });
-    // 실패: 에러 처리
-  }, [imageUri, navigation, petId]);
+    // imageUri와 petId가 모두 있을 때만 API 호출
+    if (!imageUri || !petId || isAnalyzing) {
+      return;
+    }
+
+    const callAnalysisAPI = async () => {
+      try {
+        setIsAnalyzing(true);
+        console.log('[ScanLoadingScreen] 분석 시작', { imageUri, petId });
+
+        const result = await analyzeUrineTest(petId, imageUri);
+        
+        console.log('[ScanLoadingScreen] 분석 완료', result);
+
+        // 성공 시 결과 화면으로 이동
+        navigation.replace('ResultSummary', {
+          analysisId: result.id,
+          petId,
+        });
+      } catch (error: any) {
+        console.error('[ScanLoadingScreen] 분석 실패', error);
+        
+        // 에러 처리
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          '분석 중 오류가 발생했습니다.';
+
+        Toast.show({
+          type: 'error',
+          text1: '분석 실패',
+          text2: errorMessage,
+        });
+
+        // 에러 발생 시 이전 화면으로 돌아가기
+        setTimeout(() => {
+          navigation.goBack();
+        }, 2000);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    };
+
+    callAnalysisAPI();
+  }, [imageUri, petId, navigation, isAnalyzing]);
 
   const handleDevSkip = () => {
-    // 개발용 더미 이동
-    navigation.replace('ResultSummary', {
-      analysisId: 'dummy-analysis-id',
-      petId,
-    });
+    // 개발용 더미 이동 (분석 중이 아닐 때만)
+    if (!isAnalyzing) {
+      navigation.replace('ResultSummary', {
+        analysisId: 'dummy-analysis-id',
+        petId,
+      });
+    }
   };
 
   const getPawAnim = (start: number) => {
