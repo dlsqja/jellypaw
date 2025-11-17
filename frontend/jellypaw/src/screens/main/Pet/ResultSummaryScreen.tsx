@@ -1,10 +1,11 @@
 // src/screens/main/Pet/ResultSummaryScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,6 +14,9 @@ import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getUrineAnalysisResult } from '../../../services/api/pet';
+import type { UrineAnalysisResponse, UrineAnalysisSummaryItem } from '../../../types/main/pet';
+import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ResultSummary'>;
 
@@ -26,34 +30,63 @@ interface ResultItem {
   dotColor: string;
 }
 
-// 더미 데이터
-const warningItems: ResultItem[] = [
-  {
-    key: 'bilirubin',
-    label: '빌리루빈',
-    statusLabel: '보통',
-    statusType: 'good',
-    dotColor: '#BBF7D0',
-  },
-  {
-    key: 'protein',
-    label: '단백질',
-    statusLabel: '주의',
-    statusType: 'caution',
-    dotColor: palette.gold700,
-  },
-];
-
-const normalItems: ResultItem[] = [
-  { key: 'urobilinogen', label: '유로빌리노겐', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'glucose', label: '포도당', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'ketone', label: '케톤체', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'sg', label: '요비중', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'blood', label: '잠혈', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'ph', label: 'pH', statusLabel: '중성', statusType: 'neutral', dotColor: palette.aqua300 },
-  { key: 'nitrite', label: '아질산염', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-  { key: 'wbc', label: '백혈구', statusLabel: '정상', statusType: 'normal', dotColor: palette.aqua300 },
-];
+// API 응답을 ResultItem으로 변환하는 함수
+function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): ResultItem {
+  // testNameKo를 key로 변환 (예: "빌리루빈" -> "bilirubin")
+  const keyMap: { [key: string]: string } = {
+    '유로빌리노겐': 'urobilinogen',
+    '포도당': 'glucose',
+    '빌리루빈': 'bilirubin',
+    '케톤체': 'ketone',
+    '요비중': 'sg',
+    '잠혈': 'blood',
+    'pH': 'ph',
+    '단백질': 'protein',
+    '아질산염': 'nitrite',
+    '백혈구': 'wbc',
+  };
+  
+  const key = keyMap[item.testNameKo] || `item_${index}`;
+  
+  // severity와 isNormal에 따라 statusType 결정
+  let statusType: ItemStatus = 'normal';
+  let statusLabel = '정상';
+  let dotColor = palette.aqua300;
+  
+  if (!item.isNormal) {
+    // 비정상인 경우 severity에 따라 분류
+    if (item.severity === 'high' || item.severity === '중증') {
+      statusType = 'caution';
+      statusLabel = '주의';
+      dotColor = palette.gold700;
+    } else if (item.severity === 'low' || item.severity === '경증') {
+      statusType = 'good';
+      statusLabel = '보통';
+      dotColor = '#BBF7D0';
+    } else {
+      statusType = 'caution';
+      statusLabel = '주의';
+      dotColor = palette.gold700;
+    }
+  } else {
+    // 정상인 경우
+    if (item.testNameKo === 'pH') {
+      statusType = 'neutral';
+      statusLabel = '중성';
+    } else {
+      statusType = 'normal';
+      statusLabel = '정상';
+    }
+  }
+  
+  return {
+    key,
+    label: item.testNameKo,
+    statusLabel,
+    statusType,
+    dotColor,
+  };
+}
 
 function statusColor(type: ItemStatus) {
   switch (type) {
@@ -72,8 +105,62 @@ function statusColor(type: ItemStatus) {
 export default function ResultSummaryScreen({ route, navigation }: Props) {
   const { analysisId, petId } = route.params;
   const [normalOpen, setNormalOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [analysisData, setAnalysisData] = useState<UrineAnalysisResponse | null>(null);
+  const [warningItems, setWarningItems] = useState<ResultItem[]>([]);
+  const [normalItems, setNormalItems] = useState<ResultItem[]>([]);
+
+  // API로 분석 결과 가져오기
+  useEffect(() => {
+    if (!analysisId || !petId) {
+      Toast.show({
+        type: 'error',
+        text1: '오류',
+        text2: '분석 정보를 찾을 수 없습니다.',
+      });
+      navigation.goBack();
+      return;
+    }
+
+    const fetchAnalysisResult = async () => {
+      try {
+        setLoading(true);
+        const result = await getUrineAnalysisResult(petId, analysisId);
+        setAnalysisData(result);
+        
+        // summary를 ResultItem으로 변환
+        const allItems = result.summary.map((item, index) => 
+          convertToResultItem(item, index)
+        );
+        
+        // isNormal에 따라 분류
+        const warning = allItems.filter(item => 
+          item.statusType === 'caution' || item.statusType === 'good'
+        );
+        const normal = allItems.filter(item => 
+          item.statusType === 'normal' || item.statusType === 'neutral'
+        );
+        
+        setWarningItems(warning);
+        setNormalItems(normal);
+      } catch (error: any) {
+        console.error('[ResultSummaryScreen] 분석 결과 조회 실패', error);
+        Toast.show({
+          type: 'error',
+          text1: '오류',
+          text2: error?.message || '분석 결과를 불러오는데 실패했습니다.',
+        });
+        navigation.goBack();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalysisResult();
+  }, [analysisId, petId, navigation]);
 
   const normalCount = normalItems.length;
+  const hasWarning = warningItems.length > 0;
 
   const goDetail = (itemKey: string) => {
     navigation.navigate('ResultDetail', {
@@ -82,6 +169,18 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
       petId,
     });
   };
+
+  if (loading) {
+    return (
+      <View style={[S.root, { justifyContent: 'center', alignItems: 'center' }]}>
+        <BackHeader title="소변 검사 분석 결과" />
+        <ActivityIndicator size="large" color={palette.aqua300} />
+        <Text style={{ marginTop: 16, color: theme.text.secondary }}>
+          분석 결과를 불러오는 중...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={S.root}>
@@ -95,44 +194,58 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
         {/* 전체 건강 상태 카드 */}
         <View style={S.card}>
           <View style={S.healthIconWrap}>
-            <Text style={S.healthEmoji}>⚠️</Text>
+            <Text style={S.healthEmoji}>
+              {hasWarning ? '⚠️' : '✅'}
+            </Text>
           </View>
           <Text weight="bold" style={S.healthTitle}>
             전체 건강 상태
           </Text>
 
           <View style={S.healthBadgeRow}>
-            <View style={S.healthBadge}>
-              <Text style={S.healthBadgeText}>주의 필요</Text>
-            </View>
-          </View>
-
-          <Text weight="semiBold" style={S.healthDesc}>
-            일부 항목에서 주의가 필요합니다
-          </Text>
-        </View>
-
-        {/* 주의 필요 항목 */}
-        <View style={S.section}>
-          <View style={S.sectionHeaderRow}>
-            <View style={S.sectionTitleLeft}>
-              <View style={S.sectionIconCircle}>
-                <Ionicons name="warning" size={14} color={palette.gold800} />
-              </View>
-              <Text weight="bold" style={S.sectionTitle}>
-                주의 필요 항목
+            <View style={[
+              S.healthBadge,
+              hasWarning ? { backgroundColor: palette.pink100 } : { backgroundColor: palette.aqua100 }
+            ]}>
+              <Text style={[
+                S.healthBadgeText,
+                hasWarning ? { color: palette.pink400 } : { color: palette.aqua400 }
+              ]}>
+                {hasWarning ? '주의 필요' : '정상'}
               </Text>
             </View>
           </View>
 
-          {warningItems.map(item => (
-            <ResultRow
-              key={item.key}
-              item={item}
-              onPress={() => goDetail(item.key)}
-            />
-          ))}
+          <Text weight="semiBold" style={S.healthDesc}>
+            {hasWarning 
+              ? '일부 항목에서 주의가 필요합니다'
+              : '모든 검사 항목이 정상 범위입니다'}
+          </Text>
         </View>
+
+        {/* 주의 필요 항목 */}
+        {hasWarning && (
+          <View style={S.section}>
+            <View style={S.sectionHeaderRow}>
+              <View style={S.sectionTitleLeft}>
+                <View style={S.sectionIconCircle}>
+                  <Ionicons name="warning" size={14} color={palette.gold800} />
+                </View>
+                <Text weight="bold" style={S.sectionTitle}>
+                  주의 필요 항목 ({warningItems.length}개)
+                </Text>
+              </View>
+            </View>
+
+            {warningItems.map(item => (
+              <ResultRow
+                key={item.key}
+                item={item}
+                onPress={() => goDetail(item.key)}
+              />
+            ))}
+          </View>
+        )}
 
         {/* 정상 항목 (토글) */}
         <View style={S.section}>
