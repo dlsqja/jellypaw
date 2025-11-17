@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  ai-analysis:
+    build: .
+    container_name: ai-analysis
+    ports:
+      - "9999:9999"
+    environment:
+      - REDIS_HOST=jellypaw-redis # JellyPow의 Redis 컨테이너 이름
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_QUEUE_NAME=analysis_queue
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9093 # JellyPow의 Kafka 컨테이너 이름 (INTERNAL 리스너)
+      - KAFKA_TOPIC=analysis-results-topic
+    networks:
+      - msa-net
+    # GPU 사용 (선택사항)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+networks:
+  msa-net:
+    external: true # 기존 msa-net 네트워크 사용
+

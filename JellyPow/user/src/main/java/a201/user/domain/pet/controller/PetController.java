@@ -101,21 +101,19 @@ public class PetController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "이미지 AI 분석", description = "이미지를 AI 서버로 전송하여 분석하고 결과를 저장합니다.")
+    @Operation(summary = "이미지 AI 분석", description = "이미지를 AI 서버로 전송하여 분석 요청을 큐에 추가합니다. (비동기 처리)")
     @PostMapping("/{petId}/analyze")
-    public ApiResponse<AnalysisResponse> analyzeImage(
+    public ApiResponse<Map<String, Object>> analyzeImage(
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable Long petId,
             @RequestPart("file") MultipartFile file) {
         
-        // AI 서버로 이미지 분석 요청
-        Map<String, Object> aiResult = aiClient.analyzeImage(file);
+        // AI 서버로 이미지 분석 요청 (비동기, 즉시 202 반환)
+        // userId, petId를 함께 전달하여 나중에 Kafka 이벤트에서 구분 가능하도록 함
+        Map<String, Object> response = aiClient.analyzeImage(file, userId, petId);
         
-        // MongoDB에 저장
-        AnalysisDocument saved = analysisService.saveAnalysis(userId, petId, aiResult);
-        
-        // 조회용 DTO로 변환하여 반환 (testNameKo, isNormal, severity, suspectedConditions만 포함)
-        AnalysisResponse response = AnalysisResponse.from(saved);
+        // 202 Accepted 응답 (요청이 큐에 추가되었음을 알림)
+        // 실제 분석 결과는 Kafka 이벤트를 통해 나중에 받게 됨
         return ApiResponse.success(response);
     }
 
@@ -127,7 +125,6 @@ public class PetController {
         
         // MongoDB에서 userId와 petId로 조회 (최신순)
         List<AnalysisDocument> documents = analysisService.getAnalysisList(userId, petId);
-        
         // DTO로 변환하여 반환
         List<AnalysisResponse> responses = documents.stream()
                 .map(AnalysisResponse::from)

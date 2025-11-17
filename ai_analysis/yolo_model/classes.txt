@@ -1,0 +1,11 @@
+# classes.txt 내용
+pad_Urobilinogen
+pad_Glucose
+pad_Bilirubin
+pad_Ketones
+pad_SG
+pad_Blood
+pad_pH
+pad_Protein
+pad_Nitrite
+pad_Leukocytes

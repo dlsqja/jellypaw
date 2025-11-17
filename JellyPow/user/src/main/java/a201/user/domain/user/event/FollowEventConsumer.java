@@ -22,7 +22,7 @@ public class FollowEventConsumer {
     @KafkaListener(topics = "follow-topic", groupId = "user-service")
     @Transactional
     public void handleFollowEvent(String message) {
-        log.info("Follow 이벤트 수신: {}", message);
+        // log.info("Follow 이벤트 수신: {}", message);
 
         try {
             FollowEvent followEvent = JsonUtil.fromJsonString(message, FollowEvent.class);
@@ -35,17 +35,17 @@ public class FollowEventConsumer {
                 User fromUser = userRepository.findById(fromUserId).orElse(null);
                 if (fromUser != null) {
                     fromUser.incrementFollowing();
-                    log.info("User ID {}의 팔로잉 수 증가: {}", fromUserId, fromUser.getFollowing());
+                    // log.info("User ID {}의 팔로잉 수 증가: {}", fromUserId, fromUser.getFollowing());
                 }
 
                 User toUser = userRepository.findById(toUserId).orElse(null);
                 if (toUser != null) {
                     toUser.incrementFollower();
-                    log.info("User ID {}의 팔로워 수 증가: {}", toUserId, toUser.getFollower());
+                    //log.info("User ID {}의 팔로워 수 증가: {}", toUserId, toUser.getFollower());
                     
                     // 팔로우 알림 전송 (팔로우 받은 사용자에게 알림)
                     if (toUser.getFcmToken() != null && !toUser.getFcmToken().isEmpty()) {
-                        String title = "새로운 팔로워";
+                        String title = "새 팔로워🐾";
                         String body = fromUser != null ? fromUser.getNickname() + "님이 팔로우했습니다." : "누군가 팔로우했습니다.";
                         fcmService.sendNotification(toUser.getFcmToken(), title, body);
                     }
@@ -54,12 +54,12 @@ public class FollowEventConsumer {
                 // 언팔로우: fromUser의 following--, toUser의 follower--
                 userRepository.findById(fromUserId).ifPresent(fromUser -> {
                     fromUser.decrementFollowing();
-                    log.info("User ID {}의 팔로잉 수 감소: {}", fromUserId, fromUser.getFollowing());
+                    // log.info("User ID {}의 팔로잉 수 감소: {}", fromUserId, fromUser.getFollowing());
                 });
 
                 userRepository.findById(toUserId).ifPresent(toUser -> {
                     toUser.decrementFollower();
-                    log.info("User ID {}의 팔로워 수 감소: {}", toUserId, toUser.getFollower());
+                    // log.info("User ID {}의 팔로워 수 감소: {}", toUserId, toUser.getFollower());
                 });
             } else {
                 log.warn("알 수 없는 Follow 이벤트 타입: {}", type);

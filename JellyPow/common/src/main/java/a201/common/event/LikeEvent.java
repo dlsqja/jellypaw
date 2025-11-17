@@ -15,4 +15,6 @@ public class LikeEvent {
     private String type;
 
     private Long boardAuthorId;  // 게시글 작성자 userId (알림 전송용)
+    
+    private Long likeUserId;  // 좋아요를 누른 사용자 userId
 }

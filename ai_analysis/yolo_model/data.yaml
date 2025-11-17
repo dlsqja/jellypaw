@@ -1,0 +1,22 @@
+# 훈련 데이터셋 경로 정의 (data.yaml 기준 상대 경로)
+train: ../yolo_data/train/images
+val: ../yolo_data/val/images
+test: ../yolo_data/test/images
+
+# 클래스 개수 (Number of classes)
+nc: 10
+
+# 클래스 이름 목록(Names in the order defined in calsses.txt)
+names:
+  [
+    "pad_Urobilinogen",
+    "pad_Bilirubin",
+    "pad_Ketones",
+    "pad_Glucose",
+    "pad_Protein",
+    "pad_Blood",
+    "pad_pH",
+    "pad_SG",
+    "pad_Nitrite",
+    "pad_Leukocytes",
+  ]

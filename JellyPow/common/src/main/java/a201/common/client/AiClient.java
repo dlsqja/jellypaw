@@ -32,10 +32,10 @@ public class AiClient {
         this.aiServiceUrl = aiServiceUrl;
     }
 
-    public Map<String, Object> analyzeImage(MultipartFile file) {
+    public Map<String, Object> analyzeImage(MultipartFile file, Long userId, Long petId) {
         try {
-            log.info("AI 서버 이미지 분석 요청: filename={}, size={}, contentType={}", 
-                    file.getOriginalFilename(), file.getSize(), file.getContentType());
+            log.info("AI 서버 이미지 분석 요청: filename={}, size={}, contentType={}, userId={}, petId={}", 
+                    file.getOriginalFilename(), file.getSize(), file.getContentType(), userId, petId);
             
             // 파일 유효성 검사
             if (file.isEmpty()) {
@@ -64,6 +64,10 @@ public class AiClient {
             
             HttpEntity<Resource> fileEntity = new HttpEntity<>(resource, fileHeaders);
             body.add("file", fileEntity);
+            
+            // userId, petId 추가
+            body.add("userId", String.valueOf(userId));
+            body.add("petId", String.valueOf(petId));
             
             // 요청 헤더 설정
             HttpHeaders headers = new HttpHeaders();
@@ -95,7 +99,8 @@ public class AiClient {
             @SuppressWarnings("unchecked")
             Map<String, Object> result = objectMapper.convertValue(jsonNode, Map.class);
             
-            log.info("AI 서버 이미지 분석 성공: detections={}", result.get("analysis_count"));
+            log.info("AI 서버 이미지 분석 요청 성공: request_id={}, queue_length={}", 
+                    result.get("request_id"), result.get("queue_length"));
             return result;
             
         } catch (IOException e) {

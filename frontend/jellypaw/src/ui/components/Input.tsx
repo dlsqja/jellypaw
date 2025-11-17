@@ -1,0 +1,111 @@
+// src/ui/components/Input.tsx
+import React, { useState } from 'react';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+  StyleProp,
+  TextStyle,
+} from 'react-native';
+import { Text } from './Text';
+
+type Props = {
+  label?: string;
+  errorText?: string;
+  helperText?: string;
+  helperTextStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+} & TextInputProps;
+
+export default function Input({
+  label,
+  errorText,
+  helperText,
+  helperTextStyle,
+  style,
+  editable = true,
+  containerStyle,
+  ...rest
+}: Props) {
+  const [focused, setFocused] = useState(false);
+
+  const showError = !!errorText;
+  const showHelper = !showError && !!helperText;
+
+  return (
+    <View style={[{ width: '100%', marginBottom: 20 }, containerStyle]}>
+      {label ? <Text style={S.label}>{label}</Text> : null}
+
+      <View
+        style={[
+          S.field,
+          focused && S.fieldFocused,
+          !editable && S.fieldReadonly,
+          style,
+        ]}
+      >
+        <TextInput
+          {...rest}
+          editable={editable}
+          style={S.input}
+          placeholderTextColor="#A3A3A3"
+          onFocus={e => {
+            setFocused(true);
+            rest.onFocus?.(e);
+          }}
+          onBlur={e => {
+            setFocused(false);
+            rest.onBlur?.(e);
+          }}
+        />
+      </View>
+
+      {showError && <Text style={S.error}>{errorText}</Text>}
+      {showHelper && (
+        <Text style={[S.helper, helperTextStyle]}>{helperText}</Text>
+      )}
+    </View>
+  );
+}
+
+const S = StyleSheet.create({
+  label: {
+    color: '#284542',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+  field: {
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  fieldFocused: { borderColor: '#6ABFB8' },
+  fieldReadonly: { backgroundColor: '#F7F7F7' },
+  input: {
+    padding: 0,
+    margin: 0,
+    color: '#284542',
+    fontSize: 14,
+    fontFamily: 'Pretendard-SemiBold',
+  },
+  error: {
+    marginTop: 6,
+    color: '#e85555',
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+  },
+  helper: {
+    marginTop: 6,
+    color: '#999999',
+    fontSize: 12,
+    fontFamily: 'Pretendard-Regular',
+  },
+});
