@@ -27,6 +27,7 @@ public class AnalysisEventConsumer {
     @Transactional
     public void handleAnalysisResult(String message) {
         // log.info("분석 결과 이벤트 수신: {}", message);
+		Pet pet = null;
 
         try {
             AnalysisResultEvent event = JsonUtil.fromJsonString(message, AnalysisResultEvent.class);
@@ -44,6 +45,9 @@ public class AnalysisEventConsumer {
                         event.getPetId(),
                         event.getResult()
                     );
+					if (event.getPetId() != null) {
+						pet = petRepository.findById(event.getPetId()).orElse(null);
+					}
                     log.info("분석 결과 저장 완료: userId={}, petId={}, requestId={}", 
                         event.getUserId(), event.getPetId(), event.getRequestId());
                 } catch (Exception e) {
@@ -83,10 +87,10 @@ public class AnalysisEventConsumer {
 
             if ("SUCCESS".equals(event.getStatus())) {
                 title = "분석 완료";
-                body = "반려동물 건강 분석이 완료되었습니다.";
+                body = pet != null ? pet.getName() + "의 건강 분석이 완료되었습니다." : "반려동물 건강 분석이 완료되었습니다.";
             } else {
                 title = "분석 실패";
-                body = event.getError() != null ? event.getError() : "분석 중 오류가 발생했습니다.";
+                body = pet != null ? pet.getName() + "의 건강 분석이 실패했습니다." : "반려동물 건강 분석이 실패했습니다.";
             }
 
             boolean sent = fcmService.sendNotification(user.getFcmToken(), title, body);

@@ -6,7 +6,6 @@ import a201.board.data.entity.BoardUser;
 import a201.board.repository.LikeRepository;
 import a201.board.repository.BoardRepository;
 import a201.board.repository.BoardUserRepository;
-import a201.common.event.CommentEvent;
 import a201.common.event.LikeEvent;
 import a201.common.util.JsonUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,6 +41,7 @@ public class LikeService {
                 .id(postId)
                 .type("add")
                 .boardAuthorId(board.getUserId().getId())  // 게시글 작성자 ID 추가
+                .likeUserId(userId)  // 좋아요를 누른 사용자 ID 추가
                 .build();
 
         kafkaTemplate.send("board-like-topic", JsonUtil.toJsonString(likeEvent));
