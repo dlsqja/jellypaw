@@ -116,10 +116,17 @@ public class PetController {
             @PathVariable Long petId,
             @RequestPart("file") MultipartFile file) {
         
-        // 임시 파일 저장 (디버깅/확인용)
-        String savedFilePath = saveTemporaryFile(file, userId, petId);
-        if (savedFilePath != null) {
-            log.info("임시 파일 저장 완료: {}", savedFilePath);
+        // 파일 바이트를 먼저 읽어서 저장 (transferTo는 파일을 이동시키므로 getBytes() 먼저 호출)
+        byte[] fileBytes = null;
+        try {
+            fileBytes = file.getBytes();
+            // 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+            String savedFilePath = saveTemporaryFileFromBytes(fileBytes, file, userId, petId);
+            if (savedFilePath != null) {
+                log.info("임시 파일 저장 완료: {}", savedFilePath);
+            }
+        } catch (IOException e) {
+            log.error("파일 읽기 실패: {}", e.getMessage(), e);
         }
         
         // AI 서버로 이미지 분석 요청 (비동기, 즉시 202 반환)
@@ -132,13 +139,14 @@ public class PetController {
     }
     
     /**
-     * 임시 파일 저장 (디버깅/확인용)
-     * @param file 업로드된 파일
+     * 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+     * @param fileBytes 파일 바이트 배열
+     * @param file 원본 MultipartFile (메타데이터용)
      * @param userId 사용자 ID
      * @param petId 반려동물 ID
      * @return 저장된 파일 경로 (실패 시 null)
      */
-    private String saveTemporaryFile(MultipartFile file, Long userId, Long petId) {
+    private String saveTemporaryFileFromBytes(byte[] fileBytes, MultipartFile file, Long userId, Long petId) {
         try {
             // 임시 디렉토리 생성
             String tempDir = System.getProperty("java.io.tmpdir") + File.separator + "jellypaw_uploads";
@@ -156,15 +164,15 @@ public class PetController {
             String uniqueFilename = String.format("%d_%d_%s%s", userId, petId, UUID.randomUUID(), extension);
             Path tempFilePath = tempDirPath.resolve(uniqueFilename);
             
-            // 파일 저장
-            file.transferTo(tempFilePath.toFile());
+            // 바이트 배열로 파일 저장
+            Files.write(tempFilePath, fileBytes);
             
             // 로그 출력
             log.info("=== 임시 파일 저장 완료 ===");
             log.info("원본 파일명: {}", originalFilename);
             log.info("저장 파일명: {}", uniqueFilename);
             log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
-            log.info("파일 크기: {} bytes ({} KB)", file.getSize(), file.getSize() / 1024.0);
+            log.info("파일 크기: {} bytes ({} KB)", fileBytes.length, fileBytes.length / 1024.0);
             log.info("Content-Type: {}", file.getContentType());
             log.info("userId: {}, petId: {}", userId, petId);
             
