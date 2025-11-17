@@ -19,6 +19,7 @@ import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { saveBoardToRedis } from '@/services/api/redis';
 import { debugToRN } from '@/lib/utils';
 import { getFeeds } from '@/services/api/feed';
+import { formatDate, formatRelativeTime } from '@/utils/timePassing';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function FeedDetail() {
@@ -260,57 +261,6 @@ export default function FeedDetail() {
     };
   }, [carouselApi]);
 
-  // 날짜 포맷팅 함수 (YY.MM.DD 형식)
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return '';
-    const datePart = dateString.split(' ')[0];
-    const [year, month, day] = datePart.split('-');
-    if (year && month && day) {
-      const shortYear = year.slice(-2);
-      return `${shortYear}.${month}.${day}`;
-    }
-    return datePart;
-  };
-
-  // 상대 시간 포맷팅 함수 (몇 시간 전, 몇 일 전 등)
-  // 백엔드에서 "YYYY-MM-DD HH:mm:ss" 형식(KST 기준)으로 내려오는 문자열을
-  // 항상 한국 시간(+09:00) 기준으로 해석하도록 강제한다.
-  const formatRelativeTime = (dateString?: string): string => {
-    if (!dateString) return '';
-    try {
-      // 예: "2025-11-16 12:16:00" -> "2025-11-16T12:16:00+09:00"
-      const normalized = `${dateString.replace(' ', 'T')}+09:00`;
-      const date = new Date(normalized);
-      const now = new Date();
-      const diffMs = now.getTime() - date.getTime();
-      const diffMinutes = Math.floor(diffMs / (1000 * 60));
-
-      if (diffMinutes < 60) {
-        return `${diffMinutes}분 전`;
-      }
-      const diffHours = Math.floor(diffMinutes / 60);
-      const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-
-      if (isToday && diffHours < 24) {
-        return `${diffHours}시간 전`;
-      }
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      if (diffDays < 1) {
-        return '오늘';
-      } else if (diffDays < 30) {
-        return `${diffDays}일 전`;
-      } else if (diffDays < 365) {
-        const diffMonths = Math.floor(diffDays / 30);
-        return `${diffMonths}개월 전`;
-      } else {
-        const diffYears = Math.floor(diffDays / 365);
-        return `${diffYears}년 전`;
-      }
-    } catch (error) {
-      console.error('날짜 파싱 오류:', error);
-      return formatDate(dateString);
-    }
-  };
   return (
     <>
       <BackHeader title="게시글" />

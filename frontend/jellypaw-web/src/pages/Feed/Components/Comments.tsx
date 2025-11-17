@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { IoClose } from 'react-icons/io5';
 import { deleteComment } from '@/services/api/feed';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
+import { useNavigate } from 'react-router-dom';
+import { formatRelativeTime } from '@/utils/timePassing';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -22,80 +24,19 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [isRepliesVisible, setIsRepliesVisible] = useState(false);
   const { data: myProfile } = useProfile();
+  const navigate = useNavigate();
 
   const myUserId = myProfile?.userId ?? null;
 
-  // 시간 포맷팅 함수
-  const getRelativeTime = (dateString?: string) => {
-    if (!dateString) {
-      return '';
-    }
-
-    try {
-      // ISO 8601 형식 파싱 (예: "2025-11-13T15:05:10.285725")
-      const createdDate = new Date(dateString);
-      const now = new Date();
-
-      // 유효한 날짜인지 확인
-      if (isNaN(createdDate.getTime())) {
-        return dateString;
-      }
-
-      // 시간 차이 계산 (밀리초)
-      const diffMs = now.getTime() - createdDate.getTime();
-
-      // 미래 시간이거나 음수인 경우 처리
-      if (diffMs < 0) {
-        return '방금 전';
-      }
-
-      // 초 단위
-      const diffSeconds = Math.floor(diffMs / 1000);
-      if (diffSeconds < 60) {
-        return '방금 전';
-      }
-
-      // 분 단위
-      const diffMinutes = Math.floor(diffSeconds / 60);
-      if (diffMinutes < 60) {
-        return `${diffMinutes}분 전`;
-      }
-
-      // 시간 단위
-      const diffHours = Math.floor(diffMinutes / 60);
-      if (diffHours < 24) {
-        return `${diffHours}시간 전`;
-      }
-
-      // 일 단위
-      const diffDays = Math.floor(diffHours / 24);
-      if (diffDays < 7) {
-        return `${diffDays}일 전`;
-      }
-
-      // 주 단위
-      const diffWeeks = Math.floor(diffDays / 7);
-      if (diffWeeks < 4) {
-        return `${diffWeeks}주 전`;
-      }
-
-      // 월 단위
-      const diffMonths = Math.floor(diffDays / 30);
-      if (diffMonths < 12) {
-        return `${diffMonths}개월 전`;
-      }
-
-      // 년 단위
-      const diffYears = Math.floor(diffDays / 365);
-      return `${diffYears}년 전`;
-    } catch (error) {
-      console.error('시간 포맷팅 오류:', error);
-      return dateString;
+  // 프로필 클릭 핸들러
+  const handleProfileClick = () => {
+    if (userId?.id) {
+      navigate(`/search/person/${userId.id}`);
     }
   };
 
   // 댓글 작성 시간 포맷팅
-  const formattedCreatedAt = getRelativeTime(createdAt);
+  const formattedCreatedAt = formatRelativeTime(createdAt);
 
   // 댓글 소유자 확인
   const isOwner = myUserId !== null && !!userId?.id && userId.id === myUserId;
@@ -133,15 +74,22 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
     <>
       <div className="w-full flex justify-start items-start gap-2 pb-2">
         {/* 프로필 이미지 */}
-        {userId.profileImg ? (
-          <div className="w-10 h-10 flex-shrink-0 relative rounded-full overflow-hidden">
-            <img className="absolute inset-0 w-full h-full object-cover" src={`${IMAGE_BASE_URL}${userId.profileImg}`} />
-          </div>
-        ) : (
-          <div className="w-10 h-10 flex-shrink-0 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
-            <FaPaw className="w-10 h-10 text-aqua-300" />
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={handleProfileClick}
+          className="w-10 h-10 flex-shrink-0 cursor-pointer"
+          aria-label={`${userId.nickname}의 프로필 보기`}
+        >
+          {userId.profileImg ? (
+            <div className="w-10 h-10 relative rounded-full overflow-hidden">
+              <img className="absolute inset-0 w-full h-full object-cover" src={`${IMAGE_BASE_URL}${userId.profileImg}`} alt={userId.nickname} />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-full p-1.5 border-2 border-aqua-300 flex justify-center items-center">
+              <FaPaw className="w-10 h-10 text-aqua-300" />
+            </div>
+          )}
+        </button>
         {/* 댓글 내용 */}
         <div className="w-full flex flex-col justify-start items-start gap-1.5 ">
           {/* 댓글 내용 컨테이너 */}
@@ -198,16 +146,31 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
           {Array.isArray(childs) && childs.length > 0 && isRepliesVisible && (
             <div className="mt-3 flex flex-col gap-3 pl-4 w-full ">
               {childs.map((child) => {
-                const childTime = getRelativeTime(child.createdAt);
+                const childTime = formatRelativeTime(child.createdAt);
                 return (
                   <div key={child.id ?? `${child.userId.id}-${child.createdAt}`} className="flex items-start gap-2 w-full">
-                    {child.userId.profileImg ? (
-                      <img className="w-8 h-8 rounded-full" src={`${IMAGE_BASE_URL}${child.userId.profileImg}`} alt={child.userId.nickname} />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full p-1 border-2 border-aqua-300 flex justify-center items-center">
-                        <FaPaw className="w-8 h-8 text-aqua-300" />
-                      </div>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (child.userId?.id) {
+                          navigate(`/search/person/${child.userId.id}`);
+                        }
+                      }}
+                      className="w-8 h-8 flex-shrink-0 cursor-pointer"
+                      aria-label={`${child.userId.nickname}의 프로필 보기`}
+                    >
+                      {child.userId.profileImg ? (
+                        <img
+                          className="w-8 h-8 rounded-full object-cover"
+                          src={`${IMAGE_BASE_URL}${child.userId.profileImg}`}
+                          alt={child.userId.nickname}
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full p-1 border-2 border-aqua-300 flex justify-center items-center">
+                          <FaPaw className="w-8 h-8 text-aqua-300" />
+                        </div>
+                      )}
+                    </button>
                     <div className="flex-1 bg-gray-200/40 rounded-[16px] px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                       <div className="flex justify-between items-center">
                         <div className="text-aqua-500 p2-b">{child.userId.nickname}</div>
