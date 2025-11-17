@@ -35,6 +35,7 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
   }, [progress]);
 
   useEffect(() => {
+    console.log('[사진 정보]:', imageUri, petId)
     // imageUri와 petId가 모두 있을 때만 API 호출
     if (!imageUri || !petId || isAnalyzing) {
       return;

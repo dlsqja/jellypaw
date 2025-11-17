@@ -15,13 +15,15 @@ export type PetStackParamList = {
   Pets: undefined;
   AddPet: undefined;
   EditPet: undefined;
-  ScanCamera: undefined;
+  ScanCamera: { 
+    petId: number
+  };
   ScanLoading: {
-    imageUri: string; // 카메라에서 찍은 사진
+    imageUri: string;
     petId?: number;
   };
   ResultSummary: {
-    analysisId: string; // AI 분석 결과 id 같은 것
+    analysisId: string;
     petId?: number;
   };
   ResultDetail: {

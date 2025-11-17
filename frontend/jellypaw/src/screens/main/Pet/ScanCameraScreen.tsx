@@ -8,19 +8,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import { palette } from '../../../ui/system/variants';
 import Toast from 'react-native-toast-message';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 
-type Nav = NativeStackNavigationProp<PetStackParamList, 'ScanCamera'>;
 
-export default function ScanCameraScreen() {
-  const insets = useSafeAreaInsets();
-  const nav = useNavigation<Nav>();
+type Props = NativeStackScreenProps<PetStackParamList, 'ScanCamera'>;
+
+export default function ScanCameraScreen({ navigation: nav, route }: Props) {  const insets = useSafeAreaInsets();
 
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice('back');
-
+  
   const [cameraPermission, setCameraPermission] = useState<CameraPermissionStatus | 'granted'>('not-determined');
+  const petId = route.params?.petId;
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const hasCaptured = !!photoUri;
 
@@ -134,11 +134,11 @@ export default function ScanCameraScreen() {
   const handleConfirm = () => {
     if (!photoUri) return;
 
-    // TODO: 여기서는 아직 API 안 부르고, 로딩 스크린에서 API 호출
-    nav.navigate('ScanLoading', {
-      imageUri: photoUri,
-      // petId,
-    });
+   if (!petId) {
+     Toast.show({ type: 'error', text1: '대상 반려동물 정보를 찾을 수 없어요.' });
+     return;
+   }
+   nav.navigate('ScanLoading', { imageUri: photoUri, petId });
   };
 
   const renderCamera = () => {
