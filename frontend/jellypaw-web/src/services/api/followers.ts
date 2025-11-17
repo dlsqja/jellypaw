@@ -7,6 +7,12 @@ export const getFollowers = async (nickname: string): Promise<GetFollowersRespon
   return response.data.data;
 };
 
+// 팔로잉 유저 목록 조회
+export const getFollowing = async (nickname: string): Promise<GetFollowingResponse[]> => {
+  const response = await apiClient.get(`users/follow/followers/${nickname}`);
+  return response.data.data;
+};
+
 // 팔로우
 export const follow = async (nickname: string): Promise<GetFollowingResponse> => {
   const response = await apiClient.post(`users/follow/${nickname}`);

@@ -3,13 +3,17 @@ import { IoArrowBack } from 'react-icons/io5';
 
 interface BackHeaderProps {
   title: string;
+  to?: string; // 특정 경로로 이동할 때 사용
 }
 
-export default function BackHeader({ title }: BackHeaderProps) {
+export default function BackHeader({ title, to }: BackHeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(-1);
+    // 특정 경로로 이동할 때 사용
+    if (to) navigate(to);
+    // 아니면 무조건 뒤로가기
+    else navigate(-1);
   };
 
   return (

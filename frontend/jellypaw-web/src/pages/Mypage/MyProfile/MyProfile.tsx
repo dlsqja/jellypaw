@@ -10,7 +10,9 @@ export default function MyProfile() {
 
   // React Query로 프로필 데이터 가져오기
   const { data: profileData } = useProfile();
+
   return (
+    // 프로필 카드
     <Card className="p-4">
       <CardHeader className="pb-0">
         <div className="h-18 flex justify-start items-center gap-4">
@@ -33,14 +35,22 @@ export default function MyProfile() {
             <div className="justify-center text-aqua-500 p2">게시물</div>
             <div className="justify-center text-aqua-500 h4-b">{profileData?.postCount}</div>
           </div>
-          <div className="w-10 h-12 flex flex-col items-center">
+          <button
+            type="button"
+            className="w-10 h-12 flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={() => navigate('/mypage/followers?type=following')}
+          >
             <div className="justify-center text-aqua-500 p2">팔로잉</div>
             <div className="justify-center text-aqua-500 h4-b">{profileData?.followingNum}</div>
-          </div>
-          <div className="w-10 h-12 flex flex-col items-center">
+          </button>
+          <button
+            type="button"
+            className="w-10 h-12 flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity"
+            onClick={() => navigate('/mypage/followers?type=follower')}
+          >
             <div className="justify-center text-aqua-500 p2">팔로워</div>
             <div className="justify-center text-aqua-500 h4-b">{profileData?.followerNum}</div>
-          </div>
+          </button>
         </div>
         <Button size="lg" shape="solid" tone="lightAqua" className="w-full h-11" onClick={() => navigate('/mypage/edit-profile')}>
           <span className="text-aqua-500 p2-b">프로필 편집</span>
