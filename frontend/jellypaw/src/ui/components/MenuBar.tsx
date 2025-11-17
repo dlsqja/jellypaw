@@ -63,7 +63,7 @@ export default function MenuBar() {
   };
 
   return (
-    <View style={[S.wrap, { paddingBottom: insets.bottom }]}>
+    <View style={[S.wrap, { paddingBottom: insets.bottom, minHeight: 80 + insets.bottom }]}>
       <View style={S.inner}>
         {/* 피드 */}
         <TouchableOpacity onPress={handleFeedPress} style={S.menuItem} activeOpacity={0.7}>
@@ -111,7 +111,7 @@ export default function MenuBar() {
 const S = StyleSheet.create({
   wrap: {
     width: '100%',
-    height: 80, // h-16
+    minHeight: 80, // h-16 (기본 높이, insets.bottom이 추가됨)
     backgroundColor: '#F3F4F6', // bg-gray-100
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB', // border-gray-200
