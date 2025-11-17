@@ -1,0 +1,73 @@
+{
+    "pad_Urobilinogen": [
+        {"level": "0.1", "lab": [97, 126, 140], "result": "negative", "max_delta_e": 3.0},
+        {"level": "2", "lab": [95, 130, 132], "result": "negative", "max_delta_e": 3.0},
+        {"level": "4", "lab": [90, 137, 133], "result": "positive", "max_delta_e": 3.5},
+        {"level": "8", "lab": [81, 148, 138], "result": "positive", "max_delta_e": 4.0},
+        {"level": "16", "lab": [69, 168, 138], "result": "positive", "max_delta_e": 4.5}
+    ],
+    "pad_Glucose": [
+        {"level": "neg", "lab": [77, 114, 101], "result": "negative", "max_delta_e": 3.0},
+        {"level": "100", "lab": [79, 99, 156], "result": "trace", "max_delta_e": 3.5},
+        {"level": "250+", "lab": [69, 116, 184], "result": "positive", "max_delta_e": 4.0},
+        {"level": "500++", "lab": [57, 132, 167], "result": "positive", "max_delta_e": 4.5},
+        {"level": "1000+++", "lab": [38, 158, 160], "result": "positive", "max_delta_e": 5.0}
+    ],
+    "pad_Bilirubin": [
+        {"level": "neg", "lab": [95, 126, 144], "result": "negative", "max_delta_e": 3.0},
+        {"level": "++", "lab": [91, 129, 143], "result": "positive", "max_delta_e": 3.5},
+        {"level": "++++", "lab": [85, 133, 142], "result": "positive", "max_delta_e": 4.0},
+        {"level": "++++++", "lab": [73, 143, 137], "result": "positive", "max_delta_e": 4.5}
+    ],
+    "pad_Ketones": [
+        {"level": "neg", "lab": [95, 129, 138], "result": "negative", "max_delta_e": 3.0},
+        {"level": "5", "lab": [89, 134, 138], "result": "trace", "max_delta_e": 3.5},
+        {"level": "15+", "lab": [82, 141, 135], "result": "positive", "max_delta_e": 4.0},
+        {"level": "40++", "lab": [63, 155, 128], "result": "positive", "max_delta_e": 4.5},
+        {"level": "100+++", "lab": [43, 162, 131], "result": "positive", "max_delta_e": 5.0}
+    ],
+    "pad_SG": [
+        {"level": "1.000", "lab": [37, 89, 150], "result": "normal", "max_delta_e": 3.0},
+        {"level": "1.010", "lab": [31, 181, 170], "result": "abnormal", "max_delta_e": 3.5},
+        {"level": "1.020", "lab": [56, 111, 143], "result": "abnormal", "max_delta_e": 4.0},
+        {"level": "1.030", "lab": [63, 107, 175], "result": "abnormal", "max_delta_e": 4.5},
+        {"level": "1.040", "lab": [68, 115, 182], "result": "abnormal", "max_delta_e": 5.0},
+        {"level": "1.050", "lab": [76, 121, 195], "result": "abnormal", "max_delta_e": 5.5},
+        {"level": "1.060", "lab": [79, 130, 201], "result": "abnormal", "max_delta_e": 6.0}
+    ],
+    "pad_Blood": [
+        {"level": "neg", "lab": [92, 112, 210], "result": "negative", "max_delta_e": 3.0},
+        {"level": "Hemolysis+10", "lab": [82, 103, 185], "result": "positive_hemolysis", "max_delta_e": 3.5},
+        {"level": "++50", "lab": [67, 90, 157], "result": "positive_hemolysis", "max_delta_e": 4.0},
+        {"level": "+++250", "lab": [46, 105, 111], "result": "positive_hemolysis", "max_delta_e": 4.5},
+        {"level": "Non-Hemolysis+10", "lab": [92, 112, 210], "result": "positive_non_hemolysis", "max_delta_e": 3.5},
+        {"level": "++50 (Non-Hemolysis)", "lab": [92, 112, 210], "result": "positive_non_hemolysis", "max_delta_e": 4.0}
+    ],
+    "pad_pH": [
+        {"level": "5", "lab": [80, 140, 172], "result": "normal", "max_delta_e": 3.0},
+        {"level": "6", "lab": [86, 128, 186], "result": "acidic", "max_delta_e": 3.5},
+        {"level": "6.5", "lab": [82, 123, 182], "result": "acidic", "max_delta_e": 4.0},
+        {"level": "7", "lab": [79, 108, 188], "result": "alkaline", "max_delta_e": 4.5},
+        {"level": "8", "lab": [56, 84, 149], "result": "alkaline", "max_delta_e": 5.0},
+        {"level": "9", "lab": [57, 92, 186], "result": "alkaline", "max_delta_e": 5.5}
+    ],
+    "pad_Protein": [
+        {"level": "neg", "lab": [90, 113, 189], "result": "negative", "max_delta_e": 3.0},
+        {"level": "trace", "lab": [90, 114, 175], "result": "trace", "max_delta_e": 3.5},
+        {"level": "30+", "lab": [87, 112, 174], "result": "positive", "max_delta_e": 4.0},
+        {"level": "100++", "lab": [79, 105, 164], "result": "positive", "max_delta_e": 4.5},
+        {"level": "300+++", "lab": [77, 104, 150], "result": "positive", "max_delta_e": 5.0},
+        {"level": "1000++++", "lab": [68, 99, 144], "result": "positive", "max_delta_e": 5.5}
+    ],
+    "pad_Nitrite": [
+        {"level": "neg", "lab": [97, 126, 140], "result": "negative", "max_delta_e": 3.0},
+        {"level": "trace", "lab": [92, 136, 127], "result": "trace", "max_delta_e": 3.5},
+        {"level": "pos", "lab": [56, 182, 116], "result": "positive", "max_delta_e": 4.0}
+    ],
+    "pad_Leukocytes": [
+        {"level": "neg", "lab": [95, 129, 138], "result": "negative", "max_delta_e": 3.0},
+        {"level": "25+", "lab": [91, 132, 142], "result": "positive", "max_delta_e": 3.5},
+        {"level": "75++", "lab": [90, 136, 129], "result": "positive", "max_delta_e": 4.0},
+        {"level": "500+++", "lab": [67, 150, 115], "result": "positive", "max_delta_e": 4.5}
+    ]
+}
