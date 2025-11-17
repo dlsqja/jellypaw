@@ -31,9 +31,7 @@ export default function FollowerList() {
   // 팔로워/팔로잉 목록 조회
   useEffect(() => {
     if (!profileData?.nickname) return;
-
     const nickname = profileData.nickname;
-
     const fetchData = async () => {
       setIsLoading(true);
 

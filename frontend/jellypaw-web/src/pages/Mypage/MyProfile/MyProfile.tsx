@@ -1,15 +1,24 @@
+import { useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaPaw } from 'react-icons/fa';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 export default function MyProfile() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // React Query로 프로필 데이터 가져오기
-  const { data: profileData } = useProfile();
+  const { data: profileData, refetch } = useProfile();
+
+  // 경로가 변경될 때 (특히 /mypage로 돌아올 때) 프로필 데이터 새로고침
+  useEffect(() => {
+    if (location.pathname === '/mypage') {
+      refetch();
+    }
+  }, [location.pathname, refetch]);
 
   return (
     // 프로필 카드
