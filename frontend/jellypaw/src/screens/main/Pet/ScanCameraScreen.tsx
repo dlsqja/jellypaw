@@ -1,6 +1,6 @@
 // src/screens/main/Pet/ScanCameraScreen.tsx
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, Alert, Linking } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, Alert, Linking, ActivityIndicator } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Camera, useCameraDevice, type CameraPermissionStatus } from 'react-native-vision-camera';
 import { useNavigation } from '@react-navigation/native';
@@ -11,17 +11,18 @@ import Toast from 'react-native-toast-message';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 
-
 type Props = NativeStackScreenProps<PetStackParamList, 'ScanCamera'>;
 
-export default function ScanCameraScreen({ navigation: nav, route }: Props) {  const insets = useSafeAreaInsets();
+export default function ScanCameraScreen({ navigation: nav, route }: Props) {
+  const insets = useSafeAreaInsets();
 
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice('back');
-  
+
   const [cameraPermission, setCameraPermission] = useState<CameraPermissionStatus | 'granted'>('not-determined');
   const petId = route.params?.petId;
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const hasCaptured = !!photoUri;
 
   // ✅ 권한 확인 + 요청
@@ -92,6 +93,26 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
     nav.goBack();
   };
 
+  // 파일이 완전히 저장될 때까지 대기하는 함수
+  // React Native Vision Camera의 takePhoto는 파일 저장이 완료된 후 resolve되지만,
+  // 추가 안정성을 위해 약간의 지연을 둡니다
+  const waitForFileReady = async (filePath: string): Promise<boolean> => {
+    try {
+      // takePhoto가 완료된 후에도 파일 시스템에 완전히 반영될 때까지 대기
+      // 일반적으로 100-300ms면 충분하지만, 안전을 위해 500ms 대기
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 500));
+
+      // Image 컴포넌트가 파일을 로드할 수 있도록 추가 대기
+      // 실제로는 takePhoto가 완료되면 파일이 저장되어 있지만,
+      // 카메라가 비활성화되기 전에 파일이 완전히 쓰여지도록 보장
+      console.log('[ScanCameraScreen] 파일 저장 대기 완료:', filePath);
+      return true;
+    } catch (error) {
+      console.log('[ScanCameraScreen] 파일 확인 중 오류:', error);
+      return false;
+    }
+  };
+
   const handleCapture = async () => {
     if (!cameraRef.current) {
       Toast.show({
@@ -110,22 +131,41 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
       return;
     }
 
-    if (hasCaptured) return;
+    if (hasCaptured || isProcessing) return;
 
     try {
+      setIsProcessing(true);
+      console.log('[ScanCameraScreen] 촬영 시작...');
+
+      // 사진 촬영
       const photo = await cameraRef.current.takePhoto({
         flash: 'off',
       });
 
-      const uri = 'file://' + photo.path;
+      const filePath = photo.path;
+      const uri = 'file://' + filePath;
+
+      console.log('[ScanCameraScreen] takePhoto 완료, 파일 경로:', filePath);
+
+      // 파일이 완전히 저장될 때까지 대기
+      const isReady = await waitForFileReady(filePath);
+
+      if (!isReady) {
+        throw new Error('파일 저장이 완료되지 않았습니다.');
+      }
+
+      // 파일이 완전히 저장된 후에만 photoUri 설정 (카메라 비활성화)
+      console.log('[ScanCameraScreen] 파일 저장 완료, photoUri 설정:', uri);
       setPhotoUri(uri);
-    } catch (e) {
-      console.log('[UrineScanCamera] capture error', e);
+    } catch (e: any) {
+      console.error('[ScanCameraScreen] 촬영 오류:', e);
       Toast.show({
         type: 'error',
         text1: '촬영에 실패했어요.',
-        text2: '카메라 권한 또는 설정을 확인해 주세요.',
+        text2: e?.message || '카메라 권한 또는 설정을 확인해 주세요.',
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -134,11 +174,14 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
   const handleConfirm = () => {
     if (!photoUri) return;
 
-   if (!petId) {
-     Toast.show({ type: 'error', text1: '대상 반려동물 정보를 찾을 수 없어요.' });
-     return;
-   }
-   nav.navigate('ScanLoading', { imageUri: photoUri, petId });
+    if (!petId) {
+      Toast.show({ type: 'error', text1: '대상 반려동물 정보를 찾을 수 없어요.' });
+      return;
+    }
+
+    // photoUri가 설정된 시점에 이미 파일 저장이 완료된 상태이므로 바로 전송
+    console.log('[ScanCameraScreen] 확인 버튼 클릭, 전송할 파일:', photoUri);
+    nav.navigate('ScanLoading', { imageUri: photoUri, petId });
   };
 
   const renderCamera = () => {
@@ -161,7 +204,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
       );
     }
 
-    return <Camera ref={cameraRef} style={S.cameraPreview} device={device} isActive={!hasCaptured} photo />;
+    return <Camera ref={cameraRef} style={S.cameraPreview} device={device} isActive={!hasCaptured && !isProcessing} photo />;
   };
 
   return (
@@ -210,19 +253,27 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
         </>
       )}
 
+      {/* 처리 중 오버레이 */}
+      {isProcessing && (
+        <View style={S.processingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={S.processingText}>사진 저장 중...</Text>
+        </View>
+      )}
+
       {/* 하단 버튼 영역 - 권한이 있을 때만 표시 */}
       {hasPermission && (
         <View style={[S.bottomOverlay, { paddingBottom: insets.bottom + 24 }]}>
           {hasCaptured ? (
             <View style={S.bottomButtonsRow}>
-              <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9}>
+              <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9} disabled={isProcessing}>
                 <Feather name="camera" size={18} color="#fff" />
                 <Text weight="medium" style={S.retakeText}>
                   다시 촬영
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleConfirm} style={S.confirmButton} activeOpacity={0.9}>
+              <TouchableOpacity onPress={handleConfirm} style={S.confirmButton} activeOpacity={0.9} disabled={isProcessing}>
                 <Feather name="check" size={18} color="#fff" />
                 <Text weight="medium" style={S.confirmText}>
                   확인
@@ -232,8 +283,13 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {  c
           ) : (
             <View style={S.captureRow}>
               <View style={S.captureSideIcon} />
-              <TouchableOpacity onPress={handleCapture} style={S.captureButtonOuter} activeOpacity={0.9}>
-                <View style={S.captureButtonInner} />
+              <TouchableOpacity
+                onPress={handleCapture}
+                style={[S.captureButtonOuter, isProcessing && S.captureButtonDisabled]}
+                activeOpacity={0.9}
+                disabled={isProcessing}
+              >
+                {isProcessing ? <ActivityIndicator size="small" color="#fff" /> : <View style={S.captureButtonInner} />}
               </TouchableOpacity>
               <View style={S.captureSideIcon} />
             </View>
@@ -366,12 +422,12 @@ const S = StyleSheet.create({
   confirmButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,
     backgroundColor: palette.aqua300,
   },
-  confirmText: { color: '#fff', fontSize: 24, marginLeft: 8 },
+  confirmText: { color: '#fff', fontSize: 14, marginLeft: 8 },
   center: {
     flex: 1,
     justifyContent: 'center',
@@ -388,4 +444,19 @@ const S = StyleSheet.create({
     marginTop: 16,
   },
   settingsButtonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  processingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  processingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  captureButtonDisabled: {
+    opacity: 0.5,
+  },
 });

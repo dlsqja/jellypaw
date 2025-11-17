@@ -63,7 +63,7 @@ export default function MenuBar() {
   };
 
   return (
-    <View style={[S.wrap, { paddingBottom: insets.bottom, minHeight: 80 + insets.bottom }]}>
+    <View style={[S.wrap, { paddingBottom: insets.bottom, minHeight: 56 + insets.bottom }]}>
       <View style={S.inner}>
         {/* 피드 */}
         <TouchableOpacity onPress={handleFeedPress} style={S.menuItem} activeOpacity={0.7}>

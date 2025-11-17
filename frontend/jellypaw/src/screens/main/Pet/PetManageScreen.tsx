@@ -20,7 +20,7 @@ import { useAuthUserId, useAuthCacheKey } from '../../../services/queries/authHo
 import { useFocusEffect } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { petKeys } from '../../../services/queries/petKeys';
-
+import { getUrineAnalysisList } from '../../../services/api/pet';
 
 const toImageUrl = (u?: string | null) => {
   if (!u || !u.trim()) return null;
@@ -42,21 +42,17 @@ const formatGender = (g: any) =>
     ? '무성'
     : '없음';
 
-const formatSpecies = (s: any) =>
-  s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타';
+const formatSpecies = (s: any) => (s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타');
 
 export default function PetManageScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] =
-    useState<'info' | 'health'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'health'>('info');
   const [selectedPetId, setSelectedPetId] = useState<number>(0);
 
-  
   const [showIntroSheet, setShowIntroSheet] = useState(false);
   const [showStepSheet, setShowStepSheet] = useState(false);
 
   const nav = useNavigation<any>();
 
-  
   const userKey = useAuthCacheKey();
   const { data: pets = [], isLoading: isListLoading } = usePetList();
 
@@ -64,7 +60,6 @@ export default function PetManageScreen({ navigation }: any) {
     setSelectedPetId(0);
   }, [userKey]);
 
-  
   useEffect(() => {
     if (!isListLoading && pets.length > 0 && selectedPetId === 0) {
       setSelectedPetId(pets[0].petId ?? 0);
@@ -76,29 +71,36 @@ export default function PetManageScreen({ navigation }: any) {
     { id: 'health', label: '건강 체크' },
   ];
 
+  useEffect(() => {
+    if (selectedPetId) {
+      getUrineAnalysisList(Number(selectedPetId)).then((data) => {
+        console.log('[PET] urineAnalysisList=', data);
+      });
+    }
+  }, [selectedPetId]);
+
   const isEmpty = !isListLoading && pets.length === 0;
 
   const uid = useAuthUserId();
   const qc = useQueryClient();
 
   useFocusEffect(
-  React.useCallback(() => {
-    qc.invalidateQueries({ queryKey: petKeys.list(uid) });
-  }, [qc, uid]),
-);
+    React.useCallback(() => {
+      qc.invalidateQueries({ queryKey: petKeys.list(uid) });
+    }, [qc, uid]),
+  );
 
+  // uid가 바뀌면 선택 리셋
+  useEffect(() => {
+    setSelectedPetId(0);
+  }, [uid]);
 
-// uid가 바뀌면 선택 리셋
-useEffect(() => {
-  setSelectedPetId(0);
-}, [uid]);
+  // PetManageScreen.tsx
+  useEffect(() => {
+    console.log('[PET] uid=', uid, 'pets.len=', pets?.length, 'loading=', isListLoading);
+  }, [uid, pets, isListLoading]);
 
-// PetManageScreen.tsx
-useEffect(() => {
-  console.log('[PET] uid=', uid, 'pets.len=', pets?.length, 'loading=', isListLoading);
-}, [uid, pets, isListLoading]);
-
- useEffect(() => {
+  useEffect(() => {
     if (isListLoading) return;
 
     if (pets.length === 0) {
@@ -106,7 +108,7 @@ useEffect(() => {
       return;
     }
 
-    const exists = pets.some(p => p.petId === selectedPetId);
+    const exists = pets.some((p) => p.petId === selectedPetId);
     if (!exists) {
       setSelectedPetId(pets[0].petId ?? 0);
     }
@@ -121,37 +123,24 @@ useEffect(() => {
     }, [qc, userKey]),
   );
 
-// 목록 로딩 후 선택 로직은 그대로 유지
-useEffect(() => {
-  if (!isListLoading && pets.length > 0 && selectedPetId === 0) {
-    setSelectedPetId(pets[0].petId ?? 0);
-  }
-}, [isListLoading, pets, selectedPetId]);
+  // 목록 로딩 후 선택 로직은 그대로 유지
+  useEffect(() => {
+    if (!isListLoading && pets.length > 0 && selectedPetId === 0) {
+      setSelectedPetId(pets[0].petId ?? 0);
+    }
+  }, [isListLoading, pets, selectedPetId]);
 
   if (isEmpty) {
     return (
       <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
         <Header title="동물관리" />
         <View style={S.emptyWrap}>
-          <Image
-            source={require('../../../../assets/images/pets/no_pet.png')}
-            style={S.emptyImage}
-            resizeMode="contain"
-          />
+          <Image source={require('../../../../assets/images/pets/no_pet.png')} style={S.emptyImage} resizeMode="contain" />
           <Text weight="bold" style={S.emptyTitle}>
             현재 등록된 반려동물이 없습니다.
           </Text>
-          <Text style={S.emptySubtitle}>
-            반려동물을 등록하고 건강과 일상을 관리해 보세요.
-          </Text>
-          <Button
-            title="동물 추가하기"
-            shape="pillSolid"
-            size="lg"
-            tone="aqua"
-            onPress={() => navigation.navigate('AddPet')}
-            style={S.emptyButton}
-          />
+          <Text style={S.emptySubtitle}>반려동물을 등록하고 건강과 일상을 관리해 보세요.</Text>
+          <Button title="동물 추가하기" shape="pillSolid" size="lg" tone="aqua" onPress={() => navigation.navigate('AddPet')} style={S.emptyButton} />
         </View>
       </View>
     );
@@ -161,17 +150,10 @@ useEffect(() => {
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <Header title="동물관리" />
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={S.petRow}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.petRow}>
             {pets.map((pet: getPetListResponse) => (
               <PetMiniCard
                 key={pet.petId}
@@ -179,24 +161,16 @@ useEffect(() => {
                 species={formatSpecies(pet.species)}
                 avatarUri={toImageUrl(pet.photoUrl)}
                 selected={selectedPetId === pet.petId}
-                onPress={() =>
-                  setSelectedPetId(pet.petId ?? 0)
-                }
+                onPress={() => setSelectedPetId(pet.petId ?? 0)}
               />
             ))}
-            <AddPetCard
-              onPress={() => navigation.navigate('AddPet')}
-            />
+            <AddPetCard onPress={() => navigation.navigate('AddPet')} />
           </ScrollView>
         </View>
 
         {/* 탭 */}
         <View style={{ paddingTop: 24 }}>
-          <SegmentedTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            onTabChange={(id: any) => setActiveTab(id)}
-          />
+          <SegmentedTabs tabs={tabs} activeTab={activeTab} onTabChange={(id: any) => setActiveTab(id)} />
         </View>
 
         {/* 콘텐츠 */}
@@ -205,14 +179,10 @@ useEffect(() => {
             <PetSummaryCard
               name={selectedPet?.name ?? ''}
               kind={formatSpecies(selectedPet?.species)}
-              avatarUri={
-                toImageUrl(selectedPet?.photoUrl) ?? null
-              }
+              avatarUri={toImageUrl(selectedPet?.photoUrl) ?? null}
               age={selectedPet?.age ?? 0}
               weight={selectedPet?.weight ?? 0}
-              sex={formatGender(
-                selectedPet?.gender ?? 'NON',
-              )}
+              sex={formatGender(selectedPet?.gender ?? 'NON')}
               onEdit={() =>
                 navigation.navigate('EditPet', {
                   petId: selectedPetId,
@@ -252,10 +222,10 @@ useEffect(() => {
         onClose={() => setShowStepSheet(false)}
         onCompleteScan={() => {
           setShowStepSheet(false);
-             if (selectedPetId) {
-               nav.navigate('ScanCamera', { petId: selectedPetId });
-             } 
-                }}
+          if (selectedPetId) {
+            nav.navigate('ScanCamera', { petId: selectedPetId });
+          }
+        }}
       />
     </View>
   );

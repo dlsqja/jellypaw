@@ -1,14 +1,7 @@
 // src/screens/pet/components/HealthCheckStepSheet.tsx
 
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Animated, Image, Modal, Pressable, StyleSheet, View } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../../ui/components/Text';
@@ -37,25 +30,19 @@ const STEPS = [
     id: 2,
     body: '소변이 충분히 묻었다면, 과도한 소변을 톡톡 털어내 주세요.',
     image: require('../../../../../assets/images/pets/analyze_image_2.png'),
-    description:
-      '검사 결과가 번지지 않도록 스틱 옆면을 따라 가볍게 쳐서 과잉뇨를 제거해 주세요.',
+    description: '검사 결과가 번지지 않도록 스틱 옆면을 따라 가볍게 쳐서 과잉뇨를 제거해 주세요.',
     nextLabel: '비색판에 놓기',
   },
   {
     id: 3,
     body: '비색판 중앙에 스틱을 올려두고 색 변화를 기다려 주세요.',
     image: require('../../../../../assets/images/pets/analyze_image_3.png'),
-    description:
-      '소변검사 스틱을 비색판 가운데에 놓아 주세요. 다음 단계에서 비색판과 소변검사 스틱을 촬영할 거예요.',
+    description: '소변검사 스틱을 비색판 가운데에 놓아 주세요. 다음 단계에서 비색판과 소변검사 스틱을 촬영할 거예요.',
     nextLabel: '비색판 스캔 시작',
   },
 ];
 
-export default function HealthCheckStepSheet({
-  visible,
-  onClose,
-  onCompleteScan,
-}: HealthCheckStepSheetProps) {
+export default function HealthCheckStepSheet({ visible, onClose, onCompleteScan }: HealthCheckStepSheetProps) {
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [stepIndex, setStepIndex] = useState(0);
@@ -89,36 +76,36 @@ export default function HealthCheckStepSheet({
   const current = STEPS[stepIndex];
 
   const handleNext = () => {
-  const isLast = stepIndex === STEPS.length - 1;
-  if (!isLast) {
-    setStepIndex(prev => prev + 1);
-    return;
-  }
+    const isLast = stepIndex === STEPS.length - 1;
+    if (!isLast) {
+      setStepIndex((prev) => prev + 1);
+      return;
+    }
 
-  if (onCompleteScan) {
+    if (onCompleteScan) {
+      handleClose();
+      onCompleteScan();
+      return;
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: '소변검사 안내를 완료했어요.',
+      text2: '이제 안내에 따라 촬영을 진행해 주세요.',
+    });
     handleClose();
-    onCompleteScan();
-    return;
-  }
+  };
 
-  Toast.show({
-    type: 'success',
-    text1: '소변검사 안내를 완료했어요.',
-    text2: '이제 안내에 따라 촬영을 진행해 주세요.',
-  });
-  handleClose();
-};
-
+  const handlePrev = () => {
+    if (stepIndex > 0) {
+      setStepIndex((prev) => prev - 1);
+    }
+  };
 
   if (!visible) return null;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
       <Pressable style={S.overlay} onPress={handleClose}>
         <Animated.View
           style={[
@@ -136,29 +123,25 @@ export default function HealthCheckStepSheet({
             },
           ]}
         >
-          <Pressable onPress={e => e.stopPropagation()}>
+          <Pressable onPress={(e) => e.stopPropagation()}>
             <View style={S.handleWrap}>
               <View style={S.handle} />
             </View>
 
             <View style={S.headerRow}>
               <View style={S.headerLeft}>
-                <Feather
+                {/* <Feather
                   name="flask"
                   size={20}
                   color={palette.aqua300}
-                />
+                /> */}
                 <Text weight="bold" style={S.headerTitle}>
                   소변검사 방법
                 </Text>
               </View>
               <Pressable onPress={handleClose} hitSlop={8}>
                 <View style={S.closeCircle}>
-                  <Feather
-                    name="x"
-                    size={18}
-                    color={theme.text.secondary}
-                  />
+                  <Feather name="x" size={18} color={theme.text.secondary} />
                 </View>
               </Pressable>
             </View>
@@ -173,25 +156,12 @@ export default function HealthCheckStepSheet({
                 const active = idx === stepIndex;
                 return (
                   <React.Fragment key={s.id}>
-                    <View
-                      style={[
-                        S.stepCircle,
-                        active && S.stepCircleActive,
-                      ]}
-                    >
-                      <Text
-                        weight="bold"
-                        style={[
-                          S.stepCircleText,
-                          active && S.stepCircleTextActive,
-                        ]}
-                      >
+                    <View style={[S.stepCircle, active && S.stepCircleActive]}>
+                      <Text weight="bold" style={[S.stepCircleText, active && S.stepCircleTextActive]}>
                         {s.id}
                       </Text>
                     </View>
-                    {idx < STEPS.length - 1 && (
-                      <View style={S.stepBar} />
-                    )}
+                    {idx < STEPS.length - 1 && <View style={S.stepBar} />}
                   </React.Fragment>
                 );
               })}
@@ -199,34 +169,26 @@ export default function HealthCheckStepSheet({
 
             {/* 이미지 */}
             <View style={S.imageWrap}>
-              <Image
-                source={current.image}
-                style={S.image}
-                resizeMode="cover"
-              />
+              <Image source={current.image} style={S.image} resizeMode="cover" />
             </View>
 
             {/* 설명 */}
             <View style={S.descriptionWrap}>
-              <Text style={S.description}>
-                {current.description}
-              </Text>
+              <Text style={S.description}>{current.description}</Text>
             </View>
 
-            {/* 다음 버튼 */}
-            <Button
-              shape="pillOutline"
-              tone="lightAqua"
-              borderTone="default"
-              onPress={handleNext}
-              style={S.nextButton}
-              titleStyle={S.nextButtonText}
-              title={
-                stepIndex === STEPS.length - 1
-                  ? '비색판 스캔 시작'
-                  : `다음 : ${current.nextLabel}`
-              }
-            />
+            {/* 버튼 영역 */}
+            <View style={S.buttonRow}>
+              {stepIndex > 0 && <Button shape="pillOutline" tone="lightAqua" onPress={handlePrev} style={[S.button, S.prevButton]} title="이전" />}
+              <Button
+                shape="solid"
+                tone="aqua"
+                borderTone="default"
+                onPress={handleNext}
+                style={[S.button, stepIndex === 0 && S.buttonFull]}
+                title={stepIndex === STEPS.length - 1 ? '스캔 시작' : `다음`}
+              />
+            </View>
           </Pressable>
         </Animated.View>
       </Pressable>
@@ -337,12 +299,28 @@ const S = StyleSheet.create({
     lineHeight: 22,
     color: '#374151',
   },
-  nextButton: {
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
     marginBottom: 8,
-    alignSelf: 'stretch',
-    backgroundColor: palette.aqua100,
+  },
+  button: {
+    flex: 1,
     borderRadius: 12,
     borderWidth: 1,
+  },
+  buttonFull: {
+    flex: 1,
+  },
+  prevButton: {
+    backgroundColor: palette.white,
+  },
+  prevButtonText: {
+    fontSize: 14,
+    color: theme.text.secondary,
+  },
+  nextButton: {
+    backgroundColor: palette.aqua100,
     borderColor: palette.aqua300,
   },
   nextButtonText: {

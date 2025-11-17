@@ -1,10 +1,5 @@
 export type PetSpecies = 'CAT' | 'DOG';
-export type PetGender =
-  | 'FEMALE'
-  | 'MALE'
-  | 'FEMALE_NEUTERING'
-  | 'MALE_NEUTERING'
-  | 'NON';
+export type PetGender = 'FEMALE' | 'MALE' | 'FEMALE_NEUTERING' | 'MALE_NEUTERING' | 'NON';
 
 // 펫 전체 목록
 export interface getPetListResponse {
@@ -56,6 +51,17 @@ export interface UrineAnalysisSummaryItem {
 }
 
 export interface UrineAnalysisResponse {
+  id: string;
+  userId: number;
+  petId: number;
+  status: string;
+  analysisCount: number;
+  summary: UrineAnalysisSummaryItem[];
+  createdAt: string;
+}
+
+// 검사 결과 목록 조회
+export interface getUrineAnalysisListResponse {
   id: string;
   userId: number;
   petId: number;
