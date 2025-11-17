@@ -1,12 +1,6 @@
 // src/screens/main/Pet/ResultSummaryScreen.tsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
@@ -14,8 +8,8 @@ import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { getUrineAnalysisResult } from '../../../services/api/pet';
-import type { UrineAnalysisResponse, UrineAnalysisSummaryItem } from '../../../types/main/pet';
+import { getUrineAnalysisList } from '../../../services/api/pet';
+import type { getUrineAnalysisListResponse, UrineAnalysisSummaryItem } from '../../../types/main/pet';
 import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ResultSummary'>;
@@ -34,25 +28,25 @@ interface ResultItem {
 function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): ResultItem {
   // testNameKo를 key로 변환 (예: "빌리루빈" -> "bilirubin")
   const keyMap: { [key: string]: string } = {
-    '유로빌리노겐': 'urobilinogen',
-    '포도당': 'glucose',
-    '빌리루빈': 'bilirubin',
-    '케톤체': 'ketone',
-    '요비중': 'sg',
-    '잠혈': 'blood',
-    'pH': 'ph',
-    '단백질': 'protein',
-    '아질산염': 'nitrite',
-    '백혈구': 'wbc',
+    유로빌리노겐: 'urobilinogen',
+    포도당: 'glucose',
+    빌리루빈: 'bilirubin',
+    케톤체: 'ketone',
+    요비중: 'sg',
+    잠혈: 'blood',
+    pH: 'ph',
+    단백질: 'protein',
+    아질산염: 'nitrite',
+    백혈구: 'wbc',
   };
-  
+
   const key = keyMap[item.testNameKo] || `item_${index}`;
-  
+
   // severity와 isNormal에 따라 statusType 결정
   let statusType: ItemStatus = 'normal';
   let statusLabel = '정상';
-  let dotColor = palette.aqua300;
-  
+  let dotColor: string = palette.aqua300;
+
   if (!item.isNormal) {
     // 비정상인 경우 severity에 따라 분류
     if (item.severity === 'high' || item.severity === '중증') {
@@ -78,7 +72,7 @@ function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): Res
       statusLabel = '정상';
     }
   }
-  
+
   return {
     key,
     label: item.testNameKo,
@@ -106,7 +100,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
   const { analysisId, petId } = route.params;
   const [normalOpen, setNormalOpen] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [analysisData, setAnalysisData] = useState<UrineAnalysisResponse | null>(null);
+  const [analysisData, setAnalysisData] = useState<getUrineAnalysisListResponse | null>(null);
   const [warningItems, setWarningItems] = useState<ResultItem[]>([]);
   const [normalItems, setNormalItems] = useState<ResultItem[]>([]);
 
@@ -125,22 +119,23 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
     const fetchAnalysisResult = async () => {
       try {
         setLoading(true);
-        const result = await getUrineAnalysisResult(petId, analysisId);
+        // 목록을 가져와서 analysisId로 필터링
+        const list = await getUrineAnalysisList(petId);
+        const result = list.find((item) => item.id === analysisId);
+
+        if (!result) {
+          throw new Error('분석 결과를 찾을 수 없습니다.');
+        }
+
         setAnalysisData(result);
-        
+
         // summary를 ResultItem으로 변환
-        const allItems = result.summary.map((item, index) => 
-          convertToResultItem(item, index)
-        );
-        
+        const allItems = result.summary.map((item, index) => convertToResultItem(item, index));
+
         // isNormal에 따라 분류
-        const warning = allItems.filter(item => 
-          item.statusType === 'caution' || item.statusType === 'good'
-        );
-        const normal = allItems.filter(item => 
-          item.statusType === 'normal' || item.statusType === 'neutral'
-        );
-        
+        const warning = allItems.filter((item) => item.statusType === 'caution' || item.statusType === 'good');
+        const normal = allItems.filter((item) => item.statusType === 'normal' || item.statusType === 'neutral');
+
         setWarningItems(warning);
         setNormalItems(normal);
       } catch (error: any) {
@@ -175,9 +170,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
       <View style={[S.root, { justifyContent: 'center', alignItems: 'center' }]}>
         <BackHeader title="소변 검사 분석 결과" />
         <ActivityIndicator size="large" color={palette.aqua300} />
-        <Text style={{ marginTop: 16, color: theme.text.secondary }}>
-          분석 결과를 불러오는 중...
-        </Text>
+        <Text style={{ marginTop: 16, color: theme.text.secondary }}>분석 결과를 불러오는 중...</Text>
       </View>
     );
   }
@@ -186,40 +179,26 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
     <View style={S.root}>
       <BackHeader title="소변 검사 분석 결과" />
 
-      <ScrollView
-        style={S.scroll}
-        contentContainerStyle={S.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={S.scroll} contentContainerStyle={S.scrollContent} showsVerticalScrollIndicator={false}>
         {/* 전체 건강 상태 카드 */}
         <View style={S.card}>
           <View style={S.healthIconWrap}>
-            <Text style={S.healthEmoji}>
-              {hasWarning ? '⚠️' : '✅'}
-            </Text>
+            <Text style={S.healthEmoji}>{hasWarning ? '⚠️' : '✅'}</Text>
           </View>
           <Text weight="bold" style={S.healthTitle}>
             전체 건강 상태
           </Text>
 
           <View style={S.healthBadgeRow}>
-            <View style={[
-              S.healthBadge,
-              hasWarning ? { backgroundColor: palette.pink100 } : { backgroundColor: palette.aqua100 }
-            ]}>
-              <Text style={[
-                S.healthBadgeText,
-                hasWarning ? { color: palette.pink400 } : { color: palette.aqua400 }
-              ]}>
+            <View style={[S.healthBadge, hasWarning ? { backgroundColor: palette.pink100 } : { backgroundColor: palette.aqua100 }]}>
+              <Text style={[S.healthBadgeText, hasWarning ? { color: palette.pink400 } : { color: palette.aqua400 }]}>
                 {hasWarning ? '주의 필요' : '정상'}
               </Text>
             </View>
           </View>
 
           <Text weight="semiBold" style={S.healthDesc}>
-            {hasWarning 
-              ? '일부 항목에서 주의가 필요합니다'
-              : '모든 검사 항목이 정상 범위입니다'}
+            {hasWarning ? '일부 항목에서 주의가 필요합니다' : '모든 검사 항목이 정상 범위입니다'}
           </Text>
         </View>
 
@@ -237,23 +216,15 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
               </View>
             </View>
 
-            {warningItems.map(item => (
-              <ResultRow
-                key={item.key}
-                item={item}
-                onPress={() => goDetail(item.key)}
-              />
+            {warningItems.map((item) => (
+              <ResultRow key={item.key} item={item} onPress={() => goDetail(item.key)} />
             ))}
           </View>
         )}
 
         {/* 정상 항목 (토글) */}
         <View style={S.section}>
-          <TouchableOpacity
-            style={S.sectionHeaderRow}
-            activeOpacity={0.9}
-            onPress={() => setNormalOpen(o => !o)}
-          >
+          <TouchableOpacity style={S.sectionHeaderRow} activeOpacity={0.9} onPress={() => setNormalOpen((o) => !o)}>
             <View style={S.sectionTitleLeft}>
               <View style={S.sectionIconCircle}>
                 <Ionicons name="checkmark" size={14} color={palette.aqua400} />
@@ -264,25 +235,15 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
             </View>
 
             <View style={S.chip}>
-              <Text style={S.chipText}>
-                {normalOpen}
-              </Text>
-              <Ionicons
-                name={normalOpen ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={theme.text.primary}
-              />
+              <Text style={S.chipText}>{normalOpen}</Text>
+              <Ionicons name={normalOpen ? 'chevron-up' : 'chevron-down'} size={16} color={theme.text.primary} />
             </View>
           </TouchableOpacity>
 
           {normalOpen && (
             <View style={S.normalList}>
-              {normalItems.map(item => (
-                <ResultRow
-                  key={item.key}
-                  item={item}
-                  onPress={() => goDetail(item.key)}
-                />
+              {normalItems.map((item) => (
+                <ResultRow key={item.key} item={item} onPress={() => goDetail(item.key)} />
               ))}
             </View>
           )}
@@ -310,9 +271,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
                 <Text weight="semiBold" style={S.recommendTitleWarning}>
                   수의사 상담 권장
                 </Text>
-                <Text style={S.recommendBodyWarning}>
-                  주의 항목이 발견되었습니다. 전문의와 상담해보세요.
-                </Text>
+                <Text style={S.recommendBodyWarning}>주의 항목이 발견되었습니다. 전문의와 상담해보세요.</Text>
               </View>
             </View>
 
@@ -324,9 +283,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
                 <Text weight="semiBold" style={S.recommendTitle}>
                   정기 검사
                 </Text>
-                <Text style={S.recommendBody}>
-                  건강 유지를 위해 정기적인 검사를 받아보세요.
-                </Text>
+                <Text style={S.recommendBody}>건강 유지를 위해 정기적인 검사를 받아보세요.</Text>
               </View>
             </View>
 
@@ -338,9 +295,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
                 <Text weight="semiBold" style={S.recommendTitle}>
                   건강 관리
                 </Text>
-                <Text style={S.recommendBody}>
-                  충분한 수분 섭취와 균형잡힌 식단을 유지해주세요.
-                </Text>
+                <Text style={S.recommendBody}>충분한 수분 섭취와 균형잡힌 식단을 유지해주세요.</Text>
               </View>
             </View>
           </View>
@@ -348,13 +303,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
 
         {/* 하단 버튼들 */}
         <View style={S.buttonRow}>
-          <Button
-            tone="aqua"
-            shape="pillSolid"
-            size="default"
-            style={S.buttonHalf}
-            title="병원 예약"
-          />
+          <Button tone="aqua" shape="pillSolid" size="default" style={S.buttonHalf} title="병원 예약" />
           <Button
             tone="lightAqua"
             shape="pillOutline"
@@ -373,19 +322,9 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
 }
 
 // 항목 한 줄 컴포넌트
-function ResultRow({
-  item,
-  onPress,
-}: {
-  item: ResultItem;
-  onPress?: () => void;
-}) {
+function ResultRow({ item, onPress }: { item: ResultItem; onPress?: () => void }) {
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={onPress}
-      style={S.resultRow}
-    >
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={S.resultRow}>
       <View style={S.resultLeft}>
         <View style={[S.dot, { backgroundColor: item.dotColor }]} />
         <Text weight="semiBold" style={S.resultLabel}>
@@ -394,10 +333,7 @@ function ResultRow({
       </View>
 
       <View style={S.resultRight}>
-        <Text
-          weight="semiBold"
-          style={[S.resultStatus, { color: statusColor(item.statusType) }]}
-        >
+        <Text weight="semiBold" style={[S.resultStatus, { color: statusColor(item.statusType) }]}>
           {item.statusLabel}
         </Text>
         <Ionicons name="chevron-forward" size={16} color={palette.gray400} />

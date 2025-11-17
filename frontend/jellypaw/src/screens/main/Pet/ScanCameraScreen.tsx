@@ -312,7 +312,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
             <TouchableOpacity onPress={handleRetake} style={S.retakeButton} activeOpacity={0.9} disabled={isProcessing}>
               <Feather name="camera" size={18} color="#fff" />
               <Text weight="medium" style={S.retakeText}>
-                다시 선택
+                다시 촬영
               </Text>
             </TouchableOpacity>
 
@@ -324,17 +324,18 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={S.captureRow}>
-            <View style={S.captureSideIcon} />
+          <View style={S.startButtonContainer}>
             <TouchableOpacity
               onPress={handleCapture}
-              style={[S.captureButtonOuter, isProcessing && S.captureButtonDisabled]}
+              style={[S.startButton, isProcessing && S.startButtonDisabled]}
               activeOpacity={0.9}
               disabled={isProcessing}
             >
-              {isProcessing ? <ActivityIndicator size="small" color="#fff" /> : <View style={S.captureButtonInner} />}
+              <Feather name="camera" size={24} color="#fff" />
+              <Text weight="bold" style={S.startButtonText}>
+                비색판 스캔
+              </Text>
             </TouchableOpacity>
-            <View style={S.captureSideIcon} />
           </View>
         )}
       </View>
@@ -401,32 +402,26 @@ const S = StyleSheet.create({
     paddingTop: 24,
     backgroundColor: 'rgba(0,0,0,0.7)',
   },
-  captureRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  startButtonContainer: {
     alignItems: 'center',
-  },
-  captureSideIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  captureButtonOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 4,
-    borderColor: '#fff',
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  captureButtonInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#fff',
+  startButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: palette.aqua300,
+    gap: 8,
+  },
+  startButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
+  startButtonDisabled: {
+    opacity: 0.5,
   },
   bottomButtonsRow: {
     flexDirection: 'row',

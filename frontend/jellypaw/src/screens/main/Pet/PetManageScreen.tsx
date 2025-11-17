@@ -1,7 +1,7 @@
 // src/screens/main/Pet/PetManageScreen.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
@@ -11,11 +11,13 @@ import SegmentedTabs, { TabItem } from '../../../ui/components/SegmentedTabs';
 import PetSummaryCard from '../../../ui/components/PetSummaryCard';
 import Header from '../../../ui/components/Header';
 import { VITE_IMAGE_BASE_URL } from '@env';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
-import type { getPetListResponse } from '../../../types/main/pet';
+import type { getPetListResponse, getUrineAnalysisListResponse } from '../../../types/main/pet';
 import HealthCheckIntroSheet from './components/HealthCheckIntroSheet';
 import HealthCheckStepSheet from './components/HealthCheckStepSheet';
+import UrineAnalysisCard from './components/UrineAnalysisCard';
 import { useAuthUserId, useAuthCacheKey } from '../../../services/queries/authHooks';
 import { useFocusEffect } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,6 +52,8 @@ export default function PetManageScreen({ navigation }: any) {
 
   const [showIntroSheet, setShowIntroSheet] = useState(false);
   const [showStepSheet, setShowStepSheet] = useState(false);
+  const [analysisList, setAnalysisList] = useState<getUrineAnalysisListResponse[]>([]);
+  const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
 
   const nav = useNavigation<any>();
 
@@ -71,13 +75,32 @@ export default function PetManageScreen({ navigation }: any) {
     { id: 'health', label: '건강 체크' },
   ];
 
+  // 소변 검사 결과 목록 가져오기
   useEffect(() => {
-    if (selectedPetId) {
-      getUrineAnalysisList(Number(selectedPetId)).then((data) => {
-        console.log('[PET] urineAnalysisList=', data);
-      });
+    if (selectedPetId && activeTab === 'health') {
+      setIsLoadingAnalysis(true);
+      getUrineAnalysisList(Number(selectedPetId))
+        .then((data) => {
+          // 최신순으로 정렬 (createdAt 기준 내림차순)
+          const sorted = [...data].sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA;
+          });
+          setAnalysisList(sorted);
+        })
+        .catch((err) => {
+          // 서버에서 500 에러가 발생하더라도 앱이 크래시되지 않도록 처리
+          console.warn('[PET] urineAnalysisList 조회 실패:', err?.message || err);
+          setAnalysisList([]);
+        })
+        .finally(() => {
+          setIsLoadingAnalysis(false);
+        });
+    } else {
+      setAnalysisList([]);
     }
-  }, [selectedPetId]);
+  }, [selectedPetId, activeTab]);
 
   const isEmpty = !isListLoading && pets.length === 0;
 
@@ -193,12 +216,41 @@ export default function PetManageScreen({ navigation }: any) {
           )}
 
           {activeTab === 'health' && (
-            <Button
-              title="건강 검진"
-              shape="pillSolid"
-              tone="aqua"
-              onPress={() => setShowIntroSheet(true)} // ✅ 여기!
-            />
+            <View style={S.healthContent}>
+              {/* 건강 검진 버튼 */}
+              <Button title="건강 검진" shape="pillSolid" tone="aqua" onPress={() => setShowIntroSheet(true)} style={S.healthCheckButton} />
+
+              {/* 소변 검사 결과 목록 */}
+              {isLoadingAnalysis ? (
+                <View style={S.loadingContainer}>
+                  <ActivityIndicator size="small" color={palette.aqua300} />
+                  <Text style={S.loadingText}>검사 결과를 불러오는 중...</Text>
+                </View>
+              ) : analysisList.length > 0 ? (
+                <View style={S.analysisListContainer}>
+                  {analysisList.map((analysis) => (
+                    <UrineAnalysisCard
+                      key={analysis.id}
+                      analysis={analysis}
+                      onPress={() => {
+                        nav.navigate('ResultSummary', {
+                          analysisId: analysis.id,
+                          petId: selectedPetId,
+                        });
+                      }}
+                    />
+                  ))}
+                </View>
+              ) : (
+                <View style={S.emptyAnalysisContainer}>
+                  <Ionicons name="flask-outline" size={48} color={palette.gray400} />
+                  <Text weight="semiBold" style={S.emptyAnalysisTitle}>
+                    검사 결과가 없습니다
+                  </Text>
+                  <Text style={S.emptyAnalysisSubtitle}>건강 검진을 통해 소변 검사를 진행해보세요</Text>
+                </View>
+              )}
+            </View>
           )}
         </View>
       </ScrollView>
@@ -264,5 +316,44 @@ const S = StyleSheet.create({
     width: 140,
     height: 140,
     marginBottom: 24,
+  },
+  healthContent: {
+    gap: 16,
+  },
+  healthCheckButton: {
+    marginBottom: 8,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: theme.text.secondary,
+  },
+  analysisListContainer: {
+    gap: 16,
+  },
+  emptyAnalysisContainer: {
+    padding: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: palette.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: palette.gray200,
+  },
+  emptyAnalysisTitle: {
+    marginTop: 16,
+    fontSize: 16,
+    color: theme.text.primary,
+    marginBottom: 8,
+  },
+  emptyAnalysisSubtitle: {
+    fontSize: 14,
+    color: theme.text.secondary,
+    textAlign: 'center',
   },
 });
