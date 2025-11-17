@@ -38,6 +38,8 @@ const formatGender = (g: any) =>
     ? '여자(중성)'
     : g === 'MALE_NEUTERING'
     ? '남자(중성)'
+    : g === 'NON'
+    ? '무성'
     : '없음';
 
 const formatSpecies = (s: any) =>
@@ -250,8 +252,10 @@ useEffect(() => {
         onClose={() => setShowStepSheet(false)}
         onCompleteScan={() => {
           setShowStepSheet(false);
-          nav.navigate('ScanCamera');
-        }}
+             if (selectedPetId) {
+               nav.navigate('ScanCamera', { petId: selectedPetId });
+             } 
+                }}
       />
     </View>
   );

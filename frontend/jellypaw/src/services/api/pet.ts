@@ -4,6 +4,7 @@ import type {
   getPetDetailResponse,
   CreatePetRequest,
   CreatePetResponse,
+  UrineAnalysisResponse,
 } from '../../types/main/pet';
 
 // API 응답 래퍼 타입
@@ -280,6 +281,63 @@ export const deletePet = async (petId: number): Promise<void> => {
     }
   } catch (err: any) {
     console.log('[deletePet] ✖ 실패', {
+      message: err?.message,
+      status: err?.response?.status,
+      resp: err?.response?.data,
+    });
+    throw err;
+  }
+};
+
+// ────────────────────────────────────────────────────────────
+// 소변 검사 분석 (POST /pets/{petId}/analyze)
+// ────────────────────────────────────────────────────────────
+export const analyzeUrineTest = async (
+  petId: number,
+  imageUri: string,
+): Promise<UrineAnalysisResponse> => {
+  if (!imageUri) {
+    throw new Error('[analyzeUrineTest] imageUri required');
+  }
+
+  // FormData 생성
+  const form = new FormData();
+  
+  // 이미지 파일 추가
+  const filename = (imageUri.split('/').pop() || 'image.jpg')
+    .trim()
+    .toLowerCase();
+  const type = filename.endsWith('.png')
+    ? 'image/png'
+    : filename.endsWith('.webp')
+    ? 'image/webp'
+    : 'image/jpeg';
+
+  form.append('file', {
+    uri: imageUri,
+    name: filename,
+    type,
+  } as any);
+
+  try {
+    const res = await apiClient.post<ApiResponse<UrineAnalysisResponse>>(
+      `/pets/${petId}/analyze`,
+      form,
+      {
+        headers: { Accept: 'application/json' },
+        transformRequest: (data) => data,
+      },
+    );
+
+    if (res.data?.code && res.data.code !== 200 && res.data.code !== 0) {
+      throw new Error(
+        `[API] code=${res.data.code} msg=${res.data.message || 'UNKNOWN'}`,
+      );
+    }
+
+    return res.data.data;
+  } catch (err: any) {
+    console.log('[analyzeUrineTest] ✖ 실패', {
       message: err?.message,
       status: err?.response?.status,
       resp: err?.response?.data,
