@@ -3,16 +3,16 @@ package a201.user.domain.pet.event;
 import a201.common.event.AnalysisResultEvent;
 import a201.common.util.JsonUtil;
 import a201.user.domain.notification.service.FcmService;
+import a201.user.domain.pet.entity.Pet;
 import a201.user.domain.pet.service.AnalysisService;
 import a201.user.domain.user.entity.User;
+import a201.user.domain.pet.repository.PetRepository;
 import a201.user.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -21,6 +21,7 @@ public class AnalysisEventConsumer {
 
     private final AnalysisService analysisService;
     private final UserRepository userRepository;
+    private final PetRepository petRepository;
     private final FcmService fcmService;
 
     @KafkaListener(topics = "analysis-results-topic", groupId = "user-service")
@@ -61,14 +62,14 @@ public class AnalysisEventConsumer {
             }
 
             // 알림 전송 (성공/실패 모두)
-            sendNotification(event);
+            sendNotification(event, pet);
 
         } catch (Exception e) {
             log.error("분석 결과 이벤트 처리 실패: {}", message, e);
         }
     }
 
-    private void sendNotification(AnalysisResultEvent event) {
+    private void sendNotification(AnalysisResultEvent event, Pet pet) {
         try {
             User user = userRepository.findById(event.getUserId()).orElse(null);
             
