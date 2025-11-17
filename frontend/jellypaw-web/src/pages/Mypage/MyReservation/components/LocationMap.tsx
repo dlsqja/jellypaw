@@ -65,8 +65,8 @@ export default function GoogleMap({ address, title }: GoogleMapProps) {
   // 로딩 중이거나 position이 없으면 로딩 상태 표시
   if (isLoading || !mapPosition) {
     return (
-      <div className="w-full h-64 rounded-lg overflow-hidden mt-4 bg-gray-200 flex items-center justify-center">
-        <p className="text-gray-500">지도를 불러오는 중...</p>
+      <div className="w-full h-64 rounded-lg overflow-hidden mt-4  flex items-center justify-center">
+        <p className="text-gray-500 p2 ">지도를 불러오는 중...</p>
       </div>
     );
   }
