@@ -13,7 +13,7 @@ import MyReservationDetail from '@/pages/Mypage/MyReservation/MyReservationDetai
 import EditProfile from '@/pages/Mypage/MyProfile/EditProfile';
 import FollowerList from '@/pages/Mypage/MyProfile/FollowerList';
 import LocationSearchDetail from '@/pages/Search/LocationSearch/LocationSearchDetail';
-import FunctionReservation from '@/pages/Search/LocationSearch/components/Function_reservation';
+import FunctionReservation from '@/pages/Search/LocationSearch/Reservation/Function_reservation';
 
 const mainRoutes = {
   path: '/',

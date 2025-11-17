@@ -5,12 +5,6 @@ import { Label } from '@radix-ui/react-label';
 
 interface Step2Props {
   onPrevious: () => void;
-  reservationData?: {
-    date: string;
-    time: number;
-    content: string;
-    placeName: string;
-  };
   onSubmit: () => void;
   isSubmitting?: boolean;
 }
@@ -33,7 +27,7 @@ const formatPhoneNumber = (value: string): string => {
   }
 };
 
-export default function Step2({ onPrevious, reservationData, onSubmit, isSubmitting = false }: Step2Props) {
+export default function Step2({ onPrevious, onSubmit, isSubmitting = false }: Step2Props) {
   const [guardianName, setGuardianName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 

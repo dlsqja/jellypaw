@@ -1,5 +1,6 @@
 // src/pages/Mypage/Mypage.tsx
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/headers/Header';
 import MyProfile from './MyProfile/MyProfile';
 import TabNavbar from '@/components/TabNavbar';
@@ -21,12 +22,22 @@ const tabs = [
 ];
 
 export default function Mypage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('feed');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false); // ← 추가
   const { data: profileData } = useProfile();
   const navigate = useNavigate();
+
+  // 쿼리 파라미터로 초기 탭 설정
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'reservation' || tab === 'feed') {
+      setActiveTab(tab);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // 드로어 오픈 시 드로어 표시
   useEffect(() => {

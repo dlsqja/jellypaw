@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import BackHeader from '@/components/headers/BackHeader';
 import { Card, CardContent } from '@/components/ui/card';
-import Step1Content from '../Reservation/step1';
-import Step2Content from '../Reservation/step2';
+import Step1Content from './step1';
+import Step2Content from './step2';
 import { FaMapLocation } from 'react-icons/fa6';
 import { createReservation } from '@/services/api/reservation';
 import type { CreateReservationRequest } from '@/types/reservation';
@@ -61,8 +61,8 @@ export default function Function_reservation() {
       console.log('locationId', locationId);
       console.log('예약 요청 성공:', reservationData);
       alert('예약 요청이 완료되었습니다.');
-      // 성공하면 마이페이지로 이동`
-      navigate('/mypage');
+      // 성공하면 마이페이지의 예약관리 탭으로 이동
+      navigate('/mypage?tab=reservation');
     } catch (error) {
       console.error('예약 요청 실패:', error);
       alert('예약 요청에 실패했습니다. 다시 시도해주세요.');
@@ -108,14 +108,7 @@ export default function Function_reservation() {
           }}
         />
       )}
-      {isStep2 && (
-        <Step2Content
-          onPrevious={() => setIsStep2(false)}
-          reservationData={reservationData}
-          onSubmit={handleReservationSubmit}
-          isSubmitting={isSubmitting}
-        />
-      )}
+      {isStep2 && <Step2Content onPrevious={() => setIsStep2(false)} onSubmit={handleReservationSubmit} isSubmitting={isSubmitting} />}
     </>
   );
 }
