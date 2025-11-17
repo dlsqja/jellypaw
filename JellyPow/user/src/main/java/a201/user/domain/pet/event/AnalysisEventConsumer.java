@@ -26,7 +26,7 @@ public class AnalysisEventConsumer {
     @KafkaListener(topics = "analysis-results-topic", groupId = "user-service")
     @Transactional
     public void handleAnalysisResult(String message) {
-        log.info("분석 결과 이벤트 수신: {}", message);
+        // log.info("분석 결과 이벤트 수신: {}", message);
 
         try {
             AnalysisResultEvent event = JsonUtil.fromJsonString(message, AnalysisResultEvent.class);
