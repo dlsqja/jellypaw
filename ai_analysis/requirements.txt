@@ -1,0 +1,111 @@
+# archspec @ file:///home/conda/feedstock_root/build_artifacts/archspec_1737352602016/work
+# boltons @ file:///home/conda/feedstock_root/build_artifacts/boltons_1733827268945/work
+# Brotli @ file:///D:/bld/brotli-split_1725267609074/work
+# certifi @ file:///home/conda/feedstock_root/build_artifacts/certifi_1746569525376/work/certifi
+# cffi @ file:///D:/bld/cffi_1725560655177/work
+# charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1746214863626/work
+# colorama @ file:///home/conda/feedstock_root/build_artifacts/colorama_1733218098505/work
+# conda @ file:///D:/bld/conda_1743046486868/work/conda-src
+# conda-libmamba-solver @ file:///home/conda/feedstock_root/build_artifacts/conda-libmamba-solver_1742219570693/work/src
+# conda-package-handling @ file:///home/conda/feedstock_root/build_artifacts/conda-package-handling_1736345463896/work
+# conda_package_streaming @ file:///home/conda/feedstock_root/build_artifacts/conda-package-streaming_1741620732069/work
+# contourpy==1.3.3
+# cycler==0.12.1
+# distro @ file:///home/conda/feedstock_root/build_artifacts/distro_1734729835256/work
+# filelock==3.19.1
+# fonttools==4.60.1
+# frozendict @ file:///D:/bld/frozendict_1728841449408/work
+# fsspec==2025.9.0
+# h2 @ file:///home/conda/feedstock_root/build_artifacts/h2_1738578511449/work
+# hpack @ file:///home/conda/feedstock_root/build_artifacts/hpack_1737618293087/work
+# hyperframe @ file:///home/conda/feedstock_root/build_artifacts/hyperframe_1737618333194/work
+# idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1733211830134/work
+# Jinja2==3.1.6
+# jsonpatch @ file:///home/conda/feedstock_root/build_artifacts/jsonpatch_1733814567314/work
+# jsonpointer @ file:///D:/bld/jsonpointer_1725303007361/work
+# kiwisolver==1.4.9
+# libmambapy @ file:///D:/bld/mamba-split_1746515841174/work/libmambapy
+# lxml==6.0.2
+# MarkupSafe==2.1.5
+# matplotlib==3.10.7
+# menuinst @ file:///D:/bld/menuinst_1731146986828/work
+# mpmath==1.3.0
+# networkx==3.5
+# numpy==2.2.6
+# opencv-python==4.12.0.88
+# packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1745345660/work
+# pillow==11.3.0
+# platformdirs @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_platformdirs_1746710438/work
+# pluggy @ file:///home/conda/feedstock_root/build_artifacts/pluggy_1733222765875/work
+# polars==1.35.1
+# polars-runtime-32==1.35.1
+# psutil==7.1.3
+# pycosat @ file:///D:/bld/pycosat_1732588446214/work
+# pycparser @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_pycparser_1733195786/work
+# pyparsing==3.2.5
+# PyQt5-Qt5==5.15.2
+# PyQt5_sip==12.17.1
+# PySocks @ file:///D:/bld/pysocks_1733217287171/work
+# python-dateutil==2.9.0.post0
+# PyYAML==6.0.3
+# requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1733217035951/work
+# ruamel.yaml @ file:///D:/bld/ruamel.yaml_1736248050795/work
+# ruamel.yaml.clib @ file:///D:/bld/ruamel.yaml.clib_1728724639208/work
+# scipy==1.16.3
+# setuptools==80.1.0
+# six==1.17.0
+# sympy==1.13.1
+# torch==2.5.1+cu121
+# torchaudio==2.5.1+cu121
+# torchvision==0.20.1+cu121
+# tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1735661334605/work
+# truststore @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_truststore_1739009763/work
+# typing_extensions==4.15.0
+# ultralytics==8.3.223
+# ultralytics-thop==2.0.18
+# urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1744323578849/work
+# wheel==0.45.1
+# win_inet_pton @ file:///D:/bld/win_inet_pton_1733130564612/work
+# zstandard==0.23.0
+
+# === 1. 핵심 AI/CV 패키지 ===
+# 버전 제거: Docker pip이 Python 3.10 및 CUDA 12.1에 맞는 최신 버전을 설치
+torch
+torchaudio
+torchvision
+scipy
+contourpy 
+
+# 버전 유지: 주요 AI 툴은 현재 확인된 버전 유지 (필요시 삭제 가능)
+ultralytics==8.3.223
+ultralytics-thop==2.0.18
+opencv-python==4.12.0.88
+
+# === 2. 웹/API 서버 (FastAPI 구동 필수) ===
+fastapi
+uvicorn[standard]
+python-multipart
+
+# === 3. 기타 핵심 라이브러리 (버전 제거) ===
+numpy
+pillow
+matplotlib
+cycler
+filelock
+fonttools
+fsspec
+Jinja2
+lxml
+MarkupSafe
+mpmath
+networkx
+packaging
+pyparsing
+python-dateutil
+PyYAML
+setuptools
+six
+sympy
+typing_extensions
+zstandard
+kiwisolver # matplotlib 의존성 추가

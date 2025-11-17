@@ -46,3 +46,21 @@ export interface CreatePetMultipart {
 
 // 생성 응답은 상세와 동일 스키마
 export type CreatePetResponse = getPetDetailResponse;
+
+// 소변 검사 분석 응답 타입
+export interface UrineAnalysisSummaryItem {
+  testNameKo: string;
+  isNormal: boolean;
+  severity: string;
+  suspectedConditions: string[];
+}
+
+export interface UrineAnalysisResponse {
+  id: string;
+  userId: number;
+  petId: number;
+  status: string;
+  analysisCount: number;
+  summary: UrineAnalysisSummaryItem[];
+  createdAt: string;
+}
