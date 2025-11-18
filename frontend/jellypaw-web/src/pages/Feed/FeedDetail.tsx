@@ -20,6 +20,8 @@ import { saveBoardToRedis } from '@/services/api/redis';
 import { debugToRN } from '@/lib/utils';
 import { getFeeds } from '@/services/api/feed';
 import { formatDate, formatRelativeTime } from '@/utils/timePassing';
+import { motion } from 'framer-motion';
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function FeedDetail() {
@@ -263,6 +265,14 @@ export default function FeedDetail() {
 
   return (
     <>
+      {/* ✅ 페이지 전체 슬라이드 애니메이션은 여기만 */}
+      <motion.div
+        initial={{ x: 40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: -20, opacity: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="min-h-screen bg-gray-100 pb-[72px]" // ✅ 댓글창 높이만큼 padding 추가
+      >
       <BackHeader title="게시글" />
       {/* 프로필 헤더 */}
       <Card className="rounded-none shadow-none border-none bg-gray-100 ">
@@ -398,7 +408,7 @@ export default function FeedDetail() {
               ))}
           </div>
           {/* 댓글 입력창 */}
-          <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} />
+          {/* <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} /> */}
         </CardContent>
       </Card>
 
@@ -532,6 +542,13 @@ export default function FeedDetail() {
           </div>
         </div>
       )}
+    </motion.div>
+
+      <CommentInput
+        parentId={replyTargetId}
+        onSubmitSuccess={handleCommentSubmitSuccess}
+        onCancelReply={() => setReplyTargetId(null)}
+      />
     </>
   );
 }
