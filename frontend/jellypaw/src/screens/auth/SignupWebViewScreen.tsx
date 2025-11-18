@@ -1,14 +1,6 @@
 // src/screens/auth/SignupWebViewScreen.tsx
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -19,17 +11,12 @@ import BackHeader from '../../ui/components/BackHeader';
 import { Text } from '../../ui/components/Text';
 import Input from '../../ui/components/Input';
 import { Button } from '../../ui/components/Button';
-import {
-  getEmailByAuthId,
-  signupWithKakao,
-  checkNicknameDuplicate,
-} from '../../services/auth/userService';
+import { getEmailByAuthId, signupWithKakao, checkNicknameDuplicate } from '../../services/auth/userService';
 import { setTokens } from '../../lib/tokenStorage';
+import { getMessaging, getToken } from '@react-native-firebase/messaging';
+import sendFcmToken, { ensureAndroidNotificationPermission } from '../../services/auth/fcm';
 
-type Props = CompositeScreenProps<
-  NativeStackScreenProps<AuthStackParamList, 'SignupWebView'>,
-  NativeStackScreenProps<RootStackParamList>
->;
+type Props = CompositeScreenProps<NativeStackScreenProps<AuthStackParamList, 'SignupWebView'>, NativeStackScreenProps<RootStackParamList>>;
 
 type NicknameStatus = 'idle' | 'checking' | 'available' | 'duplicated' | 'error';
 
@@ -111,6 +98,22 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
       if (accessToken) {
         await setTokens(accessToken, refreshToken); // ★ refresh 저장
       }
+
+      // 회원가입 성공 시 FCM 토큰 발급 및 전송
+      try {
+        const messaging = getMessaging();
+        // FCM 토큰 발급
+        const fcmToken = await getToken(messaging);
+
+        // FCM 토큰 서버 전송
+        await sendFcmToken(fcmToken as string);
+      } catch (error) {
+        console.log('[FCM Token Error]', error);
+      }
+
+      // 피드화면 이동 전에 안드로이드 알림 권한 확인 + 요청
+      await ensureAndroidNotificationPermission();
+
       navigation.getParent()?.reset({
         index: 0,
         routes: [{ name: 'FeedStack' as never }],
@@ -141,8 +144,7 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
       // 빨간 에러
       nicknameErrorText = '이미 사용 중인 닉네임이에요.';
     } else if (nicknameStatus === 'error') {
-      nicknameErrorText =
-        '닉네임 중복 확인 중 오류가 발생했어요. 다시 시도해 주세요.';
+      nicknameErrorText = '닉네임 중복 확인 중 오류가 발생했어요. 다시 시도해 주세요.';
     }
   }
 
@@ -151,26 +153,12 @@ export default function SignupWebViewScreen({ navigation, route }: Props) {
   return (
     <View style={S.root}>
       <BackHeader title="추가 정보 입력" />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={[
-              S.content,
-              { paddingBottom: insets.bottom + 24 },
-            ]}
-          >
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={[S.content, { paddingBottom: insets.bottom + 24 }]}>
             <View style={{ width: '100%' }}>
               {/* 이메일 */}
-              <Input
-                label="이메일"
-                value={email}
-                editable={false}
-                helperText="카카오에서 제공된 이메일이에요. 수정은 카카오에서 가능해요."
-              />
+              <Input label="이메일" value={email} editable={false} helperText="카카오에서 제공된 이메일이에요. 수정은 카카오에서 가능해요." />
 
               {/* 닉네임 */}
               <View style={{ height: 12 }} />
