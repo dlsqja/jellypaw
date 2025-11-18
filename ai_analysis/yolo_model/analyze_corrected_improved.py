@@ -431,53 +431,53 @@ def extract_reference_colors_from_yolo(warped_image, yolo_detections, debug_imag
             {"value": "100", "x_offset": 90},    # 오른쪽 1번째
             {"value": "250", "x_offset": 145},   # 오른쪽 2번째
             {"value": "500", "x_offset": 200},   # 오른쪽 3번째
-            {"value": "1000", "x_offset": 255}   # 오른쪽 4번째
+            {"value": "1000", "x_offset": 310}   # 오른쪽 4번째
         ],
         "Bilirubin": [  # 좌1, 우3 (우측이 다른 항목보다 1칸 더 오른쪽)
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
             {"value": "+", "x_offset": 145},     # 오른쪽 1번째 (90 → 145)
             {"value": "++", "x_offset": 200},    # 오른쪽 2번째 (145 → 200)
-            {"value": "+++", "x_offset": 255}    # 오른쪽 3번째 (200 → 255)
+            {"value": "+++", "x_offset": 310}    # 오른쪽 3번째 (200 → 255)
         ],
         "Ketones": [  # 좌1, 우4
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
             {"value": "5", "x_offset": 90},      # 오른쪽 1번째
             {"value": "15", "x_offset": 145},    # 오른쪽 2번째
             {"value": "40", "x_offset": 200},    # 오른쪽 3번째
-            {"value": "80", "x_offset": 255}     # 오른쪽 4번째
+            {"value": "80", "x_offset": 310}     # 오른쪽 4번째
         ],
         "Specific_Gravity": [  # 좌1, 우6
             {"value": "1.000", "x_offset": -130}, # 왼쪽 1번째
             {"value": "1.010", "x_offset": 90},  # 오른쪽 1번째
             {"value": "1.020", "x_offset": 145}, # 오른쪽 2번째
             {"value": "1.030", "x_offset": 200}, # 오른쪽 3번째
-            {"value": "1.040", "x_offset": 255}, # 오른쪽 4번째
-            {"value": "1.050", "x_offset": 310}, # 오른쪽 5번째
-            {"value": "1.060", "x_offset": 365}  # 오른쪽 6번째
+            {"value": "1.040", "x_offset": 310}, # 오른쪽 4번째
+            {"value": "1.050", "x_offset": 365}, # 오른쪽 5번째
+            {"value": "1.060", "x_offset": 420}  # 오른쪽 6번째
         ],
         "Blood": [  # 좌1, 우3 + 특수2 = 총 6개
             {"value": "neg", "x_offset": -130},        # 왼쪽 1번째
             {"value": "+10", "x_offset": 90},          # 오른쪽 1번째
             {"value": "++50", "x_offset": 145},        # 오른쪽 2번째
             {"value": "+++250", "x_offset": 200},      # 오른쪽 3번째
-            {"value": "Non-Hem+10", "x_offset": 255},  # 특수1 (점박이)
-            {"value": "Non-Hem++50", "x_offset": 310}  # 특수2 (점박이)
+            {"value": "Non-Hem+10", "x_offset": 310},  # 특수1 (점박이)
+            {"value": "Non-Hem++50", "x_offset": 365}  # 특수2 (점박이)
         ],
         "pH": [  # 좌1, 우5
             {"value": "5", "x_offset": -130},    # 왼쪽 1번째
             {"value": "6", "x_offset": 90},      # 오른쪽 1번째
             {"value": "6.5", "x_offset": 145},   # 오른쪽 2번째
             {"value": "7", "x_offset": 200},     # 오른쪽 3번째
-            {"value": "8", "x_offset": 255},     # 오른쪽 4번째
-            {"value": "9", "x_offset": 310}      # 오른쪽 5번째
+            {"value": "8", "x_offset": 310},     # 오른쪽 4번째
+            {"value": "9", "x_offset": 365}      # 오른쪽 5번째
         ],
         "Protein": [  # 좌1, 우5
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
             {"value": "trace", "x_offset": 90},  # 오른쪽 1번째
             {"value": "30", "x_offset": 145},    # 오른쪽 2번째
             {"value": "100", "x_offset": 200},   # 오른쪽 3번째
-            {"value": "300", "x_offset": 255},   # 오른쪽 4번째
-            {"value": "1000", "x_offset": 310}   # 오른쪽 5번째
+            {"value": "300", "x_offset": 310},   # 오른쪽 4번째
+            {"value": "1000", "x_offset": 365}   # 오른쪽 5번째
         ],
         "Nitrite": [  # 좌1, 우2
             {"value": "neg", "x_offset": -130},  # 왼쪽 1번째
