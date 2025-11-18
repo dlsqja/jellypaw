@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   // 내용 입력 컨테이너
   contentInputContainer: {
     width: '100%',
-    minHeight: 192,
+    minHeight: 300,
   },
   // 내용 입력
   contentInput: {
