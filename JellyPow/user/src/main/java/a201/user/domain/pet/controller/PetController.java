@@ -11,6 +11,8 @@ import a201.user.domain.pet.document.AnalysisDocument;
 import a201.user.domain.pet.entity.Pet;
 import a201.user.domain.pet.service.AnalysisService;
 import a201.user.domain.pet.service.PetService;
+import a201.user.domain.user.entity.User;
+import a201.user.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class PetController {
     private final PetService petService;
     private final AiClient aiClient;
     private final AnalysisService analysisService;
-
+	private final UserService userService;
     @Operation(summary = "반려동물 목록 조회", description = "사용자의 반려동물 목록을 조회합니다.")
     @GetMapping
     public ApiResponse<PetSimpleListResponse> getPetList(@RequestHeader("X-User-Id") Long userId) {
@@ -161,20 +163,22 @@ public class PetController {
             if (originalFilename != null && originalFilename.contains(".")) {
                 extension = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
-            String uniqueFilename = String.format("%d_%d_%s%s", userId, petId, UUID.randomUUID(), extension);
+			User user = userService.getUserById(userId);
+			Pet pet = petService.getPet(petId);
+            String uniqueFilename = String.format("%s_%s_%s%s", user.getNickname(), pet.getName(), UUID.randomUUID(), extension);
             Path tempFilePath = tempDirPath.resolve(uniqueFilename);
             
             // 바이트 배열로 파일 저장
             Files.write(tempFilePath, fileBytes);
             
             // 로그 출력
-            log.info("=== 임시 파일 저장 완료 ===");
-            log.info("원본 파일명: {}", originalFilename);
-            log.info("저장 파일명: {}", uniqueFilename);
-            log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
-            log.info("파일 크기: {} bytes ({} KB)", fileBytes.length, fileBytes.length / 1024.0);
-            log.info("Content-Type: {}", file.getContentType());
-            log.info("userId: {}, petId: {}", userId, petId);
+            // log.info("=== 임시 파일 저장 완료 ===");
+            // log.info("원본 파일명: {}", originalFilename);
+            // log.info("저장 파일명: {}", uniqueFilename);
+            // log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
+            // log.info("파일 크기: {} bytes ({} KB)", fileBytes.length, fileBytes.length / 1024.0);
+            // log.info("Content-Type: {}", file.getContentType());
+            // log.info("userId: {}, petId: {}", userId, petId);
             
             return tempFilePath.toAbsolutePath().toString();
             

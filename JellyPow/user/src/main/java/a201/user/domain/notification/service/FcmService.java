@@ -40,7 +40,7 @@ public class FcmService {
                     .build();
 
             String response = firebaseMessaging.send(message);
-            log.info("FCM 알림 전송 성공: token={}, response={}", fcmToken, response);
+            // log.info("FCM 알림 전송 성공: token={}, response={}", fcmToken, response);
             return true;
         } catch (FirebaseMessagingException e) {
             log.error("FCM 알림 전송 실패: token={}, error={}", fcmToken, e.getMessage(), e);
@@ -106,7 +106,7 @@ public class FcmService {
             }
 
             String response = firebaseMessaging.send(messageBuilder.build());
-            log.info("FCM 알림 전송 성공 (데이터 포함): token={}, response={}", fcmToken, response);
+            // log.info("FCM 알림 전송 성공 (데이터 포함): token={}, response={}", fcmToken, response);
             return true;
         } catch (FirebaseMessagingException e) {
             log.error("FCM 알림 전송 실패: token={}, error={}", fcmToken, e.getMessage(), e);

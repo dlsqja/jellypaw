@@ -31,7 +31,7 @@ public class UserSearchService {
     // - nickname.ngram^3: 부분 일치 검색 (포함 검색) - "강남" → "서울강남", "강남역" 모두 매칭
     // - nickname.edge^1.5: 접두사 검색 (prefix) - "강남" → "강남역", "강남구"만 매칭
     // - nickname.nori^2: 한국어 형태소 분석 검색 - "강남역" → "강남", "역"으로 분리하여 검색
-    @TimeTrace
+    //@TimeTrace
     public List<UserDocument> searchUsers(String nickname) {
         // bool 쿼리로 여러 필드를 should로 묶어 검색
         // - nickname.ngram^3: 포함 검색 (가장 높은 가중치)
