@@ -36,7 +36,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
   const [processedPhotoUri, setProcessedPhotoUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  
+
   const cameraRef = useRef<Camera>(null);
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -313,13 +313,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
         <Image source={{ uri: photoUri }} style={S.cameraPreview} resizeMode="contain" />
       ) : (
         <>
-          <Camera
-            ref={cameraRef}
-            style={StyleSheet.absoluteFill}
-            device={device}
-            isActive={isActive}
-            photo={true}
-          />
+          <Camera ref={cameraRef} style={StyleSheet.absoluteFill} device={device} isActive={isActive} photo={true} />
           {/* 가이드라인 오버레이 */}
           <View style={S.guideOverlay} pointerEvents="none">
             <GuideLines />
@@ -337,7 +331,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
           <Text weight="bold" style={S.topTitle}>
             비색판 스캔
           </Text>
-          <Text style={S.topSubtitle}>비색판과 검사 스틱을 촬영해주세요</Text>
+          <Text style={S.topSubtitle}>검정색 마커를 가이드라인에 맞춰주세요</Text>
         </View>
 
         <View style={{ width: 40 }} />
@@ -371,12 +365,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
           </View>
         ) : (
           <View style={S.bottomButtonsRow}>
-            <TouchableOpacity
-              onPress={handleGalleryPress}
-              style={S.galleryButton}
-              activeOpacity={0.9}
-              disabled={isProcessing}
-            >
+            <TouchableOpacity onPress={handleGalleryPress} style={S.galleryButton} activeOpacity={0.9} disabled={isProcessing}>
               <Feather name="image" size={20} color="#fff" />
             </TouchableOpacity>
 

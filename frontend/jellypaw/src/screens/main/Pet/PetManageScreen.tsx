@@ -1,7 +1,7 @@
 // src/screens/main/Pet/PetManageScreen.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
@@ -218,7 +218,22 @@ export default function PetManageScreen({ navigation }: any) {
           {activeTab === 'health' && (
             <View style={S.healthContent}>
               {/* 건강 검진 버튼 */}
-              <Button title="건강 검진" shape="pillSolid" tone="aqua" onPress={() => setShowIntroSheet(true)} style={S.healthCheckButton} />
+              <TouchableOpacity style={S.healthCheckCard} onPress={() => setShowIntroSheet(true)} activeOpacity={0.8}>
+                <View style={S.healthCheckCardLeft}>
+                  <View style={S.healthCheckIconContainer}>
+                    <Ionicons name="heart" size={24} color={palette.white} />
+                  </View>
+                  <View style={S.healthCheckTextContainer}>
+                    <Text weight="bold" style={S.healthCheckTitle}>
+                      건강검진
+                    </Text>
+                    <Text style={S.healthCheckSubtitle}>반려동물 건강상태를 확인해보세요</Text>
+                  </View>
+                </View>
+                <View style={S.healthCheckArrowContainer}>
+                  <Ionicons name="chevron-forward" size={24} color={palette.white} />
+                </View>
+              </TouchableOpacity>
 
               {/* 소변 검사 결과 목록 */}
               {isLoadingAnalysis ? (
@@ -320,8 +335,55 @@ const S = StyleSheet.create({
   healthContent: {
     gap: 16,
   },
-  healthCheckButton: {
-    marginBottom: 8,
+  healthCheckCard: {
+    width: '100%',
+    height: 80,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: palette.aqua300,
+    borderRadius: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  healthCheckCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  healthCheckIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  healthCheckTextContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  healthCheckTitle: {
+    fontSize: 18,
+    color: palette.white,
+    lineHeight: 28,
+    marginBottom: 4,
+  },
+  healthCheckSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 20,
+  },
+  healthCheckArrowContainer: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     padding: 32,
