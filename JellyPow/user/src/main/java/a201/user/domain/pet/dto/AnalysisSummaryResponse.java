@@ -24,6 +24,8 @@ public class AnalysisSummaryResponse {
     private String testNameKo;  // "유로빌리노겐"
     private Boolean isNormal;  // false
     private String severity;  // "moderate"
+	private String result;  // "positive"
+	private String unit;  // "mg/dL (μmol/L)"
     private List<String> suspectedConditions;  // ["간 기능 저하", ...]
 }
 
