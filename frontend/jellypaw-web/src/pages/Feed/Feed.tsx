@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect  } from 'react';
 import { FiUsers } from 'react-icons/fi';
 import Header from '@/components/headers/Header';
 import Followers from '@/pages/Feed/Components/Followers';
@@ -22,6 +22,7 @@ export default function Feed() {
 
   const restoredRef = useRef(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isScrollReady, setIsScrollReady] = useState(false);
 
   const loadFeeds = useCallback(async () => {
     try {
@@ -44,22 +45,28 @@ export default function Feed() {
     loadFeeds();
   }, [loadFeeds]);
 
-  useEffect(() => {
-    if (restoredRef.current) return;
-    if (feeds.length === 0) return;
+  useLayoutEffect(() => {
+  if (restoredRef.current) return;
 
-    const container = document.getElementById('app-scroll-container');
-    if (!container) return;
+  const container = document.getElementById('app-scroll-container');
 
-    const raw = window.sessionStorage.getItem(FEED_SCROLL_KEY);
-    const saved = raw ? Number(raw) : 0;
-
-    if (!Number.isNaN(saved)) {
-      container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
-    }
-
+  if (feeds.length === 0 || !container) {
+    setIsScrollReady(true);
     restoredRef.current = true;
-  }, [feeds.length]);
+    return;
+  }
+
+  const raw = window.sessionStorage.getItem(FEED_SCROLL_KEY);
+  const saved = raw ? Number(raw) : 0;
+
+  if (!Number.isNaN(saved)) {
+    container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
+  }
+
+  restoredRef.current = true;
+  setIsScrollReady(true);
+}, [feeds.length]);
+
 
   useEffect(() => {
     getLikedFeeds()
@@ -238,7 +245,9 @@ export default function Feed() {
       </div>
 
       {/* 게시글 목록 */}
-      <div className="flex flex-col items-center w-full mt-4 scrollbar-hide">
+      <div className="flex flex-col items-center w-full mt-4 scrollbar-hide" style={{
+          visibility: isScrollReady ? 'visible' : 'hidden',
+        }}>
         {filteredFeeds.length > 0 ? (
           filteredFeeds.map((feed, index) => {
             const isLiked =
