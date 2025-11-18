@@ -93,34 +93,53 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
 
       let manipulations: any[] = [];
 
-      // 카메라로 촬영한 경우에만 프리뷰와 동일하게 크롭
+      // 카메라로 촬영한 경우에만 가이드라인 영역만 크롭
       if (isFromCamera) {
         // 가이드라인 영역 계산 (프리뷰 기준)
+        // 가이드라인: top 20%, bottom 20%, left 10%, right 10%
         const guideTop = SCREEN_HEIGHT * 0.2;
         const guideBottom = SCREEN_HEIGHT * 0.2;
         const guideLeft = SCREEN_WIDTH * 0.1;
         const guideRight = SCREEN_WIDTH * 0.1;
 
-        // 프리뷰 영역 (가이드라인 내부)
-        const previewWidth = SCREEN_WIDTH - guideLeft - guideRight;
-        const previewHeight = SCREEN_HEIGHT - guideTop - guideBottom;
+        // 가이드라인 내부 영역 (사용자가 보는 영역)
+        const guideWidth = SCREEN_WIDTH - guideLeft - guideRight; // 80% 너비
+        const guideHeight = SCREEN_HEIGHT - guideTop - guideBottom; // 60% 높이
+        const guideAspectRatio = guideWidth / guideHeight;
 
-        // 프리뷰 비율
-        const previewAspectRatio = previewWidth / previewHeight;
-
-        // 실제 촬영된 이미지의 비율
+        // 실제 촬영된 이미지의 aspect ratio
         const imageAspectRatio = imageSize.width / imageSize.height;
 
-        // 촬영된 이미지가 프리뷰보다 넓은 경우, 프리뷰 비율에 맞춰 크롭
-        if (imageAspectRatio > previewAspectRatio) {
-          // 이미지가 더 넓음 → 좌우를 잘라야 함
-          const targetWidth = imageSize.height * previewAspectRatio;
+        console.log('[ScanCameraScreen] 가이드라인 영역:', { guideWidth, guideHeight, guideAspectRatio });
+        console.log('[ScanCameraScreen] 촬영 이미지:', { width: imageSize.width, height: imageSize.height, imageAspectRatio });
+
+        // 촬영된 이미지가 가이드라인 영역보다 넓은 경우, 가이드라인 비율에 맞춰 크롭
+        if (imageAspectRatio > guideAspectRatio) {
+          // 이미지가 더 넓음 → 좌우를 잘라서 가이드라인 비율에 맞춤
+          const targetWidth = imageSize.height * guideAspectRatio;
           const cropX = (imageSize.width - targetWidth) / 2;
           const cropY = 0;
           const cropWidth = targetWidth;
           const cropHeight = imageSize.height;
 
-          console.log('[ScanCameraScreen] 이미지 크롭 (좌우):', { cropX, cropY, cropWidth, cropHeight });
+          console.log('[ScanCameraScreen] 이미지 크롭 (좌우):', { cropX, cropY, cropWidth, cropHeight, targetAspectRatio: guideAspectRatio });
+          manipulations.push({
+            crop: {
+              originX: cropX,
+              originY: cropY,
+              width: cropWidth,
+              height: cropHeight,
+            },
+          });
+        } else if (imageAspectRatio < guideAspectRatio) {
+          // 이미지가 더 높음 → 상하를 잘라서 가이드라인 비율에 맞춤
+          const targetHeight = imageSize.width / guideAspectRatio;
+          const cropX = 0;
+          const cropY = (imageSize.height - targetHeight) / 2;
+          const cropWidth = imageSize.width;
+          const cropHeight = targetHeight;
+
+          console.log('[ScanCameraScreen] 이미지 크롭 (상하):', { cropX, cropY, cropWidth, cropHeight, targetAspectRatio: guideAspectRatio });
           manipulations.push({
             crop: {
               originX: cropX,
@@ -130,22 +149,8 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
             },
           });
         } else {
-          // 이미지가 더 높음 → 상하를 잘라야 함
-          const targetHeight = imageSize.width / previewAspectRatio;
-          const cropX = 0;
-          const cropY = (imageSize.height - targetHeight) / 2;
-          const cropWidth = imageSize.width;
-          const cropHeight = targetHeight;
-
-          console.log('[ScanCameraScreen] 이미지 크롭 (상하):', { cropX, cropY, cropWidth, cropHeight });
-          manipulations.push({
-            crop: {
-              originX: cropX,
-              originY: cropY,
-              width: cropWidth,
-              height: cropHeight,
-            },
-          });
+          // 비율이 동일하면 크롭 불필요
+          console.log('[ScanCameraScreen] 이미지 비율이 가이드라인과 동일하여 크롭 불필요');
         }
       }
 
