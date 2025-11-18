@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, MessageCircle, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { MdRestaurant } from 'react-icons/md';
+import IconText from '@/components/texts/IconText';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
@@ -15,12 +17,11 @@ import {
   IoLocation,
   IoEllipsisHorizontalCircleSharp,
 } from 'react-icons/io5';
-
-import { motion } from 'framer-motion'; 
-
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
-import { formatRelativeTime } from '@/utils/timePassing';
+import { formatDate, formatRelativeTime } from '@/utils/timePassing';
+
+import { FEED_SCROLL_KEY } from '@/pages/Feed/Feed';
 
 // GetFeedsResponse를 그대로 사용
 interface ArticleProps extends GetFeedsResponse {
@@ -77,9 +78,11 @@ export default function Article({
     try {
       if (previousIsLiked) {
         await cancelLike(Number(id));
+        console.log('좋아요 취소되었습니다.');
         onLikeToggle?.(Number(id), false);
       } else {
         await addLike(Number(id));
+        console.log('좋아요 추가되었습니다.');
         onLikeToggle?.(Number(id), true);
       }
     } catch (error) {
@@ -95,16 +98,17 @@ export default function Article({
   if (!id) return null;
 
   return (
-    <motion.div
-      className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4"
-      whileTap={{ scale: 0.97 }}            // ✅ 눌릴 때 살짝 축소
-      transition={{ duration: 0.08 }}       // 빠르게 톡 느낌
-    >
+    <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
       <Card
         className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100 cursor-pointer"
         role="button"
         tabIndex={0}
         onClick={() => {
+          const container = document.getElementById('app-scroll-container');
+          if (container) {
+            window.sessionStorage.setItem(FEED_SCROLL_KEY, String(container.scrollTop));
+          }
+
           navigate(`/feed/${id}`, {
             state: {
               feed: {
@@ -121,8 +125,8 @@ export default function Article({
                 category,
                 visibility,
               },
-              isLiked: isLiked,
-              currentLikeCount: currentLikeCount,
+              isLiked,
+              currentLikeCount,
             },
           });
         }}
@@ -174,7 +178,6 @@ export default function Article({
                     ) : (
                       <IoEllipsisHorizontalCircleSharp className="w-6 h-6 text-pink-300" />
                     )}
-
                     <p className="text-aqua-500 h6-b flex-1">{title}</p>
                   </div>
                 </div>
@@ -184,10 +187,8 @@ export default function Article({
                 </div>
               </div>
 
-              {/* 대표 이미지 (첫 번째 이미지) */}
               {images && images.length > 0 && (
                 <div className="w-full">
-                  {/* ✅ 여기만 나중에 shared element 쓰고 싶으면 motion.div + layoutId */}
                   <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
                     <img
                       className="w-full h-full rounded-[12px] object-cover"
@@ -213,13 +214,14 @@ export default function Article({
                 </button>
                 <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
-                  <span className="ttext-aqua-500 p2-b">{commentCount}</span>
+                  {/* 🔧 오타 수정 */}
+                  <span className="text-aqua-500 p2-b">{commentCount}</span>
                 </button>
               </div>
             </div>
           </CardContent>
         </CardHeader>
       </Card>
-    </motion.div>
+    </div>
   );
 }
