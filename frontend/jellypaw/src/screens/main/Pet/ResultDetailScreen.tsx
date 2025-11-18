@@ -1,9 +1,10 @@
 // src/screens/main/Pet/ResultDetailScreen.tsx
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -12,6 +13,9 @@ import BackHeader from '../../../ui/components/BackHeader';
 import { Button } from '../../../ui/components/Button';
 import { palette } from '../../../ui/system/variants';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
+import { getUrineAnalysisList } from '../../../services/api/pet';
+import type { UrineAnalysisSummaryItem } from '../../../types/main/pet';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ResultDetail'>;
 
@@ -28,23 +32,6 @@ const ITEM_LABEL_MAP: Record<string, string> = {
   wbc: '백혈구',
   urobilinogen: '유로빌리노겐',
   glucose: '포도당',
-};
-
-// 요약 화면과 동일한 더미 상태 매핑
-const ITEM_STATUS_MAP: Record<
-  string,
-  { statusLabel: string; statusType: ItemStatus }
-> = {
-  bilirubin: { statusLabel: '보통', statusType: 'good' },
-  protein: { statusLabel: '주의', statusType: 'caution' },
-  urobilinogen: { statusLabel: '정상', statusType: 'normal' },
-  glucose: { statusLabel: '정상', statusType: 'normal' },
-  ketone: { statusLabel: '정상', statusType: 'normal' },
-  sg: { statusLabel: '정상', statusType: 'normal' },
-  blood: { statusLabel: '정상', statusType: 'normal' },
-  ph: { statusLabel: '중성', statusType: 'neutral' },
-  nitrite: { statusLabel: '정상', statusType: 'normal' },
-  wbc: { statusLabel: '정상', statusType: 'normal' },
 };
 
 // 상태별 색/아이콘 스타일
@@ -90,28 +77,106 @@ function getStatusStyle(statusType: ItemStatus) {
   }
 }
 
-const SUSPICIOUS_DISEASES_PROTEIN = [
-  '신장 질환',
-  '신부전',
-  '요로 감염증',
-  '임신 중독증',
-  '생리적 단백뇨',
-];
-
 export default function ResultDetailScreen({ route, navigation }: Props) {
-  const { analysisId, itemKey } = route.params;
+  const { analysisId, itemKey, petId } = route.params;
+  const [summaryItem, setSummaryItem] = useState<UrineAnalysisSummaryItem | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const label = ITEM_LABEL_MAP[itemKey] ?? itemKey;
 
-  const { statusLabel, statusType } =
-    ITEM_STATUS_MAP[itemKey] ?? { statusLabel: '정상', statusType: 'normal' };
+  useEffect(() => {
+    if (!petId) {
+      Toast.show({
+        type: 'error',
+        text1: '오류',
+        text2: '대상 반려동물 정보를 찾을 수 없습니다.',
+      });
+      navigation.goBack();
+      return;
+    }
+
+    let mounted = true;
+
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+        const list = await getUrineAnalysisList(petId);
+        const analysis = list.find((item) => item.id === analysisId);
+
+        if (!analysis) {
+          throw new Error('분석 결과를 찾을 수 없습니다.');
+        }
+
+        const targetLabel = ITEM_LABEL_MAP[itemKey] ?? itemKey;
+        const foundItem =
+          analysis.summary.find((item) => item.testNameKo === targetLabel) ??
+          analysis.summary.find((item) => item.testNameKo === label);
+
+        if (!foundItem) {
+          throw new Error('해당 검사 항목을 찾을 수 없습니다.');
+        }
+
+        if (mounted) {
+          setSummaryItem(foundItem);
+        }
+      } catch (error: any) {
+        console.error('[ResultDetailScreen] 검사 상세 조회 실패', error);
+        Toast.show({
+          type: 'error',
+          text1: '오류',
+          text2: error?.message || '검사 상세 정보를 불러오지 못했습니다.',
+        });
+        navigation.goBack();
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchDetail();
+
+    return () => {
+      mounted = false;
+    };
+  }, [analysisId, itemKey, label, navigation, petId]);
+
+  const { statusLabel, statusType } = useMemo(() => {
+    if (!summaryItem) {
+      return { statusLabel: '정보 없음', statusType: 'normal' as ItemStatus };
+    }
+
+    if (!summaryItem.isNormal) {
+      if (summaryItem.severity === 'high' || summaryItem.severity === '중증') {
+        return { statusLabel: '주의', statusType: 'caution' as ItemStatus };
+      }
+      if (summaryItem.severity === 'low' || summaryItem.severity === '경증') {
+        return { statusLabel: '보통', statusType: 'good' as ItemStatus };
+      }
+      return { statusLabel: '주의', statusType: 'caution' as ItemStatus };
+    }
+
+    if (itemKey === 'ph') {
+      return { statusLabel: '중성', statusType: 'neutral' as ItemStatus };
+    }
+
+    return { statusLabel: '정상', statusType: 'normal' as ItemStatus };
+  }, [itemKey, summaryItem]);
 
   const styleByStatus = getStatusStyle(statusType);
 
-  const isProtein = itemKey === 'protein';
-  const suspiciousChips = isProtein
-    ? SUSPICIOUS_DISEASES_PROTEIN
-    : ['관련 질환 1', '관련 질환 2'];
+  const suspiciousChips = summaryItem?.suspectedConditions ?? [];
+  const hasSuspectedConditions = suspiciousChips.length > 0;
+
+  if (loading) {
+    return (
+      <View style={[S.root, { justifyContent: 'center', alignItems: 'center' }]}>
+        <BackHeader title={label} />
+        <ActivityIndicator size="large" color={palette.aqua300} />
+        <Text style={{ marginTop: 16, color: '#6B7280' }}>검사 상세 정보를 불러오는 중...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={S.root}>
@@ -210,13 +275,17 @@ export default function ResultDetailScreen({ route, navigation }: Props) {
           </View>
 
           <View style={S.chipsWrap}>
-            {suspiciousChips.map(chip => (
-              <View key={chip} style={S.chip}>
-                <Text weight="semiBold" style={S.chipText}>
-                  {chip}
-                </Text>
-              </View>
-            ))}
+            {hasSuspectedConditions ? (
+              suspiciousChips.map((chip) => (
+                <View key={chip} style={S.chip}>
+                  <Text weight="semiBold" style={S.chipText}>
+                    {chip}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={S.noChipText}>관련 질환 정보가 없습니다.</Text>
+            )}
           </View>
 
           <View style={S.cardFooterTextWrap}>
@@ -465,6 +534,10 @@ const S = StyleSheet.create({
     columnGap: 8,
     rowGap: 8,
     marginBottom: 24,
+  },
+  noChipText: {
+    fontSize: 13,
+    color: '#6B7280',
   },
   chip: {
     paddingHorizontal: 18,
