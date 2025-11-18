@@ -101,7 +101,11 @@ const formatRelativeTime = (dateString?: string): string => {
 };
 
 // GetFeedsResponse를 그대로 사용
-interface ArticleProps extends GetFeedsResponse {}
+interface ArticleProps extends GetFeedsResponse {
+  initialIsLiked?: boolean;
+  onLikeToggle?: (boardId: number, isLiked: boolean) => void;
+  currentLikeCount?: number;
+}
 
 export default function Article({
   boardUser,
@@ -116,16 +120,24 @@ export default function Article({
   likeCount,
   placeId,
   visibility,
+  initialIsLiked = false,
+  onLikeToggle,
+  currentLikeCount: propLikeCount,
 }: ArticleProps) {
   const navigate = useNavigate();
-  const [isLiked, setIsLiked] = useState(false);
-  const [currentLikeCount, setCurrentLikeCount] = useState(likeCount ?? 0);
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [currentLikeCount, setCurrentLikeCount] = useState(propLikeCount ?? likeCount ?? 0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
 
   // 좋아요 개수 초기화
   useEffect(() => {
-    setCurrentLikeCount(likeCount ?? 0);
-  }, [likeCount]);
+    setCurrentLikeCount(propLikeCount ?? likeCount ?? 0);
+  }, [propLikeCount, likeCount]);
+
+  // 초기 좋아요 상태 업데이트
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+  }, [initialIsLiked]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -150,9 +162,13 @@ export default function Article({
       if (previousIsLiked) {
         await cancelLike(Number(id));
         console.log('좋아요 취소되었습니다.');
+        // 부모 컴포넌트에 좋아요 상태 업데이트 알림
+        onLikeToggle?.(Number(id), false);
       } else {
         await addLike(Number(id));
         console.log('좋아요 추가되었습니다.');
+        // 부모 컴포넌트에 좋아요 상태 업데이트 알림
+        onLikeToggle?.(Number(id), true);
       }
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
@@ -187,11 +203,13 @@ export default function Article({
                 starRating,
                 title,
                 commentCount,
-                likeCount,
+                likeCount: currentLikeCount,
                 placeId,
                 category,
                 visibility,
               },
+              isLiked: isLiked,
+              currentLikeCount: currentLikeCount,
             },
           });
         }}

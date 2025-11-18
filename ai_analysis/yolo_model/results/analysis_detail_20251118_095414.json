@@ -1,0 +1,266 @@
+{
+  "status": "SUCCESS",
+  "image_info": {
+    "warped_size": "600x1000"
+  },
+  "color_correction": {
+    "gray_measured": [
+      207.97,
+      127.24,
+      128.51
+    ],
+    "correction_applied": [
+      0.6154668091358354,
+      0.7557621222004798,
+      -0.5136986301369859
+    ]
+  },
+  "reference_extracted": {
+    "Urobilinogen": 5,
+    "Glucose": 5,
+    "Bilirubin": 4,
+    "Ketones": 5,
+    "Specific_Gravity": 7
+  },
+  "analysis_count": 5,
+  "detections": [
+    {
+      "class": "pad_Urobilinogen",
+      "confidence": 0.7948,
+      "box_pixel": [
+        178,
+        41,
+        222,
+        89
+      ],
+      "lab_measured": [
+        211.58,
+        128.64,
+        134.08
+      ],
+      "lab_corrected": [
+        130.22,
+        129.4,
+        133.56
+      ],
+      "diagnosis": {
+        "matched_value": "4",
+        "delta_e": 2.09,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Glucose",
+      "confidence": 0.8887,
+      "box_pixel": [
+        179,
+        259,
+        224,
+        313
+      ],
+      "lab_measured": [
+        223.05,
+        127.63,
+        134.01
+      ],
+      "lab_corrected": [
+        137.28,
+        128.39,
+        133.49
+      ],
+      "diagnosis": {
+        "matched_value": "100",
+        "delta_e": 10.31,
+        "result": "trace",
+        "is_normal": false,
+        "severity": "trace",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Bilirubin",
+      "confidence": 0.7405,
+      "box_pixel": [
+        177,
+        336,
+        223,
+        389
+      ],
+      "lab_measured": [
+        211.39,
+        126.32,
+        167.77
+      ],
+      "lab_corrected": [
+        130.1,
+        127.08,
+        167.26
+      ],
+      "diagnosis": {
+        "matched_value": "+++",
+        "delta_e": 41.06,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "is_approximate": false,
+        "confidence": "low",
+        "warning": "Delta E가 높습니다 (41.06). 결과 신뢰도가 낮을 수 있습니다."
+      }
+    },
+    {
+      "class": "pad_Ketones",
+      "confidence": 0.751,
+      "box_pixel": [
+        179,
+        414,
+        224,
+        466
+      ],
+      "lab_measured": [
+        176.7,
+        118.07,
+        141.98
+      ],
+      "lab_corrected": [
+        108.75,
+        118.82,
+        141.47
+      ],
+      "diagnosis": {
+        "matched_value": "80",
+        "delta_e": 12.61,
+        "result": "unknown",
+        "is_normal": false,
+        "severity": "N/A",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_SG",
+      "confidence": 0.6632,
+      "box_pixel": [
+        179,
+        489,
+        224,
+        542
+      ],
+      "lab_measured": [
+        207.01,
+        129.05,
+        162.09
+      ],
+      "lab_corrected": [
+        127.41,
+        129.8,
+        161.57
+      ],
+      "diagnosis": {
+        "matched_value": "1.020",
+        "delta_e": 11.33,
+        "result": "abnormal",
+        "is_normal": false,
+        "severity": "low",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    }
+  ],
+  "frontend_summary": [
+    {
+      "test_code": "Urobilinogen",
+      "test_name_ko": "유로빌리노겐",
+      "test_name_en": "Urobilinogen",
+      "unit": "mg/dL (μmol/L)",
+      "matched_value": "4",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "moderate",
+      "delta_e": 2.09,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "간 기능 저하",
+        "울혈성 심부전",
+        "용혈성 빈혈",
+        "악성 빈혈"
+      ]
+    },
+    {
+      "test_code": "Glucose",
+      "test_name_ko": "포도당",
+      "test_name_en": "Glucose",
+      "unit": "mg/dL (mmol/L)",
+      "matched_value": "100",
+      "result": "trace",
+      "is_normal": false,
+      "severity": "trace",
+      "delta_e": 10.31,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "당뇨병",
+        "췌장염",
+        "신장 질환",
+        "임신"
+      ]
+    },
+    {
+      "test_code": "Bilirubin",
+      "test_name_ko": "빌리루빈",
+      "test_name_en": "Bilirubin",
+      "unit": "mg/dL",
+      "matched_value": "+++",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "severe",
+      "delta_e": 41.06,
+      "is_approximate": false,
+      "confidence": "low",
+      "suspected_conditions": [
+        "간 질환 (간세포 장애, 담도 폐색)",
+        "황달"
+      ]
+    },
+    {
+      "test_code": "Ketones",
+      "test_name_ko": "케톤체",
+      "test_name_en": "Ketones",
+      "unit": "mg/dL (mmol/L)",
+      "matched_value": "80",
+      "result": "unknown",
+      "is_normal": false,
+      "severity": "N/A",
+      "delta_e": 12.61,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "케톤산혈증",
+        "당뇨병성 케토시스 (Ketosis)"
+      ]
+    },
+    {
+      "test_code": "Specific_Gravity",
+      "test_name_ko": "비중",
+      "test_name_en": "Specific Gravity",
+      "unit": "specific gravity",
+      "matched_value": "1.020",
+      "result": "abnormal",
+      "is_normal": false,
+      "severity": "low",
+      "delta_e": 11.33,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "수분 과잉섭취",
+        "신부전",
+        "신우신염"
+      ]
+    }
+  ]
+}

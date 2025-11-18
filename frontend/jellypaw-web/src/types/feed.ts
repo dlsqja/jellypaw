@@ -86,3 +86,8 @@ export interface GetUserFeedsResponse {
 export interface BoardWithPlaceResponse extends GetFeedDetailResponse {
   place?: SearchPlacesDetailResponse | null;
 }
+
+// 좋아요한 게시글 조회 응답
+export interface GetLikedFeedsResponse {
+  boardId: number;
+}

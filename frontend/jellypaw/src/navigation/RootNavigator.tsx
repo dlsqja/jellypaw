@@ -8,14 +8,24 @@ import PetNavigator from './PetNavigator';
 import type { FeedStackParamList } from './FeedNavigator';
 import type { FeedWriteStackParamList } from './FeedWriteNavigator';
 import type { PetStackParamList } from './PetNavigator';
-import SearchNavigator from './SearchNavigator.tsx';
+import SearchNavigator from './SearchNavigator';
 import type { SearchStackParamList } from './SearchNavigator';
 import MypageNavigator from './MypageNavigator';
 import type { MypageStackParamList } from './MypageNavigator';
+import type { AuthStackParamList } from './auth/AuthStackNavigator';
+import { navigationRef } from './navigationRef';
+import { getActiveRoutePath } from './navigationRef';
+import AppGateScreen from '../screens/auth/AppGateScreen';
 
 // stack param list
 export type RootStackParamList = {
-  AuthStack: undefined;
+  Gate: undefined;
+  AuthStack:
+    | undefined
+    | {
+        screen: keyof AuthStackParamList;
+        params?: AuthStackParamList[keyof AuthStackParamList];
+      };  
   FeedStack:
     | undefined
     | {
@@ -53,11 +63,15 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // 루트 네비게이터
 export default function RootNavigator() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef} onReady={() => {
+      }}
+      onStateChange={() => {
+      }}>
       <Stack.Navigator
         screenOptions={{ headerShown: false }}
-        initialRouteName="AuthStack"
+        initialRouteName="Gate"
       >
+        <Stack.Screen name="Gate" component={AppGateScreen} />
         {/* 로그인/회원가입 */}
         <Stack.Screen name="AuthStack" component={AuthStackNavigator} />
         {/* 피드 메인 - 웹뷰*/}

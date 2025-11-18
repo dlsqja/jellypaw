@@ -16,6 +16,11 @@ import { usePetList, usePetDetail } from '../../../services/queries/petHooks';
 import type { getPetListResponse } from '../../../types/main/pet';
 import HealthCheckIntroSheet from './components/HealthCheckIntroSheet';
 import HealthCheckStepSheet from './components/HealthCheckStepSheet';
+import { useAuthUserId, useAuthCacheKey } from '../../../services/queries/authHooks';
+import { useFocusEffect } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { petKeys } from '../../../services/queries/petKeys';
+
 
 const toImageUrl = (u?: string | null) => {
   if (!u || !u.trim()) return null;
@@ -33,6 +38,8 @@ const formatGender = (g: any) =>
     ? '여자(중성)'
     : g === 'MALE_NEUTERING'
     ? '남자(중성)'
+    : g === 'NON'
+    ? '무성'
     : '없음';
 
 const formatSpecies = (s: any) =>
@@ -43,25 +50,26 @@ export default function PetManageScreen({ navigation }: any) {
     useState<'info' | 'health'>('info');
   const [selectedPetId, setSelectedPetId] = useState<number>(0);
 
+  
   const [showIntroSheet, setShowIntroSheet] = useState(false);
   const [showStepSheet, setShowStepSheet] = useState(false);
 
   const nav = useNavigation<any>();
 
-  const {
-    data: pets = [],
-    isLoading: isListLoading,
-  } = usePetList();
+  
+  const userKey = useAuthCacheKey();
+  const { data: pets = [], isLoading: isListLoading } = usePetList();
 
+  useEffect(() => {
+    setSelectedPetId(0);
+  }, [userKey]);
+
+  
   useEffect(() => {
     if (!isListLoading && pets.length > 0 && selectedPetId === 0) {
       setSelectedPetId(pets[0].petId ?? 0);
     }
   }, [isListLoading, pets, selectedPetId]);
-
-  const { data: selectedPet } = usePetDetail(
-    selectedPetId || undefined,
-  );
 
   const tabs: TabItem[] = [
     { id: 'info', label: '동물 정보' },
@@ -69,6 +77,56 @@ export default function PetManageScreen({ navigation }: any) {
   ];
 
   const isEmpty = !isListLoading && pets.length === 0;
+
+  const uid = useAuthUserId();
+  const qc = useQueryClient();
+
+  useFocusEffect(
+  React.useCallback(() => {
+    qc.invalidateQueries({ queryKey: petKeys.list(uid) });
+  }, [qc, uid]),
+);
+
+
+// uid가 바뀌면 선택 리셋
+useEffect(() => {
+  setSelectedPetId(0);
+}, [uid]);
+
+// PetManageScreen.tsx
+useEffect(() => {
+  console.log('[PET] uid=', uid, 'pets.len=', pets?.length, 'loading=', isListLoading);
+}, [uid, pets, isListLoading]);
+
+ useEffect(() => {
+    if (isListLoading) return;
+
+    if (pets.length === 0) {
+      if (selectedPetId !== 0) setSelectedPetId(0);
+      return;
+    }
+
+    const exists = pets.some(p => p.petId === selectedPetId);
+    if (!exists) {
+      setSelectedPetId(pets[0].petId ?? 0);
+    }
+  }, [isListLoading, pets, selectedPetId]);
+
+  const { data: selectedPet } = usePetDetail(selectedPetId || undefined);
+
+  // 포커스시 목록 리프레시도 userKey로
+  useFocusEffect(
+    React.useCallback(() => {
+      qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+    }, [qc, userKey]),
+  );
+
+// 목록 로딩 후 선택 로직은 그대로 유지
+useEffect(() => {
+  if (!isListLoading && pets.length > 0 && selectedPetId === 0) {
+    setSelectedPetId(pets[0].petId ?? 0);
+  }
+}, [isListLoading, pets, selectedPetId]);
 
   if (isEmpty) {
     return (
@@ -194,8 +252,10 @@ export default function PetManageScreen({ navigation }: any) {
         onClose={() => setShowStepSheet(false)}
         onCompleteScan={() => {
           setShowStepSheet(false);
-          nav.navigate('ScanCamera');
-        }}
+             if (selectedPetId) {
+               nav.navigate('ScanCamera', { petId: selectedPetId });
+             } 
+                }}
       />
     </View>
   );

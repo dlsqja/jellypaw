@@ -8,6 +8,7 @@ interface WebviewLayoutProps {
   style?: ViewStyle;
   backgroundColor?: string;
   showMenuBar?: boolean;
+  boardId?: number;
 }
 
 // 메인 레이아웃
@@ -16,8 +17,13 @@ export default function WebviewLayout({
   style,
   backgroundColor = '#FAFAFA',
   showMenuBar = true,
+  boardId, 
 }: WebviewLayoutProps) {
   const insets = useSafeAreaInsets();
+
+  const contentNode = React.isValidElement(children)
+    ? React.cloneElement(children, { boardId } as any)
+    : children;
 
   return (
     <View
@@ -37,7 +43,7 @@ export default function WebviewLayout({
           },
         ]}
       >
-        {children}
+        {contentNode}
       </View>
       {showMenuBar && <MenuBar />}
     </View>

@@ -1,8 +1,10 @@
 // src/lib/apiClient.ts
 import axios, { type AxiosInstance } from 'axios';
 import { API_BASE_URL } from '@env';
-import { getAccessToken, clearTokens } from './tokenStorage';
+import { getAccessToken, getRefreshToken, setTokens, clearTokens} from './tokenStorage';
 
+let isRefreshing = false;
+let pendingQueue: Array<(t: string|null)=>void> = [];
 // API BASE: 끝 / 제거 (API용)
 const BASE_URL = (API_BASE_URL || '').replace(/\/+$/, '');
 
@@ -58,7 +60,18 @@ function getUserIdFromToken(token?: string | null): string | undefined {
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     const decoded = base64Decode(padded);
     const json = JSON.parse(decoded);
-    return String(json.user_id || json.sub || json.id || '');
+
+    const cand =
+      json.user_id ??
+      json.userId ??      
+      json.uid ??
+      json.sub ??
+      json.id ??
+      json.user ??
+      json.userID;     
+
+    if (cand == null) return;
+    return String(cand);
   } catch {
     return;
   }
@@ -135,13 +148,63 @@ apiClient.interceptors.response.use(
       data: err?.response?.data,
     });
 
-    // 여기서 401 시 토큰 정리 정도만 (리프레시는 나중에)
-    if (err?.response?.status === 401) {
-      await clearTokens();
+    const original = err?.config;
+    const status = err?.response?.status;
+
+    // 1) 401이 아니면 그대로 실패
+    if (status !== 401 || !original || original._retry) {
+      return Promise.reject(err);
     }
 
-    return Promise.reject(err);
-  },
+    // 2) refresh 토큰 있으면 한 번만 시도
+    const refresh = await getRefreshToken();
+    if (!refresh) {
+      await clearTokens();
+      return Promise.reject(err);
+    }
+
+    original._retry = true;
+
+    // 동시 401 방지: refresh 중이면 큐에 대기
+    if (isRefreshing) {
+      const newToken = await new Promise<string|null>((resolve) => {
+        pendingQueue.push(resolve);
+      });
+      if (newToken) original.headers.Authorization = `Bearer ${newToken}`;
+      return apiClient(original);
+    }
+
+    try {
+      isRefreshing = true;
+      const resp = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken: refresh }, { withCredentials: true });
+      const newAccess = resp?.data?.accessToken ?? resp?.data?.data?.accessToken;
+      const newRefresh = resp?.data?.refreshToken ?? resp?.data?.data?.refreshToken ?? refresh;
+
+      if (!newAccess) {
+        throw new Error('no access from refresh');
+      }
+      await setTokens(newAccess, newRefresh);
+
+      // 대기중 요청 깨우기
+      pendingQueue.forEach((r) => r(newAccess));
+      pendingQueue = [];
+      isRefreshing = false;
+
+      // 원요청 재시도
+      original.headers = original.headers ?? {};
+      original.headers.Authorization = `Bearer ${newAccess}`;
+      return apiClient(original);
+    } catch (e) {
+      // 실패: 로그인 상태 제거
+      await clearTokens();
+      pendingQueue.forEach((r) => r(null));
+      pendingQueue = [];
+      isRefreshing = false;
+      return Promise.reject(e);
+    }
+ },
 );
 
 export default apiClient;
+
+export { getUserIdFromToken }

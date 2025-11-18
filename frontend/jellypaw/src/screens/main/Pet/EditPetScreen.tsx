@@ -98,7 +98,7 @@ export default function EditPetScreen() {
   const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('');
 
-  // 초기 프리필
+  // 초기 프로필
   useEffect(() => {
     if (!initial) return;
     setName(initial.name ?? '');

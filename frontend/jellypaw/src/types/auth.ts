@@ -4,6 +4,7 @@ export interface KakaoLoginResponse {
   authId?: number;
   email?: string;
   accessToken?: string;
+  refreshToken?: string;
   user?: {
     userId: number;
     nickname: string;
@@ -12,10 +13,4 @@ export interface KakaoLoginResponse {
     backgroundImg?: string;
     role: string;
   };
-}
-
-export interface ApiResponse<T> {
-  code: number;
-  message: string;
-  data: T;
 }

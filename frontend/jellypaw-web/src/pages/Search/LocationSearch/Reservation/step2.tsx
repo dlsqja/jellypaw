@@ -9,6 +9,7 @@ interface Step2Props {
     date: string;
     time: number;
     content: string;
+    placeName: string;
   };
   onSubmit: () => void;
   isSubmitting?: boolean;

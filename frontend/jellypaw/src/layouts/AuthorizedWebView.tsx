@@ -6,6 +6,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { DeviceEventEmitter } from 'react-native';
+import { queryClient } from '../lib/queryClient';
+import { resetToKakaoLogin } from '../navigation/navigationRef';
+import { navigationRef, getActiveRoutePath } from '../navigation/navigationRef';
 
 type Props = WebViewProps & { uri: string };
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
@@ -13,28 +16,26 @@ type RootNav = NativeStackNavigationProp<RootStackParamList>;
 export default function AuthorizedWebView({ uri, ...rest }: Props) {
   const [token, setToken] = useState<string | null>(null);
   const navigation = useNavigation<RootNav>();
-  const webRef = useRef<WebView>(null); // ← 추가
-
+  const webRef = useRef<WebView>(null);
+  const loggingOutRef = useRef(false);
   useEffect(() => {
     (async () => {
       try {
         const stored = await getAccessToken();
         setToken(stored);
       } catch (e) {
-        console.log('[AuthorizedWebView] getAccessToken error', e);
         setToken(null);
       }
     })();
   }, []);
 
-useEffect(() => {
-  const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
-    console.log('[AuthorizedWebView] FEED_UPDATED', payload);
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
 
-    const boardId = payload?.boardId;
-    if (!boardId) return;
+      const boardId = payload?.boardId;
+      if (!boardId) return;
 
-    webRef.current?.injectJavaScript(`
+      webRef.current?.injectJavaScript(`
       (function() {
         try {
           const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
@@ -46,13 +47,12 @@ useEffect(() => {
       })();
       true;
     `);
-  });
+    });
 
-  return () => {
-    sub.remove();
-  };
-}, []);
-
+    return () => {
+      sub.remove();
+    };
+  }, []);
 
   const injectedJavaScript = useMemo(
     () => `
@@ -80,7 +80,6 @@ useEffect(() => {
       const msg = JSON.parse(raw);
 
       if (msg.type === 'DEBUG') {
-        console.log('[WEB DEBUG]', msg.tag, msg.payload);
         return;
       }
 
@@ -92,36 +91,49 @@ useEffect(() => {
         return;
       }
 
-      // ✅ 로그아웃 처리
       if (msg.type === 'LOGOUT_REQUEST') {
-        console.log('[WEB MSG] LOGOUT_REQUEST');
-
+          if (loggingOutRef.current) return; // 중복 방지
+       loggingOutRef.current = true;
         // 1) 네이티브 토큰 제거
         await clearTokens();
-        setToken(null);
+          setToken(null);
 
-        // 2) 웹뷰 스토리지 정리 + /auth로 이동
-        webRef.current?.injectJavaScript(`
-          try {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
-            window.location.replace('/auth');
-          } catch(e) {}
-          true;
-        `);
+          queryClient.clear();
 
-        // 3) 네비게이션 초기화 → 카카오 로그인 화면
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'AuthStack' }],
-        });
+       // 1) 네이티브 네비게이션을 가장 먼저 확실히 리셋
+        resetToKakaoLogin();
+               // 2) 웹뷰 쪽은 페이지 전환만 막고 스토리지만 정리 (리다이렉트는 굳이 안 해도 됨)
+       webRef.current?.injectJavaScript(`
+         try {
+           localStorage.removeItem('accessToken');
+           localStorage.removeItem('refreshToken');
+         } catch(e) {}
+         true;
+       `);
+       // 3) 혹시라도 ref 준비 전이라 reset 못 탔을 상황을 대비한 폴백 (현재 네비 인스턴스로)
+       try {
+         setTimeout(() => {
+            
+           // 중첩 상태까지 정확히 지정
+           (navigation as any).reset?.({
+             index: 0,
+             routes: [
+               {
+                 name: 'AuthStack',
+                 params: { screen: 'KakaoLogin' },
+               },
+             ],
+           });
+
+         }, 0);
+       } catch (e) {
+
+       }
 
         return;
       }
 
-      console.log('[WEB MSG] 기타', msg);
     } catch (e) {
-      console.log('[WEB MSG RAW]', raw);
     }
 
     rest.onMessage?.(event);
@@ -129,14 +141,26 @@ useEffect(() => {
 
   return (
     <WebView
-      ref={webRef}                 // ← 추가
+      ref={webRef}
       source={{ uri }}
+      javaScriptEnabled={true}
+      domStorageEnabled={true}
       sharedCookiesEnabled
       thirdPartyCookiesEnabled
       cacheEnabled={false}
       cacheMode="LOAD_NO_CACHE"
       injectedJavaScript={injectedJavaScript}
       onMessage={handleMessage}
+      allowsInlineMediaPlayback={true}
+      mediaPlaybackRequiresUserAction={false}
+      onError={(syntheticEvent) => {
+        const { nativeEvent } = syntheticEvent;
+        console.error('[AuthorizedWebView] WebView error:', nativeEvent);
+      }}
+      onHttpError={(syntheticEvent) => {
+        const { nativeEvent } = syntheticEvent;
+        console.error('[AuthorizedWebView] HTTP error:', nativeEvent.statusCode, nativeEvent.url);
+      }}
       {...rest}
     />
   );
