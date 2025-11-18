@@ -1,13 +1,6 @@
 import * as React from 'react';
 import { forwardRef } from 'react';
-import {
-  Pressable,
-  ActivityIndicator,
-  StyleSheet,
-  TextStyle,
-  StyleProp,
-  ViewStyle,
-} from 'react-native';
+import { Pressable, ActivityIndicator, StyleSheet, TextStyle, StyleProp, ViewStyle } from 'react-native';
 import { Text } from './Text';
 import type { ButtonVariantProps } from '../system/variants';
 import { buttonVariants } from '../system/variants';
@@ -38,26 +31,16 @@ export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps
         onPress={onPress}
         disabled={disabled || loading}
         android_ripple={{ color: '#00000022', foreground: true }}
-        style={({ pressed }) => [
-          container,
-          pressed && !(disabled || loading) && styles.pressed,
-          style, 
-        ]}
+        style={({ pressed }) => [container, pressed && !(disabled || loading) && styles.pressed, style]}
         accessibilityRole="button"
         accessibilityState={{ disabled: !!(disabled || loading), busy: !!loading }}
         accessibilityLabel={title}
-        hitSlop={8} 
+        hitSlop={8}
       >
-        {loading ? (
-          <ActivityIndicator color={textColor} />
-        ) : children ? (
-          children
-        ) : (
-          <Text style={[text, titleStyle]}>{title}</Text>
-        )}
+        {loading ? <ActivityIndicator color={textColor} /> : children ? children : <Text style={[text, titleStyle]}>{title}</Text>}
       </Pressable>
     );
-  }
+  },
 );
 
 Button.displayName = 'Button';

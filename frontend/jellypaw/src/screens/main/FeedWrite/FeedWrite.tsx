@@ -29,7 +29,7 @@ import { createFeed, updateFeed, getFeeds } from '../../../services/api/feedWrit
 import { getRedisBoard } from '../../../services/api/redis';
 import { FeedListItem } from '../../../types/main/feedList';
 import type { FeedWriteRequest, FeedWritePlaceRequest } from '../../../types/main/feedWrite';
-import { theme } from '../../../ui/system/variants';
+import { theme, palette } from '../../../ui/system/variants';
 import Feather from 'react-native-vector-icons/Feather';
 import { VITE_IMAGE_BASE_URL } from '@env';
 
@@ -59,6 +59,32 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [category, setCategory] = useState<string>(categoryValue || '');
   const [initialPlaceId, setInitialPlaceId] = useState<number | null>(null);
   const [originalServerImages, setOriginalServerImages] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [visibility, setVisibility] = useState<string>('전체 공개');
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+  // 카테고리 목록
+  const categories = [
+    { name: '일상', value: 'DAILY', icon: 'calendar-clear', iconFamily: 'Ionicons' },
+    { name: '건강', value: 'HEALTH', icon: 'heart', iconFamily: 'Ionicons' },
+    { name: '식당', value: 'DINING', icon: 'restaurant', iconFamily: 'Ionicons' },
+    { name: '미용', value: 'BEAUTY', icon: 'cut', iconFamily: 'Ionicons' },
+    { name: '음식', value: 'FOOD', icon: 'fast-food', iconFamily: 'Ionicons' },
+    { name: '장난감', value: 'TOY', icon: 'game-controller', iconFamily: 'Ionicons' },
+    { name: '여행', value: 'TRAVEL', icon: 'location', iconFamily: 'Ionicons' },
+    { name: '기타', value: 'ETC', icon: 'ellipsis-horizontal-circle-sharp', iconFamily: 'Ionicons' },
+  ];
+
+  // 카테고리 이름 가져오기
+  const getCategoryName = (value: string): string => {
+    const found = categories.find((cat) => cat.value === value);
+    return found ? found.name : categoryName || '카테고리 선택';
+  };
+
+  // 초기 카테고리 로그
+  React.useEffect(() => {
+    console.log('[FeedWrite] 초기 카테고리:', categoryValue, '-> category state:', category);
+  }, [categoryValue, category]);
 
   // 카메라 권한 요청 함수
   const requestCameraPermission = async (): Promise<boolean> => {
@@ -116,6 +142,12 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   // 이미지 선택 핸들러 - 카메라 촬영
   const handleTakePhoto = async () => {
+    // 이미지 개수 체크
+    if (images.length >= 3) {
+      Alert.alert('알림', '이미지는 최대 3장까지 선택할 수 있습니다.');
+      return;
+    }
+
     // 카메라 권한 확인 및 요청
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
@@ -138,10 +170,12 @@ export default function FeedWrite({ route, navigation }: Props) {
         }
         if (response.assets && response.assets.length > 0) {
           const captured = response.assets[0]?.uri;
-          if (captured && images.length < 3) {
-            setImages([...images, captured] as (string | number)[]);
-          } else if (images.length >= 3) {
-            Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
+          if (captured) {
+            if (images.length < 3) {
+              setImages([...images, captured] as (string | number)[]);
+            } else {
+              Alert.alert('알림', '이미지는 최대 3장까지 선택할 수 있습니다.');
+            }
           }
         }
       },
@@ -150,12 +184,19 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   // 이미지 선택 핸들러 - 갤러리에서 선택
   const handlePickFromLibrary = () => {
+    // 이미지 개수 체크
+    if (images.length >= 3) {
+      Alert.alert('알림', '이미지는 최대 3장까지 선택할 수 있습니다.');
+      return;
+    }
+
+    const remainingSlots = 3 - images.length;
     const options = {
       mediaType: 'photo' as const,
       quality: 0.8 as const,
       maxWidth: 1024,
       maxHeight: 1024,
-      selectionLimit: 3 - images.length, // 남은 이미지 개수만큼만 선택 가능
+      selectionLimit: remainingSlots, // 남은 이미지 개수만큼만 선택 가능
     };
 
     launchImageLibrary(options, (response: ImagePickerResponse) => {
@@ -169,8 +210,9 @@ export default function FeedWrite({ route, navigation }: Props) {
         if (newImageUris.length > 0) {
           const totalImages = images.length + newImageUris.length;
           if (totalImages > 3) {
-            Alert.alert('이미지는 최대 3장까지 선택할 수 있습니다.');
-            setImages([...images, ...newImageUris.slice(0, 3 - images.length)] as (string | number)[]);
+            Alert.alert('알림', '이미지는 최대 3장까지 선택할 수 있습니다.');
+            // 최대 3개까지만 추가
+            setImages([...images, ...newImageUris.slice(0, remainingSlots)] as (string | number)[]);
           } else {
             setImages([...images, ...newImageUris] as (string | number)[]);
           }
@@ -181,6 +223,10 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   // 이미지 선택 핸들러 - 커스텀 모달 표시
   const handleImagePicker = () => {
+    if (images.length >= 3) {
+      Alert.alert('알림', '이미지는 최대 3장까지 선택할 수 있습니다.');
+      return;
+    }
     setSheetOpen(true);
   };
 
@@ -226,6 +272,16 @@ export default function FeedWrite({ route, navigation }: Props) {
       // 오른쪽 클릭: 해당 별의 1.0로 설정
       setRating(star);
     }
+  };
+
+  // 날짜 포맷팅 함수
+  const formatDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayOfWeek = weekdays[date.getDay()];
+    return `${year}.${month}.${day}. (${dayOfWeek})`;
   };
 
   React.useEffect(() => {
@@ -284,18 +340,18 @@ export default function FeedWrite({ route, navigation }: Props) {
     try {
       setIsSubmitting(true);
 
-      // 🔹 1) 현재 화면에 남아있는 서버 이미지들 (풀 URL → 상대 경로)
+      //  1) 현재 화면에 남아있는 서버 이미지들 (풀 URL → 상대 경로)
       const currentServerImagePaths = images
         .filter((u): u is string => typeof u === 'string')
         .filter((u) => u.startsWith(VITE_IMAGE_BASE_URL))
         .map((fullUrl) => fullUrl.replace(VITE_IMAGE_BASE_URL, ''));
 
-      // 🔹 2) 새로 추가된 로컬 이미지들만 업로드 대상
+      // 2) 새로 추가된 로컬 이미지들만 업로드 대상
       const newLocalImageUris = images
         .filter((u): u is string => typeof u === 'string')
         .filter((u) => u.startsWith('file://') || u.startsWith('content://'));
 
-      // 🔹 3) 삭제할 이미지들 = 처음 서버에 있던 것들 - 지금 남아 있는 것들
+      // 3) 삭제할 이미지들 = 처음 서버에 있던 것들 - 지금 남아 있는 것들
       const removeImageUrls = mode === 'edit' ? originalServerImages.filter((orig) => !currentServerImagePaths.includes(orig)) : [];
 
       const boardRequest: FeedWriteRequest = {
@@ -304,10 +360,13 @@ export default function FeedWrite({ route, navigation }: Props) {
         content: content.trim(),
         placeId: mode === 'edit' ? initialPlaceId : null,
         starRating: rating,
-        visibility: 'PRIVATE',
+        visibility: 'PUBLIC',
         // 백엔드 BoardUpdateRequest.removeImages 와 매칭
         removeImages: removeImageUrls.length > 0 ? removeImageUrls : undefined,
       };
+
+      console.log('[FeedWrite] 게시글 작성 요청 - 카테고리:', category);
+      console.log('[FeedWrite] boardRequest:', boardRequest);
 
       const hasSelectedGooglePlace = !!selectedPlace?.place_id;
 
@@ -397,41 +456,83 @@ export default function FeedWrite({ route, navigation }: Props) {
   return (
     <>
       <View style={styles.container}>
-        <BackHeader title={mode === 'edit' ? '게시글 수정' : categoryName} />
+        <BackHeader title={mode === 'edit' ? '게시글 수정' : '게시글 작성'} />
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* 제목 입력 */}
-          <View style={styles.section}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>제목</Text>
+          {/* 상단 버튼들: 카테고리, 작성/수정하기 */}
+          <View style={styles.topButtonsContainer}>
+            {/* 카테고리 선택 */}
+            <TouchableOpacity style={styles.topButton} onPress={() => setShowCategoryModal(true)} activeOpacity={0.7}>
+              <Text style={styles.topButtonText}>{getCategoryName(category)}</Text>
+              <Icon name="chevron-down" size={16} color="#374151" />
+            </TouchableOpacity>
+            {/* 작성/수정하기 버튼 */}
+            <Button
+              title={mode === 'edit' ? '수정하기' : '작성하기'}
+              onPress={handleSubmit}
+              shape="pillSolid"
+              tone="aqua"
+              size="sm"
+              // disabled={title.length === 0 || content.length === 0 || isSubmitting}
+              loading={isSubmitting}
+            />
+          </View>
+
+          {/* 이미지 선택 플레이스홀더 */}
+          {/* {images.length === 0 && (
+            <View style={styles.imageSection}>
+              <TouchableOpacity style={styles.imagePlaceholder} onPress={handleImagePicker} activeOpacity={0.7}>
+                <View style={styles.imagePlaceholderInner}>
+                  <Feather name="sun" size={40} color="#D1D5DB" />
+                </View>
+                <View style={styles.imagePlaceholderCamera}>
+                  <Feather name="camera" size={16} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
             </View>
-            <Pressable style={styles.inputContainer} onPress={() => titleInputRef.current?.focus()}>
+          )} */}
+
+          {/* 제목 입력 */}
+          <View style={styles.titleSection}>
+            <Pressable style={styles.titleInputContainer} onPress={() => titleInputRef.current?.focus()}>
               <TextInput
                 ref={titleInputRef}
-                style={styles.input}
-                placeholder="제목을 입력하세요"
-                placeholderTextColor="#A3A3A3"
+                style={styles.titleInput}
+                placeholder="제목 입력"
+                placeholderTextColor={palette.gray400}
                 value={title}
                 onChangeText={setTitle}
                 maxLength={50}
               />
             </Pressable>
-            <View style={styles.counterContainer}>
-              <Text style={styles.counter}>{title.length}/50</Text>
+          </View>
+
+          {/* 날짜와 별점 */}
+          <View style={styles.dateRatingSection}>
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => {
+                const isFullStar = rating >= star;
+                const isHalfStar = rating >= star - 0.5 && rating < star;
+                const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
+                const starColor = isFullStar || isHalfStar ? '#FF8585' : '#E5E7EB';
+
+                return (
+                  <TouchableOpacity key={star} style={styles.starButton} onPress={(e) => handleStarClick(star, e)} activeOpacity={0.7}>
+                    <Icon name={starIconName} size={20} color={starColor} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
           {/* 내용 입력 */}
-          <View style={styles.section}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>내용</Text>
-            </View>
-            <Pressable style={[styles.inputContainer, styles.textAreaContainer]} onPress={() => contentInputRef.current?.focus()}>
+          <View style={styles.contentSection}>
+            <Pressable style={styles.contentInputContainer} onPress={() => contentInputRef.current?.focus()}>
               <TextInput
                 ref={contentInputRef}
-                style={[styles.input, styles.textArea]}
-                placeholder="내용을 입력하세요"
-                placeholderTextColor="#A3A3A3"
+                style={styles.contentInput}
+                placeholder="내용을 입력해주세요."
+                placeholderTextColor={palette.gray400}
                 value={content}
                 onChangeText={setContent}
                 maxLength={500}
@@ -439,99 +540,99 @@ export default function FeedWrite({ route, navigation }: Props) {
                 textAlignVertical="top"
               />
             </Pressable>
-            <View style={styles.counterContainer}>
-              <Text style={styles.counter}>{content.length}/500</Text>
-            </View>
           </View>
 
-          {/* 위치 입력 */}
-          <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>위치 (선택사항)</Text>
-            </View>
-            <TouchableOpacity style={styles.locationInputContainer} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
-              <View style={styles.locationIconContainer} pointerEvents="none">
-                <Icon name="location-outline" size={20} color="#A3A3A3" />
-              </View>
-              <View style={[styles.inputContainer, styles.locationInputWrapper]} pointerEvents="none">
-                <Text style={[styles.input, styles.locationInput, location ? { color: '#284542' } : {}]} numberOfLines={1}>
-                  {location || '위치를 검색하세요'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* 평점 선택 */}
-          <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>평점 (선택사항)</Text>
-            </View>
-            <View style={styles.ratingContainer}>
-              <View style={styles.starsDisplay}>
-                {[1, 2, 3, 4, 5].map((star) => {
-                  const isFullStar = rating >= star;
-                  const isHalfStar = rating >= star - 0.5 && rating < star;
-                  const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
-                  const starColor = isFullStar || isHalfStar ? '#FF8585' : '#FF8585';
-
-                  return (
-                    <TouchableOpacity key={star} style={styles.starButton} onPress={(e) => handleStarClick(star, e)} activeOpacity={0.7}>
-                      <Icon name={starIconName} size={32} color={starColor} />
+          {/* 첨부된 이미지 가로 리스트 */}
+          {images.length > 0 && (
+            <View style={styles.attachedImagesSection}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.attachedImagesContainer}>
+                {images.map((uri, index) => (
+                  <View key={index} style={styles.attachedImageWrapper}>
+                    <Image source={typeof uri === 'string' ? { uri } : uri} style={styles.attachedImage} resizeMode="cover" />
+                    <TouchableOpacity style={styles.attachedImageRemoveButton} onPress={() => handleRemoveImage(index)}>
+                      <Icon name="close-circle" size={24} color="#FFFFFF" />
                     </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <View style={styles.ratingValueContainer}>
-                <Text style={styles.ratingValue}>{rating > 0 ? rating.toFixed(1) : '0.0'}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* 사진 선택 */}
-          <View style={[styles.section, styles.optionalSection]}>
-            <View style={styles.labelContainer}>
-              <Text style={styles.label}>사진 선택 (최대 3장)</Text>
-            </View>
-            <View style={styles.imageContainer}>
-              {images.length < 3 && (
-                <View style={styles.imagePickerWrapper}>
-                  <TouchableOpacity style={styles.imagePickerOuter} onPress={handleImagePicker}>
-                    <View style={styles.imagePickerInner}>
-                      <Feather name="camera" size={32} color={theme.icon.active} />
-                    </View>
+                  </View>
+                ))}
+                {images.length < 3 && (
+                  <TouchableOpacity style={styles.attachedImageAddButton} onPress={handleImagePicker} activeOpacity={0.7}>
+                    <Icon name="add" size={32} color="#9CA3AF" />
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.imagePickerFab} onPress={handleImagePicker}>
-                    <Feather name="camera" size={16} color={theme.text.onBrand} />
-                  </TouchableOpacity>
-                </View>
-              )}
-              {/* 이미지 목록 */}
-              {images.map((uri, index) => (
-                <View key={index} style={styles.imageWrapper}>
-                  <Image source={typeof uri === 'string' ? { uri } : uri} style={styles.image} resizeMode="cover" />
-                  <TouchableOpacity style={styles.removeImageButton} onPress={() => handleRemoveImage(index)}>
-                    <Icon name="close-circle" size={20} color="#FFFFFF" />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                )}
+              </ScrollView>
             </View>
-          </View>
+          )}
         </ScrollView>
 
-        {/* 게시물 작성하기 버튼 */}
-        <View style={[styles.submitButtonContainer]}>
-          <Button
-            title={mode === 'edit' ? '게시글 수정하기' : '게시물 작성하기'}
-            onPress={handleSubmit}
-            shape="pillSolid"
-            tone="aqua"
-            disabled={title.length === 0 || content.length === 0 || isSubmitting}
-          />
+        {/* 하단 툴바 */}
+        <View style={styles.bottomToolbar}>
+          <View style={styles.toolbarLeft}>
+            <TouchableOpacity style={styles.toolbarButton} onPress={handleImagePicker} activeOpacity={0.7}>
+              <Icon name="images-outline" size={24} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.locationButton} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
+              <Icon name="location-outline" size={24} color="#9CA3AF" />
+              <Text style={styles.locationButtonText} numberOfLines={1}>
+                {location || '장소'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       {/* 장소 검색 모달 */}
       <PlaceSearchModal visible={showPlaceSearchModal} onClose={handleModalClose} onPlaceSelect={handlePlaceSelect} />
+
+      {/* 카테고리 선택 모달 */}
+      <Modal
+        transparent
+        visible={showCategoryModal}
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        onRequestClose={() => setShowCategoryModal(false)}
+      >
+        <View style={styles.modalRoot}>
+          <Pressable style={styles.backdrop} onPress={() => setShowCategoryModal(false)} />
+          <View style={[styles.sheet, { paddingBottom: Math.max(12, insets.bottom + 6) }]}>
+            <View style={styles.sheetHeader}>
+              <Text weight="bold" style={styles.sheetTitle}>
+                카테고리 선택
+              </Text>
+              <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+                <Icon name="close" size={24} color={theme.text.primary} />
+              </TouchableOpacity>
+            </View>
+            {categories.map((cat) => {
+              const renderIcon = () => {
+                if (cat.iconFamily === 'Ionicons') {
+                  return <Icon name={cat.icon} size={20} color={category === cat.value ? theme.icon.active : theme.icon.inactive} />;
+                }
+                return null;
+              };
+
+              return (
+                <Pressable
+                  key={cat.value}
+                  style={[styles.sheetItem, styles.sheetItemDivider, category === cat.value && styles.sheetItemSelected]}
+                  onPress={() => {
+                    console.log('[FeedWrite] 카테고리 변경:', cat.name, '->', cat.value);
+                    setCategory(cat.value);
+                    setShowCategoryModal(false);
+                  }}
+                >
+                  <View style={styles.sheetItemLeft}>
+                    {renderIcon()}
+                    <Text style={[styles.sheetItemText, category === cat.value && styles.sheetItemTextSelected]}>{cat.name}</Text>
+                  </View>
+                  {category === cat.value && <Icon name="checkmark" size={20} color={theme.icon.active} />}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </Modal>
 
       {/* 이미지 선택 커스텀 모달 */}
       <Modal transparent visible={sheetOpen} animationType="fade" presentationStyle="overFullScreen" statusBarTranslucent onRequestClose={closeMenu}>
@@ -575,68 +676,182 @@ export default function FeedWrite({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  // 컴포넌트 스타일
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: palette.gray100,
   },
-  // 스크롤 뷰 스타일
   scrollView: {
     flex: 1,
   },
-  // 스크롤 뷰 콘텐츠 스타일
-  scrollContent: {
-    paddingTop: 24,
-    paddingBottom: 24,
-    gap: 16,
+  scrollContent: {},
+  // 상단 버튼들
+  topButtonsContainer: {
+    flexDirection: 'row',
+    paddingBottom: 12,
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  // 섹션 스타일
-  section: {
-    width: '100%',
+  // 카테고리 선택 버튼
+  topButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: palette.gray100,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.gray200,
+    gap: 4,
   },
-  // 선택사항 섹션 스타일 (위치, 평점, 사진 선택)
-  optionalSection: {
-    marginBottom: 32,
+  // 카테고리 선택 버튼 텍스트
+  topButtonText: {
+    fontSize: 14,
+    color: '#374151',
+    fontFamily: 'Pretendard-Regular',
   },
-  // 라벨 컨테이너 스타일
-  labelContainer: {
-    paddingBottom: 16,
-  },
-  // 라벨 스타일
-  label: {
-    fontFamily: 'Pretendard-Bold',
-    fontSize: 18,
-    color: '#284542',
-    lineHeight: 20,
-  },
-  // 인풋 컨테이너 스타일
-  inputContainer: {
-    width: '100%',
-    height: 48,
+  // 이미지 섹션
+  imageSection: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
+  },
+  // 이미지 섹션 플레이스홀더
+  imagePlaceholder: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  // 이미지 섹션 플레이스홀더 내부
+  imagePlaceholderInner: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 이미지 섹션 플레이스홀더 카메라 버튼
+  imagePlaceholderCamera: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: 24,
+    height: 24,
     borderRadius: 12,
+    backgroundColor: '#9CA3AF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 첨부된 이미지 섹션
+  attachedImagesSection: {
+    paddingBottom: 0,
+  },
+  // 첨부된 이미지 컨테이너
+  attachedImagesContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingRight: 16,
+    paddingBottom: 0,
+  },
+  // 첨부된 이미지 랩퍼
+  attachedImageWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#F3F4F6',
+  },
+  // 첨부된 이미지
+  attachedImage: {
+    width: '100%',
+    height: '100%',
+  },
+  // 첨부된 이미지 제거 버튼
+  attachedImageRemoveButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 12,
+  },
+  // 첨부된 이미지 추가 버튼
+  attachedImageAddButton: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+    backgroundColor: '#FAFAFA',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  // 인풋 스타일
-  input: {
-    fontSize: 14,
-    color: '#A3A3A3',
-    fontFamily: 'Pretendard-Medium',
+  // 제목 섹션
+  titleSection: {
+    paddingBottom: 16,
+  },
+  // 제목 입력 컨테이너
+  titleInputContainer: {
+    width: '100%',
+  },
+  // 제목 입력
+  titleInput: {
+    fontSize: 18,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Bold',
     padding: 0,
     margin: 0,
   },
-  // 텍스트 에어리어 컨테이너 스타일
-  textAreaContainer: {
-    height: 112,
-    alignItems: 'flex-start',
+  // 날짜와 별점 섹션
+  dateRatingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 16,
+    gap: 8,
   },
-  // 텍스트 에어리어 스타일
-  textArea: {
-    height: '100%',
+  // 날짜 버튼
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // 날짜 버튼 텍스트
+  dateButtonText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontFamily: 'Pretendard-Regular',
+  },
+  // 별점 컨테이너
+  starsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // 별점 버튼
+  starButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 내용 섹션
+  contentSection: {
+    paddingBottom: 16,
+  },
+  // 내용 입력 컨테이너
+  contentInputContainer: {
+    width: '100%',
+    minHeight: 300,
+  },
+  // 내용 입력
+  contentInput: {
+    fontSize: 14,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Medium',
+    padding: 0,
+    margin: 0,
+    minHeight: 192,
     ...Platform.select({
       ios: {
         paddingTop: 0,
@@ -646,155 +861,52 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  // 카운터 컨테이너 스타일
-  counterContainer: {
-    paddingTop: 4,
-    alignItems: 'flex-end',
-  },
-  // 카운터 스타일
-  counter: {
-    fontSize: 12,
-    color: '#A3A3A3',
-    lineHeight: 16,
-  },
-  // 위치 입력 컨테이너 스타일
-  locationInputContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  // 위치 입력 컨테이너 스타일
-  locationInputWrapper: {
-    flex: 1,
-    paddingLeft: 48,
-  },
-  // 위치 아이콘 컨테이너 스타일
-  locationIconContainer: {
+  // 하단 툴바
+  bottomToolbar: {
     position: 'absolute',
-    left: 16,
-    zIndex: 1,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // 위치 입력 스타일
-  locationInput: {
-    paddingLeft: 0,
-    flex: 1,
-  },
-  // 평점 컨테이너 스타일
-  ratingContainer: {
-    width: '100%',
-    gap: 16,
-  },
-  // 별점 표시 스타일
-  starsDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-  },
-  // 별 버튼 스타일
-  starButton: {
-    padding: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // 평점 값 컨테이너 스타일
-  ratingValueContainer: {
-    alignItems: 'center',
-  },
-  // 평점 값 스타일
-  ratingValue: {
-    fontSize: 16,
-    fontFamily: 'Pretendard-Bold',
-    color: '#284542',
-  },
-  // 이미지 컨테이너 스타일
-  imageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  // 이미지 선택 래퍼 스타일
-  imagePickerWrapper: {
-    width: 80,
-    height: 80,
-    position: 'relative',
-  },
-  // 이미지 선택 외부 원형 스타일 (PhotoPicker와 동일)
-  imagePickerOuter: {
-    width: 80,
-    height: 80,
-    padding: 4,
-    backgroundColor: '#DFF7F2',
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FAFAFA',
-    shadowOpacity: 1,
-    shadowRadius: 0,
-  },
-  // 이미지 선택 내부 원형 스타일 (PhotoPicker와 동일)
-  imagePickerInner: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#E7FAF6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // 이미지 선택 FAB 버튼 스타일 (PhotoPicker와 동일)
-  imagePickerFab: {
-    position: 'absolute',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: theme.icon.active,
-    justifyContent: 'center',
-    alignItems: 'center',
-    right: 0,
     bottom: 0,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    left: 0,
+    right: 0,
+    height: 48,
+    paddingVertical: 12,
+    backgroundColor: palette.gray100,
+    borderTopWidth: 1,
+    borderTopColor: palette.gray200,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  // 이미지 랩퍼 스타일 (원형으로 변경)
-  imageWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    overflow: 'hidden',
-    position: 'relative',
+  // 하단 툴바 왼쪽
+  toolbarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
   },
-  // 이미지 스타일
-  image: {
-    width: '100%',
-    height: '100%',
+  // 하단 툴바 버튼
+  toolbarButton: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  // 이미지 제거 버튼 스타일
-  removeImageButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
+  // 하단 툴바 장소 버튼
+  locationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  // 제출 버튼 컨테이너 스타일
-  submitButtonContainer: {
-    width: '100%',
-    paddingTop: 16,
-    marginBottom: 16,
+  // 하단 툴바 장소 버튼 텍스트
+  locationButtonText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    fontFamily: 'Pretendard-Regular',
   },
   // 커스텀 모달 스타일 (PhotoPicker와 동일)
   modalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
   },
+  // 커스텀 모달 백드랍
   backdrop: {
     position: 'absolute',
     top: 0,
@@ -803,6 +915,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#00000080',
   },
+  // 커스텀 모달 스타일
   sheet: {
     backgroundColor: theme.bg.surface,
     borderTopLeftRadius: 16,
@@ -815,13 +928,50 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     elevation: 12,
   },
+  // 커스텀 모달 아이템
   sheetItem: {
     height: 48,
     flexDirection: 'row',
     alignItems: 'center',
   },
+  // 커스텀 모달 아이템 구분선
   sheetItemDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.border.gray,
+  },
+  // 커스텀 모달 헤더
+  sheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: palette.gray200,
+  },
+  // 커스텀 모달 헤더 텍스트
+  sheetTitle: {
+    fontSize: 18,
+    color: theme.text.primary,
+  },
+  // 커스텀 모달 아이템 선택됨
+  sheetItemSelected: {
+    backgroundColor: theme.bg.brandSubtle,
+  },
+  // 커스텀 모달 아이템 왼쪽 (아이콘 + 텍스트)
+  sheetItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  // 커스텀 모달 아이템 텍스트
+  sheetItemText: {
+    fontSize: 16,
+    color: theme.text.primary,
+  },
+  // 커스텀 모달 아이템 텍스트 선택됨
+  sheetItemTextSelected: {
+    color: theme.icon.active,
+    fontFamily: 'Pretendard-Bold',
   },
 });

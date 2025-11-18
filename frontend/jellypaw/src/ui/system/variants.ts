@@ -78,13 +78,7 @@ export const theme = {
 } as const;
 
 /** ========== 버튼 variants ========== */
-export type ButtonTone =
-  | 'default'
-  | 'aqua'
-  | 'lightAqua'
-  | 'white'
-  | 'red'
-  | 'kakao';
+export type ButtonTone = 'default' | 'aqua' | 'lightAqua' | 'white' | 'red' | 'kakao';
 export type ButtonShape = 'solid' | 'outline' | 'pillSolid' | 'pillOutline';
 export type ButtonSize = 'default' | 'sm' | 'lg';
 export type ButtonBorderTone = 'default' | 'gray' | 'pink';
@@ -124,8 +118,7 @@ const borderToneColor: Record<ButtonBorderTone, string> = {
 };
 
 function getRadius(shape: ButtonShape) {
-  if (shape === 'pillSolid' || shape === 'pillOutline')
-    return theme.radius.pill;
+  if (shape === 'pillSolid' || shape === 'pillOutline') return theme.radius.pill;
   return theme.radius.md;
 }
 
@@ -143,10 +136,7 @@ export function buttonVariants({
   const isOutline = shape === 'outline' || shape === 'pillOutline';
 
   // 복합(비활성 aqua → 살짝 옅은 톤)
-  const disabledCompound =
-    tone === 'aqua' && state === 'disabled'
-      ? { backgroundColor: palette.aqua200 }
-      : null;
+  const disabledCompound = tone === 'aqua' && state === 'disabled' ? { backgroundColor: palette.aqua200 } : null;
 
   const container: ViewStyle = {
     flexDirection: 'row',
