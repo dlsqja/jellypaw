@@ -88,7 +88,7 @@ export default function FeedDetail() {
     if (!container) return;
     container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, []);
-  
+
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
     const boardId = detailData?.id;
@@ -332,7 +332,7 @@ export default function FeedDetail() {
         </CardHeader>
 
         {/* 댓글 입력창과의 간격을 위해 padding 추가 */}
-        <CardContent className="flex flex-col gap-3 pb-16">
+        <CardContent className="flex flex-col gap-3">
           {/* 날짜 및 평점 */}
           <div className="flex items-center gap-2">
             <Badge className="overflow-hidden text-ellipsis whitespace-nowrap max-w-full">{formatDate(detailData?.createdAt)}</Badge>
