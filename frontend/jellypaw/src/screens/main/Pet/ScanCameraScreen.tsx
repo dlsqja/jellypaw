@@ -26,6 +26,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const PREVIEW_ASPECT_RATIO = 4 / 3; // height / width
+const PREVIEW_WIDTH = SCREEN_WIDTH;
+const PREVIEW_HEIGHT = SCREEN_WIDTH * PREVIEW_ASPECT_RATIO;
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ScanCamera'>;
 
@@ -43,7 +46,7 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
 
   // 프리뷰와 촬영 결과의 비율을 일치시키기 위한 format 설정
   const format = useCameraFormat(device, [
-    { photoAspectRatio: SCREEN_WIDTH / SCREEN_HEIGHT }, // 화면 비율과 일치
+    { photoAspectRatio: PREVIEW_WIDTH / PREVIEW_HEIGHT }, // 프리뷰 비율과 일치
     { photoResolution: 'max' },
   ]);
 
@@ -79,7 +82,6 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
       console.log('[ScanCameraScreen] 원본 URI:', imageUri);
       console.log('[ScanCameraScreen] 카메라 촬영 여부:', isFromCamera);
 
-      // react-native-image-manipulator 모듈 확인
       if (!RNImageManipulator || typeof RNImageManipulator.manipulate !== 'function') {
         console.warn('[ScanCameraScreen] react-native-image-manipulator 모듈이 로드되지 않았습니다. 원본 이미지를 사용합니다.');
         return imageUri;
@@ -97,21 +99,21 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
 
       console.log('[ScanCameraScreen] 원본 이미지 크기:', imageSize);
 
-      let manipulations: any[] = [];
+      const TARGET_WIDTH = 1920;
 
       // 카메라로 촬영한 경우에만 가이드라인 영역만 크롭
       if (isFromCamera) {
-        // 가이드라인 영역: top 20%, bottom 20%, left 10%, right 10%
-        // 즉, 가이드라인 내부는 화면의 80% 너비, 60% 높이
+        // 가이드라인 영역: top/bottom 10%, left/right 10%
+        // 즉, 가이드라인 내부는 화면의 80% 너비, 80% 높이
         const guideWidthRatio = 0.8; // 80% 너비
-        const guideHeightRatio = 0.6; // 60% 높이
+        const guideHeightRatio = 0.8; // 80% 높이
 
         // 프리뷰는 resizeMode="cover"로 설정되어 있으므로,
         // 실제 이미지가 프리뷰 화면을 가득 채우도록 확대되어 있습니다.
         // 따라서 실제 이미지에서 가이드라인 영역을 계산할 때,
         // 이미지의 실제 크기와 화면 크기의 비율을 고려해야 합니다.
 
-        const screenAspectRatio = SCREEN_WIDTH / SCREEN_HEIGHT;
+        const previewAspectRatio = PREVIEW_WIDTH / PREVIEW_HEIGHT;
         const imageAspectRatio = imageSize.width / imageSize.height;
 
         // resizeMode="cover"일 때, 이미지가 화면을 가득 채우도록 확대되므로
@@ -121,22 +123,22 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
         let offsetX = 0;
         let offsetY = 0;
 
-        if (imageAspectRatio > screenAspectRatio) {
+        if (imageAspectRatio > previewAspectRatio) {
           // 이미지가 더 넓음 → 상하가 잘림
           visibleWidth = imageSize.width;
-          visibleHeight = Math.round(imageSize.width / screenAspectRatio);
+          visibleHeight = Math.round(imageSize.width / previewAspectRatio);
           offsetX = 0;
           offsetY = Math.round((imageSize.height - visibleHeight) / 2);
         } else {
           // 이미지가 더 높음 → 좌우가 잘림
-          visibleWidth = Math.round(imageSize.height * screenAspectRatio);
+          visibleWidth = Math.round(imageSize.height * previewAspectRatio);
           visibleHeight = imageSize.height;
           offsetX = Math.round((imageSize.width - visibleWidth) / 2);
           offsetY = 0;
         }
 
         // 가이드라인 영역 계산 (화면 기준 80% 너비, 60% 높이)
-        const guideAspectRatio = (SCREEN_WIDTH * guideWidthRatio) / (SCREEN_HEIGHT * guideHeightRatio);
+        const guideAspectRatio = (PREVIEW_WIDTH * guideWidthRatio) / (PREVIEW_HEIGHT * guideHeightRatio);
 
         // 실제 이미지에서 가이드라인 영역 계산
         const guideWidthInImage = Math.round(visibleWidth * guideWidthRatio);
@@ -166,14 +168,14 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
           cropY = guideYInImage + Math.round((guideHeightInImage - cropHeight) / 2);
         }
 
-        console.log('[ScanCameraScreen] 화면 비율:', screenAspectRatio);
+        console.log('[ScanCameraScreen] 프리뷰 비율:', previewAspectRatio);
         console.log('[ScanCameraScreen] 이미지 비율:', imageAspectRatio);
         console.log('[ScanCameraScreen] 이미지 크기:', imageSize);
         console.log('[ScanCameraScreen] 화면에 보이는 영역:', { visibleWidth, visibleHeight, offsetX, offsetY });
         console.log('[ScanCameraScreen] 가이드라인 비율:', guideAspectRatio);
         console.log('[ScanCameraScreen] 크롭 값:', { cropX, cropY, cropWidth, cropHeight });
 
-        // react-native-image-manipulator로 크롭 및 리사이징
+        // 계산된 영역으로 크롭 및 리사이징
         if (
           cropWidth > 0 &&
           cropHeight > 0 &&
@@ -184,8 +186,6 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
         ) {
           try {
             console.log('[ScanCameraScreen] ImageManipulator로 크롭 시도...');
-
-            // react-native-image-manipulator로 크롭 및 리사이징을 한 번에 처리
             const manipulatedImage = await RNImageManipulator.manipulate(
               imageUri,
               [
@@ -197,17 +197,15 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
                     height: cropHeight,
                   },
                 },
-                { resize: { width: 1920 } },
+                { resize: { width: TARGET_WIDTH } },
               ],
               {
                 compress: 0.8,
                 format: 'jpeg',
               },
             );
-
             console.log('[ScanCameraScreen] ✅ 크롭 및 리사이징 완료:', manipulatedImage.uri);
 
-            // 크롭이 실제로 적용되었는지 확인
             try {
               const processedImageSize = await new Promise<{ width: number; height: number }>((resolve, reject) => {
                 Image.getSize(
@@ -217,12 +215,6 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
                 );
               });
               console.log('[ScanCameraScreen] 최종 이미지 크기:', processedImageSize);
-              console.log('[ScanCameraScreen] 크롭 검증:', {
-                원본: `${imageSize.width}x${imageSize.height}`,
-                크롭예상: `${cropWidth}x${cropHeight}`,
-                최종결과: `${processedImageSize.width}x${processedImageSize.height}`,
-                크롭적용됨: processedImageSize.width <= cropWidth * 1.1 && processedImageSize.height <= cropHeight * 1.1,
-              });
             } catch (sizeError) {
               console.warn('[ScanCameraScreen] 최종 이미지 크기 확인 실패:', sizeError);
             }
@@ -235,18 +227,22 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
               code: cropError?.code,
               name: cropError?.name,
             });
-            // 실패 시 기존 방법으로 fallback
+            // 실패 시 리사이징만 적용
           }
         }
       }
 
-      // 크롭이 없거나 실패한 경우, 리사이징만 적용
-      const manipulatedImage = await RNImageManipulator.manipulate(imageUri, [{ resize: { width: 1920 } }], {
-        compress: 0.8,
-        format: 'jpeg',
-      });
-      console.log('[ScanCameraScreen] ✅ 리사이징 완료:', manipulatedImage.uri);
-      return manipulatedImage.uri;
+      // 크롭이 없거나 실패한 경우, 전체 이미지를 리사이징만 적용
+      const resizedImage = await RNImageManipulator.manipulate(
+        imageUri,
+        [{ resize: { width: TARGET_WIDTH } }],
+        {
+          compress: 0.8,
+          format: 'jpeg',
+        },
+      );
+      console.log('[ScanCameraScreen] ✅ 리사이징 완료:', resizedImage.uri);
+      return resizedImage.uri;
     } catch (compressError: any) {
       console.error('[ScanCameraScreen] 이미지 처리 실패:', compressError);
       console.error('[ScanCameraScreen] 에러 상세:', {
@@ -468,26 +464,26 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
 
   return (
     <View style={S.container}>
-      {/* 촬영한 이미지 또는 카메라 프리뷰 */}
-      {photoUri ? (
-        <Image source={{ uri: photoUri }} style={S.cameraPreview} resizeMode="contain" />
-      ) : (
-        <>
-          <Camera
-            ref={cameraRef}
-            style={StyleSheet.absoluteFill}
-            device={device}
-            isActive={isActive}
-            photo={true}
-            format={format}
-            resizeMode="cover"
-          />
-          {/* 가이드라인 오버레이 */}
-          <View style={S.guideOverlay} pointerEvents="none">
-            <GuideLines />
+      <View style={S.previewArea}>
+        {photoUri ? (
+          <Image source={{ uri: photoUri }} style={S.capturedImage} resizeMode="cover" />
+        ) : (
+          <View style={S.cameraBox}>
+            <Camera
+              ref={cameraRef}
+              style={StyleSheet.absoluteFill}
+              device={device}
+              isActive={isActive}
+              photo={true}
+              format={format}
+            />
+            {/* 가이드라인 오버레이 */}
+            <View style={S.guideOverlay} pointerEvents="none">
+              <GuideLines />
+            </View>
           </View>
-        </>
-      )}
+        )}
+      </View>
 
       {/* 상단 오버레이 */}
       <View style={[S.topOverlay, { paddingTop: insets.top + 16 }]}>
@@ -555,8 +551,28 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
 }
 
 const S = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'black' },
-  cameraPreview: { ...StyleSheet.absoluteFillObject, backgroundColor: 'black' },
+  container: { flex: 1, backgroundColor: 'black', alignItems: 'center' },
+  previewArea: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 120,
+    paddingBottom: 180,
+  },
+  cameraBox: {
+    width: PREVIEW_WIDTH,
+    height: PREVIEW_HEIGHT,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  capturedImage: {
+    width: PREVIEW_WIDTH,
+    height: PREVIEW_HEIGHT,
+    borderRadius: 24,
+    backgroundColor: '#000',
+  },
   placeholderContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -677,6 +693,7 @@ const S = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 24,
   },
   galleryButton: {
     width: 40,
@@ -758,20 +775,20 @@ const guideStyles = StyleSheet.create({
     position: 'absolute',
   },
   topLeft: {
-    top: SCREEN_HEIGHT * 0.2,
-    left: SCREEN_WIDTH * 0.1,
+    top: '10%',
+    left: '10%',
   },
   topRight: {
-    top: SCREEN_HEIGHT * 0.2,
-    right: SCREEN_WIDTH * 0.1,
+    top: '10%',
+    right: '10%',
   },
   bottomRight: {
-    bottom: SCREEN_HEIGHT * 0.2,
-    right: SCREEN_WIDTH * 0.1,
+    bottom: '10%',
+    right: '10%',
   },
   bottomLeft: {
-    bottom: SCREEN_HEIGHT * 0.2,
-    left: SCREEN_WIDTH * 0.1,
+    bottom: '10%',
+    left: '10%',
   },
   line: {
     backgroundColor: '#00FFFF',
