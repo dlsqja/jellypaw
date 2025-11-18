@@ -20,4 +20,4 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
-
+.local.env
