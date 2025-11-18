@@ -94,26 +94,40 @@ export default function AuthorizedWebView({
   });
 
   const feedScrollToTopSub = DeviceEventEmitter.addListener('FEED_SCROLL_TO_TOP', () => {
-    webRef.current?.injectJavaScript(`
-      (function() {
-        try {
-          const event = new CustomEvent('FEED_SCROLL_TO_TOP');
-          window.dispatchEvent(event);
-          console.log('[WEB] FEED_SCROLL_TO_TOP event dispatched');
-        } catch (e) {
-          console.log('[WEB] FEED_SCROLL_TO_TOP dispatch error', e);
+    if (!canGoBack) {
+        webRef.current?.injectJavaScript(`
+          (function() {
+            try {
+                const event = new CustomEvent('FEED_SCROLL_TO_TOP');
+                window.dispatchEvent(event);
+                console.log('[WEB] FEED_SCROLL_TO_TOP event dispatched because canGoBack is false.');
+            } catch (e) {
+                console.log('[WEB] FEED_SCROLL_TO_TOP dispatch error', e);
+            }
+          })();
+          true;
+        `);
+    } else {
+        console.log('[AuthorizedWebView] FEED_SCROLL_TO_TOP ignored because canGoBack is true (likely in detail page).');
+    }
+  });
+
+  const webviewGoBackSub = DeviceEventEmitter.addListener('WEBVIEW_GO_BACK', () => {
+        if (canGoBack && webRef.current) {
+            console.log('[AuthorizedWebView] WEBVIEW_GO_BACK received, executing webRef.current.goBack()');
+            webRef.current.goBack();
+        } else {
+            console.log('[AuthorizedWebView] WEBVIEW_GO_BACK received, but canGoBack is false or webRef is null.');
         }
-      })();
-      true;
-    `);
-  });
+    });
 
   return () => {
     feedUpdatedSub.remove();
     clearFeedScrollSub.remove();
     feedScrollToTopSub.remove();
+    webviewGoBackSub.remove();
   };
-}, []);
+}, [canGoBack]);
 
 
   const injectedJavaScript = useMemo(

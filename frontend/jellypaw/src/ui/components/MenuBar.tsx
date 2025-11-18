@@ -57,11 +57,22 @@ export default function MenuBar() {
   // 피드
   const handleFeedPress = () => {
     if (route.name === 'FeedStack') {
-      DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
+        
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            clearFeedScroll();
+            return;
+        }
+        
+        DeviceEventEmitter.emit('WEBVIEW_GO_BACK'); 
+        DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
+
+
     } else {
-      navigation.navigate('FeedStack', { screen: 'Feed' });
+        navigation.navigate('FeedStack', { screen: 'Feed' });
+        clearFeedScroll(); 
     }
-  };
+}
 
   // 검색
   const handleSearchPress = () => {
