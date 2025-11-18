@@ -13,6 +13,7 @@ import {
   Modal,
   Pressable,
   Linking,
+  Dimensions,
 } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -23,6 +24,7 @@ import { PermissionsAndroid } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import { Button } from '../../../ui/components/Button';
 import PlaceSearchModal from './PlaceSearchModal';
+import Slider from '@react-native-community/slider';
 import type { PlaceDetails } from '../../../types/GoogleMapType';
 import type { FeedWriteStackParamList } from '../../../navigation/FeedWriteNavigator';
 import { createFeed, updateFeed, getFeeds } from '../../../services/api/feedWrite';
@@ -62,6 +64,18 @@ export default function FeedWrite({ route, navigation }: Props) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [visibility, setVisibility] = useState<string>('전체 공개');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [tempRating, setTempRating] = useState<number>(0);
+  const [showCustomAlert, setShowCustomAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
+  // 화면 높이 계산
+  const screenHeight = Dimensions.get('window').height;
+  const headerHeight = 60;
+  const bottomToolbarHeight = 48;
+  const topContentHeight = 120; // 날짜, 카테고리, 제목, 구분선 등 대략적인 높이
+  const imageSectionHeight = images.length > 0 ? 142 : 0; // 사진 목록 높이
+  const contentSectionHeight = screenHeight - headerHeight - bottomToolbarHeight - insets.top - insets.bottom - topContentHeight - imageSectionHeight;
 
   // 카테고리 목록
   const categories = [
@@ -274,6 +288,20 @@ export default function FeedWrite({ route, navigation }: Props) {
     }
   };
 
+  const handleModalStarClick = (star: number, event: any) => {
+    const locationX = event.nativeEvent?.locationX || 0;
+    const buttonWidth = 40;
+    const isLeftHalf = locationX < buttonWidth / 2;
+
+    if (isLeftHalf) {
+      // 왼쪽 클릭: 해당 별의 0.5로 설정
+      setTempRating(star - 0.5);
+    } else {
+      // 오른쪽 클릭: 해당 별의 1.0로 설정
+      setTempRating(star);
+    }
+  };
+
   // 날짜 포맷팅 함수
   const formatDate = (date: Date): string => {
     const year = date.getFullYear();
@@ -281,7 +309,7 @@ export default function FeedWrite({ route, navigation }: Props) {
     const day = String(date.getDate()).padStart(2, '0');
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     const dayOfWeek = weekdays[date.getDay()];
-    return `${year}.${month}.${day}. (${dayOfWeek})`;
+    return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
   };
 
   React.useEffect(() => {
@@ -335,7 +363,11 @@ export default function FeedWrite({ route, navigation }: Props) {
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || !content.trim()) {
+      setAlertMessage('제목과 내용을 입력해주세요.');
+      setShowCustomAlert(true);
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -456,41 +488,53 @@ export default function FeedWrite({ route, navigation }: Props) {
   return (
     <>
       <View style={styles.container}>
-        <BackHeader title={mode === 'edit' ? '게시글 수정' : '게시글 작성'} />
+        <BackHeader title={mode === 'edit' ? '피드 수정' : '피드 작성'} />
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* 상단 버튼들: 카테고리, 작성/수정하기 */}
-          <View style={styles.topButtonsContainer}>
-            {/* 카테고리 선택 */}
-            <TouchableOpacity style={styles.topButton} onPress={() => setShowCategoryModal(true)} activeOpacity={0.7}>
-              <Text style={styles.topButtonText}>{getCategoryName(category)}</Text>
-              <Icon name="chevron-down" size={16} color="#374151" />
-            </TouchableOpacity>
-            {/* 작성/수정하기 버튼 */}
-            <Button
-              title={mode === 'edit' ? '수정하기' : '작성하기'}
-              onPress={handleSubmit}
-              shape="pillSolid"
-              tone="aqua"
-              size="sm"
-              // disabled={title.length === 0 || content.length === 0 || isSubmitting}
-              loading={isSubmitting}
-            />
+          {/* 날짜 및 카테고리 */}
+          <View style={styles.dateSection}>
+            <View style={styles.dateRow}>
+              {/* 카테고리 선택 */}
+              <TouchableOpacity style={styles.categoryButton} onPress={() => setShowCategoryModal(true)} activeOpacity={0.7}>
+                {(() => {
+                  const selectedCategory = categories.find((cat) => cat.value === category);
+                  if (selectedCategory && selectedCategory.iconFamily === 'Ionicons') {
+                    return <Icon name={selectedCategory.icon} size={16} color={palette.aqua500} />;
+                  }
+                  return null;
+                })()}
+                {/* <Text style={styles.titleCategoryButtonText}>{getCategoryName(category)}</Text> */}
+                <Icon name="chevron-down" size={12} color={palette.aqua500} />
+              </TouchableOpacity>
+              <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
+            </View>
           </View>
 
-          {/* 이미지 선택 플레이스홀더 */}
-          {/* {images.length === 0 && (
-            <View style={styles.imageSection}>
-              <TouchableOpacity style={styles.imagePlaceholder} onPress={handleImagePicker} activeOpacity={0.7}>
-                <View style={styles.imagePlaceholderInner}>
-                  <Feather name="sun" size={40} color="#D1D5DB" />
+          {/* 위치 표시 (장소가 추가된 경우만) */}
+          {location && (
+            <View style={styles.locationSection}>
+              <View style={styles.locationContainer}>
+                <View style={styles.locationIconContainer}>
+                  <Icon name="location-outline" size={20} color={palette.aqua500} />
                 </View>
-                <View style={styles.imagePlaceholderCamera}>
-                  <Feather name="camera" size={16} color="#FFFFFF" />
+                <View style={styles.locationTextContainer}>
+                  <Text style={styles.locationText} numberOfLines={1}>
+                    {location}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.locationRemoveButton}
+                    onPress={() => {
+                      setLocation('');
+                      setSelectedPlace(null);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name="close" size={20} color={palette.aqua500} />
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
             </View>
-          )} */}
+          )}
 
           {/* 제목 입력 */}
           <View style={styles.titleSection}>
@@ -498,7 +542,7 @@ export default function FeedWrite({ route, navigation }: Props) {
               <TextInput
                 ref={titleInputRef}
                 style={styles.titleInput}
-                placeholder="제목 입력"
+                placeholder="제목"
                 placeholderTextColor={palette.gray400}
                 value={title}
                 onChangeText={setTitle}
@@ -507,31 +551,16 @@ export default function FeedWrite({ route, navigation }: Props) {
             </Pressable>
           </View>
 
-          {/* 날짜와 별점 */}
-          <View style={styles.dateRatingSection}>
-            <View style={styles.starsContainer}>
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isFullStar = rating >= star;
-                const isHalfStar = rating >= star - 0.5 && rating < star;
-                const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
-                const starColor = isFullStar || isHalfStar ? '#FF8585' : '#E5E7EB';
-
-                return (
-                  <TouchableOpacity key={star} style={styles.starButton} onPress={(e) => handleStarClick(star, e)} activeOpacity={0.7}>
-                    <Icon name={starIconName} size={20} color={starColor} />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+          {/* 구분선 */}
+          <View style={styles.divider} />
 
           {/* 내용 입력 */}
-          <View style={styles.contentSection}>
+          <View style={[styles.contentSection, { height: Math.max(contentSectionHeight, 200) }]}>
             <Pressable style={styles.contentInputContainer} onPress={() => contentInputRef.current?.focus()}>
               <TextInput
                 ref={contentInputRef}
                 style={styles.contentInput}
-                placeholder="내용을 입력해주세요."
+                placeholder="반려동물과 함께한 특별한 순간을 기록해보세요"
                 placeholderTextColor={palette.gray400}
                 value={content}
                 onChangeText={setContent}
@@ -570,13 +599,56 @@ export default function FeedWrite({ route, navigation }: Props) {
             <TouchableOpacity style={styles.toolbarButton} onPress={handleImagePicker} activeOpacity={0.7}>
               <Icon name="images-outline" size={24} color="#9CA3AF" />
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.locationButton} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.toolbarButton} onPress={() => setShowPlaceSearchModal(true)} activeOpacity={0.7}>
               <Icon name="location-outline" size={24} color="#9CA3AF" />
-              <Text style={styles.locationButtonText} numberOfLines={1}>
-                {location || '장소'}
-              </Text>
             </TouchableOpacity>
+            <View style={styles.toolbarRatingContainer}>
+              <TouchableOpacity
+                style={styles.toolbarRatingButton}
+                onPress={() => {
+                  setTempRating(rating);
+                  setShowRatingModal(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <Icon name="star" size={22} color={rating > 0 ? '#FF8585' : palette.gray400} />
+                <Text style={styles.toolbarRatingText}>{rating > 0 ? rating.toFixed(1) : ''}</Text>
+              </TouchableOpacity>
+              {rating > 0 && (
+                <TouchableOpacity
+                  style={styles.toolbarRatingRemoveButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setRating(0);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Icon name="close" size={16} color={palette.gray400} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          <View style={styles.toolbarRight}>
+            {isSubmitting ? (
+              <Button
+                onPress={handleSubmit}
+                shape="pillOutline"
+                size="sm"
+                loading={isSubmitting}
+                accessibilityLabel={mode === 'edit' ? '수정하기' : '작성하기'}
+                style={{ backgroundColor: 'transparent', borderWidth: 0 }}
+              />
+            ) : (
+              <TouchableOpacity
+                onPress={handleSubmit}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={mode === 'edit' ? '수정하기' : '작성하기'}
+                hitSlop={8}
+              >
+                <Icon name="checkmark" size={24} color={!title.trim() || !content.trim() ? palette.gray400 : palette.aqua300} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -626,7 +698,7 @@ export default function FeedWrite({ route, navigation }: Props) {
                     {renderIcon()}
                     <Text style={[styles.sheetItemText, category === cat.value && styles.sheetItemTextSelected]}>{cat.name}</Text>
                   </View>
-                  {category === cat.value && <Icon name="checkmark" size={20} color={theme.icon.active} />}
+                  {category === cat.value && <Icon name="checkmark" size={20} color={theme.icon.active} style={{ paddingRight: 16 }} />}
                 </Pressable>
               );
             })}
@@ -671,6 +743,86 @@ export default function FeedWrite({ route, navigation }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* 별점 선택 모달 */}
+      <Modal
+        transparent
+        visible={showRatingModal}
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        onRequestClose={() => setShowRatingModal(false)}
+      >
+        <View style={styles.ratingModalRoot}>
+          <Pressable style={styles.backdrop} onPress={() => setShowRatingModal(false)} />
+          <View style={styles.ratingModalContent}>
+            <Text weight="bold" style={styles.ratingModalScore}>
+              {tempRating.toFixed(1)}
+            </Text>
+            <View style={styles.ratingModalStars}>
+              {[1, 2, 3, 4, 5].map((star) => {
+                const isFullStar = tempRating >= star;
+                const isHalfStar = tempRating >= star - 0.5 && tempRating < star;
+                const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
+                const starColor = isFullStar || isHalfStar ? palette.pink400 : palette.gray200;
+                return (
+                  <TouchableOpacity
+                    key={star}
+                    style={styles.ratingModalStarButton}
+                    onPress={(e) => handleModalStarClick(star, e)}
+                    activeOpacity={0.7}
+                  >
+                    <Icon name={starIconName} size={32} color={starColor} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* 별점 확인 버튼 */}
+            <View style={styles.ratingModalButtons}>
+              <Button
+                title="취소"
+                tone="lightAqua"
+                shape="outline"
+                size="default"
+                onPress={() => setShowRatingModal(false)}
+                style={styles.ratingModalButton}
+              />
+              <Button
+                title="확인"
+                tone="aqua"
+                shape="solid"
+                size="default"
+                onPress={() => {
+                  setRating(tempRating);
+                  setShowRatingModal(false);
+                }}
+                style={styles.ratingModalButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 커스텀 Alert 모달 */}
+      <Modal
+        transparent
+        visible={showCustomAlert}
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        onRequestClose={() => setShowCustomAlert(false)}
+      >
+        <View style={styles.alertModalRoot}>
+          <Pressable style={styles.backdrop} onPress={() => setShowCustomAlert(false)} />
+          <View style={styles.alertModalContent}>
+            <Text weight="bold" style={styles.alertModalMessage}>
+              {alertMessage}
+            </Text>
+            <Button title="확인" tone="aqua" shape="solid" size="default" onPress={() => setShowCustomAlert(false)} />
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -690,7 +842,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 8,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   // 카테고리 선택 버튼
   topButton: {
@@ -698,17 +850,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: palette.gray100,
+    backgroundColor: palette.gray200,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: palette.gray200,
     gap: 4,
   },
   // 카테고리 선택 버튼 텍스트
   topButtonText: {
     fontSize: 14,
-    color: '#374151',
-    fontFamily: 'Pretendard-Regular',
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Medium',
+  },
+  // 날짜 섹션
+  dateSection: {
+    paddingBottom: 8,
+  },
+  // 날짜 행
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  // 날짜 텍스트
+  dateText: {
+    fontSize: 14,
+    color: palette.gray400,
+    fontFamily: 'Pretendard-Medium',
   },
   // 이미지 섹션
   imageSection: {
@@ -745,7 +911,7 @@ const styles = StyleSheet.create({
   },
   // 첨부된 이미지 섹션
   attachedImagesSection: {
-    paddingBottom: 0,
+    paddingVertical: 16,
   },
   // 첨부된 이미지 컨테이너
   attachedImagesContainer: {
@@ -788,9 +954,66 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // 위치 섹션
+  locationSection: {
+    paddingBottom: 16,
+  },
+  // 위치 컨테이너
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  // 위치 아이콘 컨테이너
+  locationIconContainer: {
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 위치 텍스트 컨테이너
+  locationTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 4,
+  },
+  // 위치 텍스트
+  locationText: {
+    fontSize: 14,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Medium',
+  },
+  // 위치 제거 버튼
+  locationRemoveButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 카테고리 섹션
+  categorySection: {
+    paddingBottom: 8,
+  },
+  // 카테고리 행
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  // 카테고리 버튼
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: palette.gray200,
+    borderRadius: 8,
+    gap: 4,
+    alignSelf: 'flex-start',
+  },
   // 제목 섹션
   titleSection: {
-    paddingBottom: 16,
+    paddingBottom: 8,
   },
   // 제목 입력 컨테이너
   titleInputContainer: {
@@ -804,12 +1027,39 @@ const styles = StyleSheet.create({
     padding: 0,
     margin: 0,
   },
-  // 날짜와 별점 섹션
-  dateRatingSection: {
+  // 구분선
+  divider: {
+    height: 1,
+    backgroundColor: palette.gray200,
+    marginBottom: 8,
+  },
+
+  // 별점 표시 컨테이너
+  ratingDisplayContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 16,
-    gap: 8,
+    gap: 4,
+  },
+  // 별점 텍스트
+  ratingText: {
+    fontSize: 20,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Bold',
+  },
+  // 별점 주기 버튼
+  ratingButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: palette.gray100,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: palette.gray200,
+  },
+  // 별점 주기 버튼 텍스트
+  ratingButtonText: {
+    fontSize: 14,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Medium',
   },
   // 날짜 버튼
   dateButton: {
@@ -837,12 +1087,12 @@ const styles = StyleSheet.create({
   },
   // 내용 섹션
   contentSection: {
-    paddingBottom: 16,
+    paddingBottom: 0,
   },
   // 내용 입력 컨테이너
   contentInputContainer: {
     width: '100%',
-    minHeight: 300,
+    flex: 1,
   },
   // 내용 입력
   contentInput: {
@@ -851,7 +1101,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Medium',
     padding: 0,
     margin: 0,
-    minHeight: 192,
+    flex: 1,
     ...Platform.select({
       ios: {
         paddingTop: 0,
@@ -869,6 +1119,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 48,
     paddingVertical: 12,
+    paddingHorizontal: 16,
     backgroundColor: palette.gray100,
     borderTopWidth: 1,
     borderTopColor: palette.gray200,
@@ -880,7 +1131,12 @@ const styles = StyleSheet.create({
   toolbarLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 16,
+  },
+  // 하단 툴바 오른쪽
+  toolbarRight: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // 하단 툴바 버튼
   toolbarButton: {
@@ -889,17 +1145,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // 하단 툴바 장소 버튼
-  locationButton: {
+  // 하단 툴바 별점 컨테이너
+  toolbarRatingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  // 하단 툴바 장소 버튼 텍스트
-  locationButtonText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontFamily: 'Pretendard-Regular',
+  // 하단 툴바 별점 버튼
+  toolbarRatingButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    justifyContent: 'center',
+    padding: 0,
+    minWidth: 24,
+    minHeight: 24,
+  },
+  // 하단 툴바 별점 텍스트
+  toolbarRatingText: {
+    fontSize: 16,
+    color: palette.aqua500,
+    fontFamily: 'Pretendard-Bold',
+  },
+  // 하단 툴바 별점 제거 버튼
+  toolbarRatingRemoveButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 하단 툴바 장소 버튼
+  toolbarLocationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    justifyContent: 'center',
+    padding: 4,
+    minWidth: 40,
+    minHeight: 40,
+  },
+  // 하단 툴바 장소 텍스트
+  toolbarLocationText: {
+    fontSize: 16,
+    color: palette.gray400,
+    fontFamily: 'Pretendard-Bold',
+  },
+  // 하단 툴바 장소 텍스트 (활성화)
+  toolbarLocationTextActive: {
+    color: palette.aqua500,
+  },
+  // 하단 툴바 장소 제거 버튼
+  toolbarLocationRemoveButton: {
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   // 커스텀 모달 스타일 (PhotoPicker와 동일)
   modalRoot: {
@@ -920,7 +1218,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.bg.surface,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     shadowColor: '#000',
     shadowOpacity: 0.18,
@@ -931,6 +1229,7 @@ const styles = StyleSheet.create({
   // 커스텀 모달 아이템
   sheetItem: {
     height: 48,
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -944,6 +1243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: palette.gray200,
@@ -955,11 +1255,13 @@ const styles = StyleSheet.create({
   },
   // 커스텀 모달 아이템 선택됨
   sheetItemSelected: {
+    width: '100%',
     backgroundColor: theme.bg.brandSubtle,
   },
   // 커스텀 모달 아이템 왼쪽 (아이콘 + 텍스트)
   sheetItemLeft: {
     flexDirection: 'row',
+    paddingHorizontal: 16,
     alignItems: 'center',
     gap: 12,
     flex: 1,
@@ -973,5 +1275,88 @@ const styles = StyleSheet.create({
   sheetItemTextSelected: {
     color: theme.icon.active,
     fontFamily: 'Pretendard-Bold',
+  },
+  // 별점 모달 루트
+  ratingModalRoot: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 별점 모달 컨텐츠
+  ratingModalContent: {
+    backgroundColor: theme.bg.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
+    alignItems: 'center',
+    minWidth: 280,
+  },
+  // 별점 모달 점수
+  ratingModalScore: {
+    fontSize: 48,
+    color: palette.pink400,
+  },
+  // 별점 모달 별들
+  ratingModalStars: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  // 별점 모달 별 버튼
+  ratingModalStarButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 40,
+    height: 40,
+  },
+  // 별점 모달 힌트
+  ratingModalHint: {
+    fontSize: 14,
+    color: palette.gray400,
+    marginBottom: 24,
+  },
+  // 별점 모달 슬라이더 컨테이너
+  ratingModalSliderContainer: {
+    width: '100%',
+    marginBottom: 24,
+  },
+  // 별점 모달 슬라이더
+  ratingModalSlider: {
+    width: '100%',
+    height: 40,
+  },
+  // 별점 모달 버튼들
+  ratingModalButtons: {
+    width: '100%',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  // 별점 모달 버튼
+  ratingModalButton: {
+    flex: 1,
+  },
+  // 커스텀 Alert 모달 루트
+  alertModalRoot: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // 커스텀 Alert 모달 컨텐츠
+  alertModalContent: {
+    backgroundColor: theme.bg.surface,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    minWidth: 280,
+    maxWidth: 320,
+  },
+  // 커스텀 Alert 모달 메시지
+  alertModalMessage: {
+    fontSize: 18,
+    color: theme.text.primary,
+    textAlign: 'center',
+    marginBottom: 16,
   },
 });

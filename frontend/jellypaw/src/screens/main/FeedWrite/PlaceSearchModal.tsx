@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import MapView, { PROVIDER_GOOGLE, Marker, Callout } from 'react-native-maps';
-import {
-  View,
-  StyleSheet,
-  Modal,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  Keyboard,
-  ScrollView,
-} from 'react-native';
+import { View, StyleSheet, Modal, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Keyboard, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '../../../ui/components/Text';
 import BackHeader from '../../../ui/components/BackHeader';
-import {
-  searchPlaces,
-  getPlaceDetails,
-} from '../../../services/googleMaps/GoogleMapApi';
+import { searchPlaces, getPlaceDetails } from '../../../services/googleMaps/GoogleMapApi';
 // types
 import { SearchResult, PlaceDetails } from '../../../types/GoogleMapType';
 import { Button } from '../../../ui/components/Button';
@@ -29,17 +16,13 @@ interface PlaceSearchModalProps {
   onPlaceSelect: (place: PlaceDetails) => void;
 }
 
-export default function PlaceSearchModal({
-  visible,
-  onClose,
-  onPlaceSelect,
-}: PlaceSearchModalProps) {
+export default function PlaceSearchModal({ visible, onClose, onPlaceSelect }: PlaceSearchModalProps) {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPlaceDetails, setSelectedPlaceDetails] =
-    useState<PlaceDetails | null>(null);
+  const [selectedPlaceDetails, setSelectedPlaceDetails] = useState<PlaceDetails | null>(null);
+  const [focused, setFocused] = useState(false);
   const mapRef = React.useRef<MapView>(null);
   const markerRef = React.useRef<any>(null);
 
@@ -63,16 +46,13 @@ export default function PlaceSearchModal({
       setQuery('');
       setResults([]);
       setSelectedPlaceDetails(null);
+      setFocused(false);
     }
   }, [visible]);
 
   // 마커가 표시될 때 자동으로 callout 표시
   useEffect(() => {
-    if (
-      selectedPlaceDetails?.latitude &&
-      selectedPlaceDetails?.longitude &&
-      markerRef.current
-    ) {
+    if (selectedPlaceDetails?.latitude && selectedPlaceDetails?.longitude && markerRef.current) {
       // 약간의 지연 후 마커의 callout 표시
       setTimeout(() => {
         markerRef.current?.showCallout?.();
@@ -139,10 +119,7 @@ export default function PlaceSearchModal({
   };
 
   const renderResultItem = ({ item }: { item: SearchResult }) => (
-    <TouchableOpacity
-      style={styles.resultItem}
-      onPress={() => handlePlaceSelect(item)}
-    >
+    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlaceSelect(item)}>
       <Text style={styles.resultName}>{item.name}</Text>
       <Text style={styles.resultAddress} numberOfLines={1}>
         {item.address}
@@ -151,19 +128,11 @@ export default function PlaceSearchModal({
   );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* 헤더 */}
         <View style={styles.headerContainer}>
-          <BackHeader
-            title={selectedPlaceDetails ? '장소 상세 정보' : '장소 검색'}
-            onBackPress={selectedPlaceDetails ? handleBackToList : onClose}
-          />
+          <BackHeader title={selectedPlaceDetails ? '장소 상세 정보' : '장소 검색'} onBackPress={selectedPlaceDetails ? handleBackToList : onClose} />
         </View>
 
         {selectedPlaceDetails ? (
@@ -171,39 +140,22 @@ export default function PlaceSearchModal({
           <View style={styles.detailsContainer}>
             <ScrollView style={styles.detailsScrollView}>
               <View style={styles.detailsSection}>
-                <Text style={styles.detailsName}>
-                  {selectedPlaceDetails.name}
-                </Text>
+                <Text style={styles.detailsName}>{selectedPlaceDetails.name}</Text>
                 {selectedPlaceDetails.address && (
                   <View style={styles.detailsRow}>
-                    <Icon
-                      name="location"
-                      size={20}
-                      color="#6ABFB8"
-                      style={styles.detailsIcon}
-                    />
-                    <Text style={styles.detailsText}>
-                      {selectedPlaceDetails.address}
-                    </Text>
+                    <Icon name="location" size={20} color="#6ABFB8" style={styles.detailsIcon} />
+                    <Text style={styles.detailsText}>{selectedPlaceDetails.address}</Text>
                   </View>
                 )}
                 {selectedPlaceDetails.phone_number && (
                   <View style={styles.detailsRow}>
-                    <Icon
-                      name="call"
-                      size={20}
-                      color="#6ABFB8"
-                      style={styles.detailsIcon}
-                    />
-                    <Text style={styles.detailsText}>
-                      {selectedPlaceDetails.phone_number}
-                    </Text>
+                    <Icon name="call" size={20} color="#6ABFB8" style={styles.detailsIcon} />
+                    <Text style={styles.detailsText}>{selectedPlaceDetails.phone_number}</Text>
                   </View>
                 )}
               </View>
               {/* 장소 지도 */}
-              {selectedPlaceDetails.latitude &&
-              selectedPlaceDetails.longitude ? (
+              {selectedPlaceDetails.latitude && selectedPlaceDetails.longitude ? (
                 <View style={styles.mapContainer}>
                   <MapView
                     ref={mapRef}
@@ -256,9 +208,7 @@ export default function PlaceSearchModal({
                       backgroundColor: '#E5E5E5',
                     }}
                   >
-                    <Text style={{ color: '#284542' }}>
-                      좌표 정보가 없습니다
-                    </Text>
+                    <Text style={{ color: '#284542' }}>좌표 정보가 없습니다</Text>
                   </View>
                 </View>
               )}
@@ -266,7 +216,7 @@ export default function PlaceSearchModal({
             {/* 이 장소 선택 버튼 */}
             <Button
               titleStyle={{ fontFamily: 'Pretendard-Bold' }}
-              title="이 장소 선택"
+              title="선택 하기"
               tone="aqua"
               shape="pillSolid"
               size="lg"
@@ -278,13 +228,8 @@ export default function PlaceSearchModal({
           <>
             {/* 검색 입력 */}
             <View style={styles.searchContainer}>
-              <View style={styles.searchInputContainer}>
-                <Icon
-                  name="search-outline"
-                  size={20}
-                  color="#A3A3A3"
-                  style={styles.searchIcon}
-                />
+              <View style={[styles.searchInputContainer, focused && styles.searchInputContainerFocused]}>
+                <Icon name="search-outline" size={20} color="#A3A3A3" style={styles.searchIcon} />
                 <TextInput
                   style={styles.searchInput}
                   value={query}
@@ -294,6 +239,8 @@ export default function PlaceSearchModal({
                   autoFocus
                   returnKeyType="search"
                   onSubmitEditing={() => performSearch(query)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
                 />
                 {loading && (
                   <View style={styles.loadingContainer}>
@@ -305,19 +252,12 @@ export default function PlaceSearchModal({
 
             {/* 검색 결과 */}
             {results.length > 0 ? (
-              <FlatList
-                data={results}
-                renderItem={renderResultItem}
-                keyExtractor={item => item.place_id}
-                keyboardShouldPersistTaps="handled"
-              />
+              <FlatList data={results} renderItem={renderResultItem} keyExtractor={(item) => item.place_id} keyboardShouldPersistTaps="handled" />
             ) : // 로딩 후에도 검색 결과가 없는 경우
             query.trim().length > 0 && !loading ? (
               <View style={styles.noResultsContainer}>
                 <Text style={styles.noResultsText}>검색 결과가 없습니다</Text>
-                <Text style={styles.noResultsText2}>
-                  다른 검색어를 입력해보세요
-                </Text>
+                <Text style={styles.noResultsText2}>다른 검색어를 입력해보세요</Text>
               </View>
             ) : null}
           </>
@@ -349,6 +289,9 @@ const styles = StyleSheet.create({
     borderRadius: 9999,
     paddingHorizontal: 12,
     height: 48,
+  },
+  searchInputContainerFocused: {
+    borderColor: '#6ABFB8',
   },
   searchIcon: {
     marginRight: 8,
@@ -432,7 +375,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   mapContainer: {
-    height: 350,
+    height: 400,
     width: '100%',
     marginTop: 16,
 
