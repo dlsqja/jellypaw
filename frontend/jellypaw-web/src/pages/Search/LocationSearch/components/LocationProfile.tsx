@@ -113,7 +113,7 @@ export default function LocationProfile({
             <div className="flex flex-col gap-3 mt-4">
               <CertifiedStaffProfile
                 name={user.nickname || ''}
-                profileImageUrl={user.profileImg || ''}
+                profileImageUrl={user.profileImg || null}
                 description={user.description || ''}
                 onClick={handleUserProfileClick}
               />

@@ -43,18 +43,6 @@ export default function LocationInfo({ openingHours }: LocationInfoProps) {
           </div>
         </CardContent>
       </Card>
-      {/* 소개 */}
-      {/* <Card className="p-6">
-        <CardHeader>
-          <div className="flex items-center gap-2 mb-4">
-            <IoDocumentTextOutline className="text-aqua-300 w-4 h-4" />
-            <div className="text-aqua-500 h6"> 소개글 </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-aqua-500 p2">소개글 들어오는 곳</p>
-        </CardContent>
-      </Card> */}
     </div>
   );
 }

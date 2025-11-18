@@ -1,6 +1,8 @@
+import { BsPersonCircle } from 'react-icons/bs';
+
 interface CertifiedStaffProfileProps {
   name: string;
-  profileImageUrl?: string;
+  profileImageUrl?: string | null;
   description?: string;
   onClick?: () => void;
 }
@@ -11,16 +13,17 @@ export default function CertifiedStaffProfile({ name, profileImageUrl, descripti
   return (
     <>
       {/* 프로필 이미지 */}
-      <div
-        className={`p-4 bg-gray-100 border border-gray-200 rounded-[12px] inline-flex justify-start items-center ${onClick ? 'cursor-pointer' : ''}`}
-        onClick={onClick}
-      >
+      {profileImageUrl ? (
         <img className="w-12 h-12 rounded-full object-cover" src={`${IMAGE_BASE_URL}${profileImageUrl}`} alt={name} />
-        {/* 이름, 직급, 경력 */}
-        <div className="pl-4 flex flex-col">
-          <div className="text-aqua-500 p2-b">{name}</div>
-          <div className="text-gray-400 caption1">{description || '소개글 정보가 없습니다'}</div>
+      ) : (
+        <div className="w-12 h-12 rounded-full outline outline-2 outline-offset-[-2px] outline-aqua-300 flex justify-center items-center">
+          <BsPersonCircle className="w-6 h-6 text-aqua-300" />
         </div>
+      )}
+      {/* 이름, 직급, 경력 */}
+      <div className="pl-4 flex flex-col">
+        <div className="text-aqua-500 p2-b">{name}</div>
+        <div className="text-gray-400 caption1">{description || '소개글 정보가 없습니다'}</div>
       </div>
     </>
   );
