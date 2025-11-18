@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Image, StyleSheet, Pressable } from 'react-native';
 import { Text } from './Text';
 import Feather from 'react-native-vector-icons/Feather';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { palette, theme } from '../system/variants';
 
 const defaultPetImage = require('../../../assets/images/pets/반려동물1.png');
@@ -19,7 +20,7 @@ function InfoChip({ title, caption }: { title: string | number; caption: string 
 }
 
 type Props = {
-  avatarUri?: string | null; // string: 사용, null/빈값: 기본이미지
+  avatarUri?: string | null;
   name: string;
   kind: string;
   registeredAt?: string;
@@ -31,14 +32,22 @@ type Props = {
 
 export default function PetSummaryCard({ avatarUri, name, kind, registeredAt, age, weight, sex, onEdit }: Props) {
   const hasValidUri = typeof avatarUri === 'string' && avatarUri.trim().length > 0;
-
-  const source = hasValidUri ? { uri: avatarUri as string } : defaultPetImage;
+  const imageSource = hasValidUri ? { uri: avatarUri as string } : defaultPetImage;
 
   return (
     <View style={S.card}>
       <View style={{ paddingBottom: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Image source={source} defaultSource={defaultPetImage} style={S.avatar} />
+          <View style={S.avatarContainer}>
+            {hasValidUri ? (
+              <Image source={imageSource} defaultSource={defaultPetImage} style={S.avatarImage} />
+            ) : (
+              <View style={S.avatarFallback}>
+                <FontAwesome5 name="paw" solid size={32} color={palette.pink200} />
+              </View>
+            )}
+          </View>
+
           <View style={{ paddingLeft: 16 }}>
             <Text weight="bold" style={S.title}>
               {name}
@@ -74,7 +83,27 @@ const S = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.border.gray,
   },
-  avatar: { width: 80, height: 80, borderRadius: 9999 },
+
+  // 아바타 컨테이너 (프레임)
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 9999,
+    overflow: 'hidden',
+  },
+  // 실제 이미지용 스타일
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+  },
+  // 이미지 없을 때 아이콘만 중앙 정렬 (배경색 제거됨)
+  avatarFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   title: { fontSize: 20, lineHeight: 28, color: theme.text.primary },
   sub: { fontSize: 14, lineHeight: 20, color: theme.text.muted },
   meta: { fontSize: 14, lineHeight: 20, color: theme.text.secondary },
