@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { MdRestaurant } from 'react-icons/md';
-import IconText from '@/components/texts/IconText';
 import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
@@ -17,11 +15,12 @@ import {
   IoLocation,
   IoEllipsisHorizontalCircleSharp,
 } from 'react-icons/io5';
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
+import { motion } from 'framer-motion';
 
-import { formatDate, formatRelativeTime } from '@/utils/timePassing';
-
+import { formatRelativeTime } from '@/utils/timePassing';
 import { FEED_SCROLL_KEY } from '@/pages/Feed/Feed';
+
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 // GetFeedsResponse를 그대로 사용
 interface ArticleProps extends GetFeedsResponse {
@@ -71,7 +70,9 @@ export default function Article({
     const previousLikeCount = currentLikeCount;
 
     setIsLiked(!previousIsLiked);
-    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
+    setCurrentLikeCount(
+      previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1,
+    );
 
     setIsLikeLoading(true);
 
@@ -98,7 +99,11 @@ export default function Article({
   if (!id) return null;
 
   return (
-    <div className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4">
+    <motion.div
+      className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4"
+      whileTap={{ scale: 0.97 }}          
+      transition={{ duration: 0.08, ease: 'easeOut' }}
+    >
       <Card
         className="w-80 h-136 shadow-[0px_4px_12px_0px_rgba(0,0,0,0.05)] border-gray-100 cursor-pointer"
         role="button"
@@ -209,12 +214,17 @@ export default function Article({
                   onClick={handleLikeToggle}
                   disabled={isLikeLoading}
                 >
-                  <Heart className={`h-5 w-5 ${isLiked ? 'text-pink-400' : 'text-pink-300'}`} fill={isLiked ? 'currentColor' : 'none'} />
+                  <Heart
+                    className={`h-5 w-5 ${isLiked ? 'text-pink-400' : 'text-pink-300'}`}
+                    fill={isLiked ? 'currentColor' : 'none'}
+                  />
                   <span className="text-aqua-500 p2-b">{currentLikeCount}</span>
                 </button>
-                <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
+                <button
+                  type="button"
+                  className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70"
+                >
                   <MessageCircle className="h-5 w-5 text-gray-600" />
-                  {/* 🔧 오타 수정 */}
                   <span className="text-aqua-500 p2-b">{commentCount}</span>
                 </button>
               </div>
@@ -222,6 +232,6 @@ export default function Article({
           </CardContent>
         </CardHeader>
       </Card>
-    </div>
+    </motion.div>
   );
 }

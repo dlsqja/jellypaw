@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { BsPersonCircle } from 'react-icons/bs';
 import { follow, unfollow } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
+import { FOLLOWINGS_DIRTY_KEY } from '@/pages/Feed/Feed';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -37,52 +38,56 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
   }, [profileData?.isFollowing]);
 
   const handleFollowClick = () => {
-    // 자신의 프로필이면 alert 표시하고 종료
-    if (isMyProfile) {
-      alert('자신의 프로필은 팔로우할 수 없습니다.');
-      return;
-    }
+  if (isMyProfile) {
+    alert('자신의 프로필은 팔로우할 수 없습니다.');
+    return;
+  }
 
-    if (!profileData?.nickname) return;
+  if (!profileData?.nickname) return;
 
-    const nickname = profileData.nickname;
-    // 현재 팔로워 수
-    const currentFollowerNum = localFollowerNum || 0;
+  const nickname = profileData.nickname;
+  const currentFollowerNum = localFollowerNum || 0;
 
-    if (isFollowing) {
-      // 팔로우 취소
-      unfollow(nickname)
-        .then((response) => {
-          console.log('팔로우 취소:', response);
-          setIsFollowing(false);
-          // 팔로워 수 즉시 감소
-          setLocalFollowerNum(Math.max(0, currentFollowerNum - 1));
-          // 프로필 데이터 다시 조회
-          if (onProfileUpdate) {
-            onProfileUpdate();
-          }
-        })
-        .catch((error) => {
-          console.error('팔로우 취소 실패:', error);
-        });
-    } else {
-      // 팔로우
-      follow(nickname)
-        .then((response) => {
-          console.log('팔로우 성공:', response);
-          setIsFollowing(true);
-          // 팔로워 수 즉시 증가
-          setLocalFollowerNum(currentFollowerNum + 1);
-          // 프로필 데이터 다시 조회
-          if (onProfileUpdate) {
-            onProfileUpdate();
-          }
-        })
-        .catch((error) => {
-          console.error('팔로우 실패:', error);
-        });
-    }
-  };
+  if (isFollowing) {
+    unfollow(nickname)
+      .then((response) => {
+        console.log('팔로우 취소:', response);
+        setIsFollowing(false);
+        setLocalFollowerNum(Math.max(0, currentFollowerNum - 1));
+
+        if (onProfileUpdate) {
+          onProfileUpdate();
+        }
+
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(FOLLOWINGS_DIRTY_KEY, '1');
+        }
+      })
+      .catch((error) => {
+        console.error('팔로우 취소 실패:', error);
+      });
+  } else {
+    follow(nickname)
+      .then((response) => {
+        console.log('팔로우 성공:', response);
+        setIsFollowing(true);
+        setLocalFollowerNum(currentFollowerNum + 1);
+
+        if (onProfileUpdate) {
+          onProfileUpdate();
+        }
+
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(FOLLOWINGS_DIRTY_KEY, '1');
+        }
+      })
+      .catch((error) => {
+        console.error('팔로우 실패:', error);
+      });
+  }
+};
+
+
   // 로딩 중일 때 표시
   if (isLoading) {
     return (

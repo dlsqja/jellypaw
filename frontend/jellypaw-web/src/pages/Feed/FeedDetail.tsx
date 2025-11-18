@@ -290,6 +290,7 @@ export default function FeedDetail() {
             <div
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => {
+                console.log('detail: ', detailData)
                 if (detailData?.boardUser?.id) {
                   navigate(`/search/person/${detailData.boardUser.id}`);
                 }
