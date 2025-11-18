@@ -144,12 +144,12 @@ const S = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%', // 전체 높이 사용
+    height: '80%', // 전체 높이 사용
     marginHorizontal: -4, // 음수 마진으로 간격 줄이기 (값을 더 줄이면 간격이 더 좁아짐)
   },
   fab: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: 30, // rounded-full
     backgroundColor: ACTIVE, // bg-aqua-300
     alignItems: 'center',
