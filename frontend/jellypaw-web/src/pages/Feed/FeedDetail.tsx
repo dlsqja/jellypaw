@@ -54,6 +54,7 @@ export default function FeedDetail() {
   // 게시글 소유자 확인
   const isOwner = profileData?.userId === detailData?.boardUser?.id;
 
+  
   // 좋아요 개수 초기화
   useEffect(() => {
     // state에서 받은 좋아요 정보가 있으면 우선 사용, 없으면 detailData 사용
@@ -81,6 +82,10 @@ export default function FeedDetail() {
         });
     }
   }, [detailData?.id, likeInfoFromState?.isLiked]);
+
+    useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [boardId]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
