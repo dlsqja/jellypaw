@@ -186,23 +186,30 @@ export default function Step1({ onNext, openingHours, placeName }: Step1Props) {
           <div className="flex flex-col gap-2">
             <Label className="text-aqua-500 p2-b">예약 시간 *</Label>
             <div className="grid grid-cols-4 gap-2">
-              {timeOptions.map((option) => {
-                const isDisabled = disabledTimes.has(option.slot);
-                const isSelected = selectedTime === option.slot;
-                return (
-                  <Button
-                    key={option.slot}
-                    onClick={() => !isDisabled && setSelectedTime(option.slot)}
-                    tone={isSelected ? 'default' : 'white'}
-                    shape="outline"
-                    borderTone={isSelected ? 'default' : 'gray'}
-                    disabled={isDisabled}
-                  >
-                    {option.label}
-                  </Button>
-                );
-              })}
-            </div>
+          {timeOptions.map((option) => {
+            const isDisabled = disabledTimes.has(option.slot);
+            const isSelected = selectedTime === option.slot;
+
+            return (
+              <Button
+                key={option.slot}
+                onClick={() => !isDisabled && setSelectedTime(option.slot)}
+                tone={isSelected ? 'default' : 'white'}
+                shape="outline"
+                borderTone={isSelected ? 'default' : 'gray'}
+                disabled={isDisabled}
+                className={
+                  isDisabled
+                    ? 'bg-gray-200 text-gray-300 border-gray-200 hover:bg-gray-100 disabled:opacity-100'
+                    : ''
+                }
+              >
+                {option.label}
+              </Button>
+            );
+          })}
+        </div>
+
             {timeOptions.length === 0 && <p className="text-gray-400 p2-b text-center">예약 가능한 시간이 없습니다.</p>}
           </div>
         )}

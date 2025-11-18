@@ -2,10 +2,9 @@
 import React from 'react';
 import { View, Image, StyleSheet, Pressable } from 'react-native';
 import { Text } from './Text';
-import { theme } from '../system/variants';
+import { theme, palette } from '../system/variants';
 import Feather from 'react-native-vector-icons/Feather';
-
-const defaultPetImage = require('../../../assets/images/pets/반려동물1.png');
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 type PetMiniCardProps = {
   name: string;
@@ -16,15 +15,17 @@ type PetMiniCardProps = {
 };
 
 export function PetMiniCard({ name, species = '강아지', avatarUri, selected, onPress }: PetMiniCardProps) {
+  const hasAvatar = typeof avatarUri === 'string' && avatarUri.trim().length > 0;
+
   return (
     <Pressable onPress={onPress} style={[S.card, selected ? S.cardSelected : S.cardDefault]}>
       <View style={S.avatarContainer}>
         <View style={S.avatarWrap}>
-          <Image
-            source={typeof avatarUri === 'string' && avatarUri.trim().length > 0 ? { uri: avatarUri } : defaultPetImage}
-            defaultSource={defaultPetImage}
-            style={S.avatar}
-          />
+          {hasAvatar ? (
+            <Image source={{ uri: avatarUri as string }} style={S.avatar} />
+          ) : (
+            <FontAwesome5 name="paw" solid size={28} color={palette.pink200} />
+          )}
         </View>
       </View>
       <Text style={S.name} numberOfLines={1} ellipsizeMode="tail">
@@ -41,7 +42,7 @@ export function AddPetCard({ onPress }: { onPress?: () => void }) {
   return (
     <Pressable onPress={onPress} style={[S.card, S.cardDefault]}>
       <View style={S.avatarContainer}>
-        <View style={[S.avatarWrap, { backgroundColor: '#F3F4F6' }]}>
+        <View style={[S.avatarWrap, { backgroundColor: palette.gray100 }]}>
           <Feather name="plus" size={20} color={theme.text.muted} />
         </View>
       </View>
@@ -77,7 +78,7 @@ const S = StyleSheet.create({
     paddingBottom: 8,
   },
 
-  // 원 사이즈 & 정가운데 정렬(이미지/플러스 공용)
+  // 원 사이즈 & 정가운데 정렬(이미지/플러스/아이콘 공용)
   avatarWrap: {
     width: 64,
     height: 64,
