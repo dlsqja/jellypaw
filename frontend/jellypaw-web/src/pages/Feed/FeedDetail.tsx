@@ -83,10 +83,12 @@ export default function FeedDetail() {
     }
   }, [detailData?.id, likeInfoFromState?.isLiked]);
 
-    useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-  }, [boardId]);
-
+  useEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+    if (!container) return;
+    container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+  
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
     const boardId = detailData?.id;

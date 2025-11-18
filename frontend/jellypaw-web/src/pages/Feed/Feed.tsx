@@ -11,12 +11,32 @@ import type { GetFeedsResponse, GetLikedFeedsResponse } from '@/types/feed';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
+const scrollMemory: Record<string, number> = {};
+
 export default function Feed() {
   const { data: profileData } = useProfile();
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
   const [likedFeeds, setLikedFeeds] = useState<GetLikedFeedsResponse[]>([]);
+
+  useEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+    if (!container) return;
+
+    const saved = scrollMemory['/feed'] ?? 0;
+    container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
+
+    const handleScroll = () => {
+      scrollMemory['/feed'] = container.scrollTop;
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      scrollMemory['/feed'] = container.scrollTop;
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // 좋아요한 게시글 조회
   useEffect(() => {
