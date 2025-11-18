@@ -20,6 +20,8 @@ import { saveBoardToRedis } from '@/services/api/redis';
 import { debugToRN } from '@/lib/utils';
 import { getFeeds } from '@/services/api/feed';
 import { formatDate, formatRelativeTime } from '@/utils/timePassing';
+import { motion } from 'framer-motion';
+
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function FeedDetail() {
@@ -52,6 +54,7 @@ export default function FeedDetail() {
   // 게시글 소유자 확인
   const isOwner = profileData?.userId === detailData?.boardUser?.id;
 
+  
   // 좋아요 개수 초기화
   useEffect(() => {
     // state에서 받은 좋아요 정보가 있으면 우선 사용, 없으면 detailData 사용
@@ -79,6 +82,10 @@ export default function FeedDetail() {
         });
     }
   }, [detailData?.id, likeInfoFromState?.isLiked]);
+
+    useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [boardId]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
@@ -263,6 +270,14 @@ export default function FeedDetail() {
 
   return (
     <>
+      {/* ✅ 페이지 전체 슬라이드 애니메이션은 여기만 */}
+      <motion.div
+        initial={{ x: 40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: -20, opacity: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="min-h-screen bg-gray-100 pb-[72px]" // ✅ 댓글창 높이만큼 padding 추가
+      >
       <BackHeader title="게시글" />
       {/* 프로필 헤더 */}
       <Card className="rounded-none shadow-none border-none bg-gray-100 ">
@@ -398,7 +413,7 @@ export default function FeedDetail() {
               ))}
           </div>
           {/* 댓글 입력창 */}
-          <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} />
+          {/* <CommentInput parentId={replyTargetId} onSubmitSuccess={handleCommentSubmitSuccess} onCancelReply={() => setReplyTargetId(null)} /> */}
         </CardContent>
       </Card>
 
@@ -532,6 +547,13 @@ export default function FeedDetail() {
           </div>
         </div>
       )}
+    </motion.div>
+
+      <CommentInput
+        parentId={replyTargetId}
+        onSubmitSuccess={handleCommentSubmitSuccess}
+        onCancelReply={() => setReplyTargetId(null)}
+      />
     </>
   );
 }

@@ -94,30 +94,43 @@ export default function CommentInput({ parentId, onOptimisticSubmit, onSubmitSuc
   };
 
   return (
-    <Card className="absolute bottom-0 left-1/2 z-40 w-full max-w-[360px] -translate-x-1/2 rounded-none border-t-2 border-x-0 border-b-0  border-gray-200 bg-gray-100">
-      <CardContent className="gap-0 px-2 py-2">
-        <div className="flex w-full items-center gap-3">
-          {profileImageUrl ? (
-            <img className="h-10 w-10 rounded-full object-cover" src={profileImageUrl} alt={profileData?.nickname ?? '프로필 이미지'} />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-aqua-300 p-1.5">
-              <FaPaw className="h-7 w-7 text-aqua-300" />
+     <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center">
+      <Card className="w-full max-w-[360px] rounded-none border-t-2 border-x-0 border-b-0 border-gray-200 bg-gray-100">
+        <CardContent className="gap-0 px-2 py-2">
+          <div className="flex w-full items-center gap-3">
+            {profileImageUrl ? (
+              <img
+                className="h-10 w-10 rounded-full object-cover"
+                src={profileImageUrl}
+                alt={profileData?.nickname ?? '프로필 이미지'}
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-aqua-300 p-1.5">
+                <FaPaw className="h-7 w-7 text-aqua-300" />
+              </div>
+            )}
+
+            <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2">
+              <Input
+                ref={inputRef}
+                value={content}
+                onChange={handleCommentChange}
+                placeholder={parentId ? '답글을 입력하세요...' : '댓글을 입력하세요...'}
+                className="h-8 flex-1 border-0 bg-transparent px-0 py-0 p2-b text-aqua-500 placeholder:text-gray-300 placeholder:p2-b focus-visible:ring-0"
+              />
+              <Button
+                tone="aqua"
+                shape="pillSolid"
+                size="sm"
+                onClick={handleCommentSubmit}
+                disabled={isSubmitting || !content.trim()}
+              >
+                게시
+              </Button>
             </div>
-          )}
-          <div className="flex flex-1 items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-4 py-2">
-            <Input
-              ref={inputRef}
-              value={content}
-              onChange={handleCommentChange}
-              placeholder={parentId ? '답글을 입력하세요...' : '댓글을 입력하세요...'}
-              className="h-8 flex-1 border-0 bg-transparent px-0 py-0 p2-b text-aqua-500 placeholder:text-gray-300 placeholder:p2-b focus-visible:ring-0"
-            />
-            <Button tone="aqua" shape="pillSolid" size="sm" onClick={handleCommentSubmit} disabled={isSubmitting || !content.trim()}>
-              게시
-            </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

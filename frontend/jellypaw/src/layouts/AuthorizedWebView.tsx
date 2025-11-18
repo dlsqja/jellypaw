@@ -1,23 +1,37 @@
 // src/layouts/AuthorizedWebView.tsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import WebView, { WebViewProps, WebViewMessageEvent } from 'react-native-webview';
+import WebView, { WebViewProps, WebViewMessageEvent, WebViewNavigation } from 'react-native-webview';
 import { getAccessToken, clearTokens } from '../lib/tokenStorage';
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, BackHandler, Platform } from 'react-native';
 import { queryClient } from '../lib/queryClient';
 import { resetToKakaoLogin } from '../navigation/navigationRef';
 import { navigationRef, getActiveRoutePath } from '../navigation/navigationRef';
 
-type Props = WebViewProps & { uri: string };
 type RootNav = NativeStackNavigationProp<RootStackParamList>;
+type Props = WebViewProps & {
+  uri: string;
+  /** 안드로이드 하드웨어 뒤로가기를 WebView history에 먼저 위임할지 여부 */
+  enableWebBack?: boolean;
+};
 
-export default function AuthorizedWebView({ uri, ...rest }: Props) {
+export default function AuthorizedWebView({
+  uri,
+  enableWebBack = true,
+  onMessage,                 // 외부에서 넘어올 수 있는 이벤트 핸들러들 분리
+  onNavigationStateChange,
+  ...rest
+}: Props) {
   const [token, setToken] = useState<string | null>(null);
   const navigation = useNavigation<RootNav>();
   const webRef = useRef<WebView>(null);
   const loggingOutRef = useRef(false);
+
+  // 🔹 WebView 뒤로가기 가능 여부
+  const [canGoBack, setCanGoBack] = useState(false);
+
   useEffect(() => {
     (async () => {
       try {
@@ -29,24 +43,40 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
     })();
   }, []);
 
+  // 🔹 안드로이드 하드웨어 뒤로가기 → WebView history 우선 소비
+  useEffect(() => {
+    if (!enableWebBack || Platform.OS !== 'android') return;
+
+    const onBackPress = () => {
+      if (canGoBack && webRef.current) {
+        webRef.current.goBack();
+        return true; // RN 쪽으로 이벤트 안 넘김 (앱 종료 방지)
+      }
+      // WebView 히스토리가 없으면 RN 네비게이션이 처리하도록 false
+      return false;
+    };
+
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [enableWebBack, canGoBack]);
+
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
-
       const boardId = payload?.boardId;
       if (!boardId) return;
 
       webRef.current?.injectJavaScript(`
-      (function() {
-        try {
-          const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
-          window.dispatchEvent(event);
-          console.log('[WEB] FEED_UPDATED event dispatched for boardId=${boardId}');
-        } catch (e) {
-          console.log('[WEB] FEED_UPDATED dispatch error', e);
-        }
-      })();
-      true;
-    `);
+        (function() {
+          try {
+            const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
+            window.dispatchEvent(event);
+            console.log('[WEB] FEED_UPDATED event dispatched for boardId=${boardId}');
+          } catch (e) {
+            console.log('[WEB] FEED_UPDATED dispatch error', e);
+          }
+        })();
+        true;
+      `);
     });
 
     return () => {
@@ -92,51 +122,56 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
       }
 
       if (msg.type === 'LOGOUT_REQUEST') {
-          if (loggingOutRef.current) return; // 중복 방지
-       loggingOutRef.current = true;
+        if (loggingOutRef.current) return; // 중복 방지
+        loggingOutRef.current = true;
+
         // 1) 네이티브 토큰 제거
         await clearTokens();
-          setToken(null);
+        setToken(null);
+        queryClient.clear();
 
-          queryClient.clear();
-
-       // 1) 네이티브 네비게이션을 가장 먼저 확실히 리셋
+        // 2) 네이티브 네비 리셋
         resetToKakaoLogin();
-               // 2) 웹뷰 쪽은 페이지 전환만 막고 스토리지만 정리 (리다이렉트는 굳이 안 해도 됨)
-       webRef.current?.injectJavaScript(`
-         try {
-           localStorage.removeItem('accessToken');
-           localStorage.removeItem('refreshToken');
-         } catch(e) {}
-         true;
-       `);
-       // 3) 혹시라도 ref 준비 전이라 reset 못 탔을 상황을 대비한 폴백 (현재 네비 인스턴스로)
-       try {
-         setTimeout(() => {
-            
-           // 중첩 상태까지 정확히 지정
-           (navigation as any).reset?.({
-             index: 0,
-             routes: [
-               {
-                 name: 'AuthStack',
-                 params: { screen: 'KakaoLogin' },
-               },
-             ],
-           });
 
-         }, 0);
-       } catch (e) {
+        // 3) WebView 쪽 로컬스토리지 토큰 제거
+        webRef.current?.injectJavaScript(`
+          try {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+          } catch(e) {}
+          true;
+        `);
 
-       }
+        // 4) 폴백 네비게이션 리셋
+        try {
+          setTimeout(() => {
+            (navigation as any).reset?.({
+              index: 0,
+              routes: [
+                {
+                  name: 'AuthStack',
+                  params: { screen: 'KakaoLogin' },
+                },
+              ],
+            });
+          }, 0);
+        } catch (e) {}
 
         return;
       }
-
     } catch (e) {
+      // JSON 파싱 실패한 경우 그냥 외부 onMessage로 넘겨줌
     }
 
-    rest.onMessage?.(event);
+    // 🔹 외부에서 넘어온 onMessage도 호출
+    onMessage?.(event);
+  };
+
+  // 🔹 WebView navigation 상태 변경 핸들러
+  const handleNavStateChange = (navState: WebViewNavigation) => {
+    setCanGoBack(navState.canGoBack);
+    // 바깥에서 onNavigationStateChange 넘겨준 경우도 함께 호출
+    onNavigationStateChange?.(navState);
   };
 
   return (
@@ -151,6 +186,7 @@ export default function AuthorizedWebView({ uri, ...rest }: Props) {
       cacheMode="LOAD_NO_CACHE"
       injectedJavaScript={injectedJavaScript}
       onMessage={handleMessage}
+      onNavigationStateChange={handleNavStateChange}
       allowsInlineMediaPlayback={true}
       mediaPlaybackRequiresUserAction={false}
       onError={(syntheticEvent) => {

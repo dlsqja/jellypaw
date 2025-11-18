@@ -66,11 +66,12 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
     nav.goBack();
   };
 
-  // 이미지 처리 (리사이징 + 압축)
-  const processImage = async (imageUri: string): Promise<string> => {
+  // 이미지 처리 (크롭 + 리사이징 + 압축)
+  const processImage = async (imageUri: string, isFromCamera: boolean = false): Promise<string> => {
     try {
-      console.log('[ScanCameraScreen] 이미지 처리 시작 (리사이징 + 압축)...');
+      console.log('[ScanCameraScreen] 이미지 처리 시작 (크롭 + 리사이징 + 압축)...');
       console.log('[ScanCameraScreen] 원본 URI:', imageUri);
+      console.log('[ScanCameraScreen] 카메라 촬영 여부:', isFromCamera);
 
       // react-native-image-manipulator 모듈 확인
       if (!RNImageManipulator || typeof RNImageManipulator.manipulate !== 'function') {
@@ -78,9 +79,86 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
         return imageUri;
       }
 
-      // react-native-image-manipulator가 자동으로 EXIF orientation 처리
-      // 최대 너비 1920px로 리사이징 (원본 비율 유지)
-      const manipulatedImage = await RNImageManipulator.manipulate(imageUri, [{ resize: { width: 1920 } }], {
+      // 먼저 이미지 크기 정보 가져오기
+      const Image = require('react-native').Image;
+      const imageSize = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+        Image.getSize(
+          imageUri,
+          (width: number, height: number) => resolve({ width, height }),
+          (error: any) => reject(error),
+        );
+      });
+
+      console.log('[ScanCameraScreen] 원본 이미지 크기:', imageSize);
+
+      let manipulations: any[] = [];
+
+      // 카메라로 촬영한 경우에만 가이드라인 영역만 크롭
+      if (isFromCamera) {
+        // 가이드라인 영역 계산 (프리뷰 기준)
+        // 가이드라인: top 20%, bottom 20%, left 10%, right 10%
+        const guideTop = SCREEN_HEIGHT * 0.2;
+        const guideBottom = SCREEN_HEIGHT * 0.2;
+        const guideLeft = SCREEN_WIDTH * 0.1;
+        const guideRight = SCREEN_WIDTH * 0.1;
+
+        // 가이드라인 내부 영역 (사용자가 보는 영역)
+        const guideWidth = SCREEN_WIDTH - guideLeft - guideRight; // 80% 너비
+        const guideHeight = SCREEN_HEIGHT - guideTop - guideBottom; // 60% 높이
+        const guideAspectRatio = guideWidth / guideHeight;
+
+        // 실제 촬영된 이미지의 aspect ratio
+        const imageAspectRatio = imageSize.width / imageSize.height;
+
+        console.log('[ScanCameraScreen] 가이드라인 영역:', { guideWidth, guideHeight, guideAspectRatio });
+        console.log('[ScanCameraScreen] 촬영 이미지:', { width: imageSize.width, height: imageSize.height, imageAspectRatio });
+
+        // 촬영된 이미지가 가이드라인 영역보다 넓은 경우, 가이드라인 비율에 맞춰 크롭
+        if (imageAspectRatio > guideAspectRatio) {
+          // 이미지가 더 넓음 → 좌우를 잘라서 가이드라인 비율에 맞춤
+          const targetWidth = imageSize.height * guideAspectRatio;
+          const cropX = (imageSize.width - targetWidth) / 2;
+          const cropY = 0;
+          const cropWidth = targetWidth;
+          const cropHeight = imageSize.height;
+
+          console.log('[ScanCameraScreen] 이미지 크롭 (좌우):', { cropX, cropY, cropWidth, cropHeight, targetAspectRatio: guideAspectRatio });
+          manipulations.push({
+            crop: {
+              originX: cropX,
+              originY: cropY,
+              width: cropWidth,
+              height: cropHeight,
+            },
+          });
+        } else if (imageAspectRatio < guideAspectRatio) {
+          // 이미지가 더 높음 → 상하를 잘라서 가이드라인 비율에 맞춤
+          const targetHeight = imageSize.width / guideAspectRatio;
+          const cropX = 0;
+          const cropY = (imageSize.height - targetHeight) / 2;
+          const cropWidth = imageSize.width;
+          const cropHeight = targetHeight;
+
+          console.log('[ScanCameraScreen] 이미지 크롭 (상하):', { cropX, cropY, cropWidth, cropHeight, targetAspectRatio: guideAspectRatio });
+          manipulations.push({
+            crop: {
+              originX: cropX,
+              originY: cropY,
+              width: cropWidth,
+              height: cropHeight,
+            },
+          });
+        } else {
+          // 비율이 동일하면 크롭 불필요
+          console.log('[ScanCameraScreen] 이미지 비율이 가이드라인과 동일하여 크롭 불필요');
+        }
+      }
+
+      // 리사이징 (최대 너비 1920px)
+      manipulations.push({ resize: { width: 1920 } });
+
+      // 이미지 처리 실행
+      const manipulatedImage = await RNImageManipulator.manipulate(imageUri, manipulations, {
         compress: 0.8, // 80% 품질로 압축
         format: 'jpeg', // JPEG 형식으로 저장
       });
@@ -133,8 +211,8 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
       const imageUri = `file://${photo.path}`;
       console.log('[ScanCameraScreen] 촬영 완료, 이미지 URI:', imageUri);
 
-      // 이미지 처리 (리사이징 + 압축)
-      const processedUri = await processImage(imageUri);
+      // 이미지 처리 (크롭 + 리사이징 + 압축) - 카메라 촬영이므로 크롭 적용
+      const processedUri = await processImage(imageUri, true);
 
       setPhotoUri(imageUri);
       setProcessedPhotoUri(processedUri);
@@ -185,8 +263,8 @@ export default function ScanCameraScreen({ navigation: nav, route }: Props) {
           setIsProcessing(true);
           console.log('[ScanCameraScreen] 이미지 선택 완료, URI:', imageUri);
 
-          // 이미지 처리 (리사이징 + 압축)
-          const processedUri = await processImage(imageUri);
+          // 이미지 처리 (리사이징 + 압축) - 갤러리 선택이므로 크롭 없음
+          const processedUri = await processImage(imageUri, false);
 
           setPhotoUri(imageUri);
           setProcessedPhotoUri(processedUri);
