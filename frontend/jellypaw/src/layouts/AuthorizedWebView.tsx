@@ -61,28 +61,60 @@ export default function AuthorizedWebView({
   }, [enableWebBack, canGoBack]);
 
   useEffect(() => {
-    const sub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
-      const boardId = payload?.boardId;
-      if (!boardId) return;
+  const feedUpdatedSub = DeviceEventEmitter.addListener('FEED_UPDATED', (payload) => {
+    const boardId = payload?.boardId;
+    if (!boardId) return;
 
-      webRef.current?.injectJavaScript(`
-        (function() {
-          try {
-            const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
-            window.dispatchEvent(event);
-            console.log('[WEB] FEED_UPDATED event dispatched for boardId=${boardId}');
-          } catch (e) {
-            console.log('[WEB] FEED_UPDATED dispatch error', e);
-          }
-        })();
-        true;
-      `);
-    });
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          const event = new CustomEvent('FEED_UPDATED', { detail: { boardId: ${boardId} } });
+          window.dispatchEvent(event);
+          console.log('[WEB] FEED_UPDATED event dispatched for boardId=${boardId}');
+        } catch (e) {
+          console.log('[WEB] FEED_UPDATED dispatch error', e);
+        }
+      })();
+      true;
+    `);
+  });
 
-    return () => {
-      sub.remove();
-    };
-  }, []);
+  const clearFeedScrollSub = DeviceEventEmitter.addListener('CLEAR_FEED_SCROLL', () => {
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          sessionStorage.removeItem('feed-scroll-top');
+          console.log('[WEB] CLEAR_FEED_SCROLL: feed scroll memory cleared');
+        } catch (e) {
+          console.log('[WEB] CLEAR_FEED_SCROLL error', e);
+        }
+      })();
+      true;
+    `);
+  });
+
+  const feedScrollToTopSub = DeviceEventEmitter.addListener('FEED_SCROLL_TO_TOP', () => {
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          const event = new CustomEvent('FEED_SCROLL_TO_TOP');
+          window.dispatchEvent(event);
+          console.log('[WEB] FEED_SCROLL_TO_TOP event dispatched');
+        } catch (e) {
+          console.log('[WEB] FEED_SCROLL_TO_TOP dispatch error', e);
+        }
+      })();
+      true;
+    `);
+  });
+
+  return () => {
+    feedUpdatedSub.remove();
+    clearFeedScrollSub.remove();
+    feedScrollToTopSub.remove();
+  };
+}, []);
+
 
   const injectedJavaScript = useMemo(
     () => `

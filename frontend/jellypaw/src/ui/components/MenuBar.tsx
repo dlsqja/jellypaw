@@ -10,6 +10,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Feather from 'react-native-vector-icons/Feather';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
+import { DeviceEventEmitter } from 'react-native';
 
 type MenuKey = 'feed' | 'search' | 'pet' | 'mypage' | 'undefined';
 
@@ -35,30 +36,42 @@ export default function MenuBar() {
   const activeKey = getActiveKey();
   const color = (k: MenuKey) => (activeKey === k ? ACTIVE : INACTIVE);
 
+  const clearFeedScroll = () => {
+    DeviceEventEmitter.emit('CLEAR_FEED_SCROLL');
+  };
+
   // 동물관리 → PetNavigator로 이동
   const handlePetPress = () => {
+    clearFeedScroll();
     if (route.name === 'PetStack') return;
     navigation.navigate('PetStack');
   };
 
   // + 버튼 → FeedWriteNavigator의 SelectCategory로 이동
   const handleWritePress = () => {
+    clearFeedScroll();
     if (route.name === 'FeedWriteStack') return;
     navigation.navigate('FeedWriteStack', { screen: 'SelectCategory' });
   };
 
   // 피드
   const handleFeedPress = () => {
-    navigation.navigate('FeedStack', { screen: 'Feed' });
+    if (route.name === 'FeedStack') {
+      DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
+    } else {
+      navigation.navigate('FeedStack', { screen: 'Feed' });
+    }
   };
 
-  // 검색 → 추후 웹뷰 구현 예정
+  // 검색
   const handleSearchPress = () => {
+    clearFeedScroll();
     navigation.navigate('SearchStack', { screen: 'Search' });
   };
 
-  // 내 공간 → 추후 웹뷰 구현 예정
+  // 내 공간
   const handleMyPagePress = () => {
+    clearFeedScroll(); 
     navigation.navigate('MypageStack', { screen: 'Mypage' });
   };
 
