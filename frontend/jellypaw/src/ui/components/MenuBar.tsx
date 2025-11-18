@@ -154,11 +154,12 @@ const S = StyleSheet.create({
   },
   fabContainer: {
     flex: 1,
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     justifyContent: 'center',
     height: '80%', // 전체 높이 사용
     marginHorizontal: -4, // 음수 마진으로 간격 줄이기 (값을 더 줄이면 간격이 더 좁아짐)
+    marginTop: 12,
   },
   fab: {
     width: 48,
