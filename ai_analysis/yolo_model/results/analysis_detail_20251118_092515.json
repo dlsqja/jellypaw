@@ -1,0 +1,22 @@
+{
+  "status": "SUCCESS",
+  "image_info": {
+    "warped_size": "600x1000"
+  },
+  "color_correction": {
+    "gray_measured": [
+      188.55,
+      127.14,
+      128.48
+    ],
+    "correction_applied": [
+      0.6788526533105732,
+      0.864155251141554,
+      -0.4792889758643071
+    ]
+  },
+  "reference_extracted": {},
+  "analysis_count": 0,
+  "detections": [],
+  "frontend_summary": []
+}
