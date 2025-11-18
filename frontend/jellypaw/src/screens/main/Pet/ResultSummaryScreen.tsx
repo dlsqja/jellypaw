@@ -124,7 +124,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
         const result = list.find((item) => item.id === analysisId);
 
         if (!result) {
-          throw new Error('분석 결과를 찾을 수 없습니다.');
+          throw new Error('분석 결과를 찾을 수 없습니다. 분석이 아직 진행 중일 수 있습니다.');
         }
 
         setAnalysisData(result);

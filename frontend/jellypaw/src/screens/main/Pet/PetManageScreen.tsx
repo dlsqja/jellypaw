@@ -46,9 +46,10 @@ const formatGender = (g: any) =>
 
 const formatSpecies = (s: any) => (s === 'CAT' ? '고양이' : s === 'DOG' ? '강아지' : '기타');
 
-export default function PetManageScreen({ navigation }: any) {
-  const [activeTab, setActiveTab] = useState<'info' | 'health'>('info');
-  const [selectedPetId, setSelectedPetId] = useState<number>(0);
+export default function PetManageScreen({ navigation, route }: any) {
+  const routeParams = route?.params;
+  const [activeTab, setActiveTab] = useState<'info' | 'health'>(routeParams?.activeTab || 'info');
+  const [selectedPetId, setSelectedPetId] = useState<number>(routeParams?.petId || 0);
 
   const [showIntroSheet, setShowIntroSheet] = useState(false);
   const [showStepSheet, setShowStepSheet] = useState(false);
@@ -69,6 +70,16 @@ export default function PetManageScreen({ navigation }: any) {
       setSelectedPetId(pets[0].petId ?? 0);
     }
   }, [isListLoading, pets, selectedPetId]);
+
+  // route params가 변경되면 탭과 선택된 펫 업데이트
+  useEffect(() => {
+    if (routeParams?.activeTab) {
+      setActiveTab(routeParams.activeTab);
+    }
+    if (routeParams?.petId) {
+      setSelectedPetId(routeParams.petId);
+    }
+  }, [routeParams]);
 
   const tabs: TabItem[] = [
     { id: 'info', label: '동물 정보' },

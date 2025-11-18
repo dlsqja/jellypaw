@@ -8,11 +8,15 @@ import EditPetScreen from '../screens/main/Pet/EditPetScreen';
 import MainLayout from '../layouts/MainLayout';
 import ScanCameraScreen from '../screens/main/Pet/ScanCameraScreen';
 import ScanLoadingScreen from '../screens/main/Pet/ScanLoadingScreen';
+import ScanCompleteScreen from '../screens/main/Pet/ScanCompleteScreen';
 import ResultSummaryScreen from '../screens/main/Pet/ResultSummaryScreen';
 import ResultDetailScreen from '../screens/main/Pet/ResultDetailScreen';
 
 export type PetStackParamList = {
-  Pets: undefined;
+  Pets: {
+    activeTab?: 'info' | 'health';
+    petId?: number;
+  } | undefined;
   AddPet: undefined;
   EditPet: undefined;
   ScanCamera: { 
@@ -20,6 +24,10 @@ export type PetStackParamList = {
   };
   ScanLoading: {
     imageUri: string;
+    petId?: number;
+  };
+  ScanComplete: {
+    analysisId: string;
     petId?: number;
   };
   ResultSummary: {
@@ -76,6 +84,14 @@ export default function PetNavigator() {
       <Stack.Screen
         name="ScanLoading"
         component={ScanLoadingScreen}
+        options={{
+          presentation: 'fullScreenModal',
+        }}
+      />
+
+      <Stack.Screen
+        name="ScanComplete"
+        component={ScanCompleteScreen}
         options={{
           presentation: 'fullScreenModal',
         }}
