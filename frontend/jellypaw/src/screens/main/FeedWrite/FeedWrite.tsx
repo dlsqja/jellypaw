@@ -490,7 +490,12 @@ export default function FeedWrite({ route, navigation }: Props) {
       <View style={styles.container}>
         <BackHeader title={mode === 'edit' ? '피드 수정' : '피드 작성'} />
 
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
           {/* 날짜 및 카테고리 */}
           <View style={styles.dateSection}>
             <View style={styles.dateRow}>

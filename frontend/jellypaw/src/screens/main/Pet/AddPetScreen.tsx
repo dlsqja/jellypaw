@@ -95,7 +95,8 @@ export default function AddPetScreen() {
 
       <ScrollView
         contentContainerStyle={[{ paddingBottom: 40 }, S.scrollContent]}
-        keyboardShouldPersistTaps="always"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* 프로필 사진 */}
         <View

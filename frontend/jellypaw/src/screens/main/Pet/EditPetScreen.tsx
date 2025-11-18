@@ -195,7 +195,11 @@ export default function EditPetScreen() {
     <View style={{ flex: 1, backgroundColor: palette.gray100 }}>
       <BackHeader title="동물 정보 수정" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {/* 프로필 사진 */}
         <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 8 }}>
           <PhotoPicker
