@@ -46,26 +46,31 @@ export default function Feed() {
   }, [loadFeeds]);
 
   useLayoutEffect(() => {
-  if (restoredRef.current) return;
-
   const container = document.getElementById('app-scroll-container');
 
-  if (feeds.length === 0 || !container) {
+  // 스크롤 컨테이너 자체가 없으면 그냥 보여만 주고 종료
+  if (!container) {
     setIsScrollReady(true);
-    restoredRef.current = true;
     return;
   }
 
   const raw = window.sessionStorage.getItem(FEED_SCROLL_KEY);
   const saved = raw ? Number(raw) : 0;
 
-  if (!Number.isNaN(saved)) {
-    container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
+  if (feeds.length === 0) {
+    setIsScrollReady(true);
+    return;
   }
 
-  restoredRef.current = true;
-  setIsScrollReady(true);
+  if (!restoredRef.current) {
+    if (!Number.isNaN(saved)) {
+      container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
+    }
+    restoredRef.current = true;
+    setIsScrollReady(true);
+  }
 }, [feeds.length]);
+
 
 
   useEffect(() => {
