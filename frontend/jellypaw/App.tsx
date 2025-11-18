@@ -6,6 +6,8 @@ import Toast from 'react-native-toast-message';
 import RootNavigator from './src/navigation/RootNavigator';
 import { QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query';
 import { getMessaging, onMessage } from '@react-native-firebase/messaging';
+import { navigationRef } from './src/navigation/navigationRef';
+import { CommonActions } from '@react-navigation/native';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,15 +61,62 @@ export default function App() {
 
       const { notification, data } = remoteMessage || {};
 
-      // 알림 타입은 구분하지 않고, 제목/본문만 토스트로 노출
-      if (notification?.title || notification?.body) {
+      // 분석 완료 알림인지 확인 (data에 analysisId와 petId가 있는 경우)
+      if (data?.analysisId && data?.petId) {
+        console.log('[FCM] 분석 완료 알림 수신', { analysisId: data.analysisId, petId: data.petId });
+        
+        // 토스트 메시지 표시
         Toast.show({
-          type: 'info',
-          text1: notification?.title ?? '새 알림',
-          text2: notification?.body,
+          type: 'success',
+          text1: notification?.title ?? '분석 완료',
+          text2: notification?.body ?? '소변 검사 분석이 완료되었습니다.',
+          onPress: () => {
+            // 토스트 클릭 시 결과 화면으로 이동
+            navigateToResultSummary(data.analysisId, data.petId);
+          },
         });
+
+        // 2초 후 자동으로 결과 화면으로 이동
+        setTimeout(() => {
+          navigateToResultSummary(data.analysisId, data.petId);
+        }, 2000);
+      } else {
+        // 일반 알림은 토스트로만 표시
+        if (notification?.title || notification?.body) {
+          Toast.show({
+            type: 'info',
+            text1: notification?.title ?? '새 알림',
+            text2: notification?.body,
+          });
+        }
       }
     });
+
+    // 결과 화면으로 이동하는 헬퍼 함수
+    const navigateToResultSummary = (analysisId: string, petId: string) => {
+      if (!navigationRef.isReady()) {
+        console.log('[FCM] Navigation not ready, retrying...');
+        setTimeout(() => navigateToResultSummary(analysisId, petId), 500);
+        return;
+      }
+
+      try {
+        navigationRef.dispatch(
+          CommonActions.navigate({
+            name: 'PetStack',
+            params: {
+              screen: 'ResultSummary',
+              params: {
+                analysisId,
+                petId: parseInt(petId, 10),
+              },
+            },
+          }),
+        );
+      } catch (error) {
+        console.error('[FCM] Navigation error:', error);
+      }
+    };
 
     // FCM 메시지 수신 해제
     return () => {

@@ -5,21 +5,23 @@ import {
   StyleSheet,
   Animated,
   Easing,
-  Pressable,
 } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PetStackParamList } from '../../../navigation/PetNavigator';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { palette, theme } from '../../../ui/system/variants';
 import { analyzeUrineTest } from '../../../services/api/pet';
 import Toast from 'react-native-toast-message';
+import { Button } from '../../../ui/components/Button';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ScanLoading'>;
 
 export default function ScanLoadingScreen({ navigation, route }: Props) {
   const { imageUri, petId } = route.params;
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -44,36 +46,40 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
     const callAnalysisAPI = async () => {
       try {
         setIsAnalyzing(true);
-        console.log('[ScanLoadingScreen] 분석 시작', { imageUri, petId });
+        setHasError(false);
+        console.log('[ScanLoadingScreen] 분석 요청 시작', { imageUri, petId });
 
         const result = await analyzeUrineTest(petId, imageUri);
         
-        console.log('[ScanLoadingScreen] 분석 완료', result);
+        console.log('[ScanLoadingScreen] 분석 요청 완료', result);
 
-        // 성공 시 결과 화면으로 이동
-        navigation.replace('ResultSummary', {
+        // 분석 완료 알림
+        Toast.show({
+          type: 'success',
+          text1: '검사 완료',
+          text2: '소변 검사 분석이 완료되었습니다.',
+        });
+
+        // 분석 완료 화면으로 이동
+        navigation.replace('ScanComplete', {
           analysisId: result.id,
           petId,
         });
       } catch (error: any) {
-        console.error('[ScanLoadingScreen] 분석 실패', error);
+        console.error('[ScanLoadingScreen] 분석 요청 실패', error);
+        setHasError(true);
         
         // 에러 처리
         const errorMessage =
           error?.response?.data?.message ||
           error?.message ||
-          '분석 중 오류가 발생했습니다.';
+          '분석 요청 중 오류가 발생했습니다.';
 
         Toast.show({
           type: 'error',
-          text1: '분석 실패',
+          text1: '분석 요청 실패',
           text2: errorMessage,
         });
-
-        // 에러 발생 시 이전 화면으로 돌아가기
-        setTimeout(() => {
-          navigation.goBack();
-        }, 2000);
       } finally {
         setIsAnalyzing(false);
       }
@@ -82,14 +88,8 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
     callAnalysisAPI();
   }, [imageUri, petId, navigation, isAnalyzing]);
 
-  const handleDevSkip = () => {
-    // 개발용 더미 이동 (분석 중이 아닐 때만)
-    if (!isAnalyzing) {
-      navigation.replace('ResultSummary', {
-        analysisId: 'dummy-analysis-id',
-        petId,
-      });
-    }
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   const getPawAnim = (start: number) => {
@@ -114,9 +114,35 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
   const paw2 = getPawAnim(1);
   const paw3 = getPawAnim(2);
 
+  // 에러 상태
+  if (hasError && !isAnalyzing) {
+    return (
+      <View style={S.root}>
+        <View style={S.card}>
+          <View style={S.iconCircle}>
+            <Ionicons name="close-circle" size={64} color={palette.pink400} />
+          </View>
+          <Text weight="bold" style={S.title}>
+            분석 실패
+          </Text>
+          <Text style={S.subTitle}>다시 시도해주세요.</Text>
+          <View style={S.buttonContainer}>
+            <Button
+              tone="aqua"
+              shape="pillSolid"
+              size="default"
+              title="돌아가기"
+              onPress={handleGoBack}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // 로딩 상태
   return (
-    <Pressable style={S.root} onPress={handleDevSkip}>
-      {/* ⬆️ 개발 중엔 어디 눌러도 다음 화면으로 이동 */}
+    <View style={S.root}>
       <View style={S.card}>
         <View style={S.textBlock}>
           <Text weight="bold" style={S.title}>
@@ -192,7 +218,7 @@ export default function ScanLoadingScreen({ navigation, route }: Props) {
 
         <View style={S.bottomSpacer} />
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -247,5 +273,15 @@ const S = StyleSheet.create({
     paddingTop: 16,
     height: 20,
     width: 256,
+  },
+  iconCircle: {
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonContainer: {
+    marginTop: 32,
+    width: '100%',
+    paddingHorizontal: 20,
   },
 });
