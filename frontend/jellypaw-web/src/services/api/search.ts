@@ -7,6 +7,8 @@ import type {
   GetPlaceFeedsResponse,
   SearchUsersWithCursorParams,
   SearchUsersWithCursorResponse,
+  SearchPlacesWithCursorParams,
+  SearchPlacesWithCursorResponse,
 } from '@/types/search';
 
 interface ApiResponse<T> {
@@ -59,10 +61,34 @@ export const searchUsersDetail = async (nickname: string): Promise<SearchUsersDe
   return response.data.data;
 };
 
-// 장소 검색
+// 장소 검색 (기존 - 호환성 유지)
 export const searchPlaces = async (keyword: string, cursor?: number | 0): Promise<SearchPlacesResponse> => {
   const response = await apiClient.get(`/places/search/cursor?title=${keyword}&cursor=${cursor}`);
   console.log(response.data.data);
+  return response.data.data;
+};
+
+// 장소 검색 (무한 스크롤)
+export const searchPlacesWithCursor = async (params: SearchPlacesWithCursorParams): Promise<SearchPlacesWithCursorResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('title', params.title);
+  
+  if (params.cursor !== null && params.cursor !== undefined) {
+    queryParams.append('cursor', params.cursor.toString());
+  }
+  
+  const response = await apiClient.get<ApiResponse<SearchPlacesWithCursorResponse>>(`/places/search/cursor?${queryParams.toString()}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 빈 배열 반환
+  if (response.data.code !== 200 || !response.data.data) {
+    console.error('[searchPlacesWithCursor] API 응답 오류:', {
+      code: response.data.code,
+      message: response.data.message,
+      data: response.data.data,
+    });
+    return { places: [], nextCursor: null };
+  }
+  
   return response.data.data;
 };
 

@@ -1,15 +1,15 @@
 // src/screens/pet/AddPetScreen.tsx
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Platform, BackHandler, Pressable } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import { Text } from '../../../ui/components/Text';
 import Input from '../../../ui/components/Input';
 import { Button } from '../../../ui/components/Button';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
-import { palette } from '../../../ui/system/variants';
+import { palette, theme } from '../../../ui/system/variants';
 import Dropdown from '../../../ui/components/Dropdown';
 import { createPet } from '../../../services/api/pet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   launchCamera,
   launchImageLibrary,
@@ -24,14 +24,32 @@ export default function AddPetScreen() {
   const qc = useQueryClient(); 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
 
+  // Android 하드웨어 뒤로가기 처리
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (nav.canGoBack()) {
+          nav.goBack();
+          return true; // 이벤트 소비
+        }
+        return false; // 기본 동작 (앱 종료)
+      };
+
+      if (Platform.OS === 'android') {
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
+      }
+    }, [nav])
+  );
+
   const [animalType, setAnimalType] =
-    useState<'강아지' | '고양이' | '기타' | ''>('');
+    useState<'DOG' | 'CAT' | 'ETC' | ''>('');
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [gender, setGender] =
-    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
+    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '무성' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
 
   const onSave = async () => {
   if (!name.trim()) {
@@ -41,10 +59,12 @@ export default function AddPetScreen() {
 
   try {
     const species =
-      animalType === '강아지'
+      animalType === 'DOG'
         ? 'DOG'
-        : animalType === '고양이'
+        : animalType === 'CAT'
         ? 'CAT'
+        : animalType === 'ETC'
+        ? 'ETC'
         : undefined;
 
     const genderEnum =
@@ -56,6 +76,8 @@ export default function AddPetScreen() {
         ? 'MALE_NEUTERING'
         : gender === '여자(중성화)'
         ? 'FEMALE_NEUTERING'
+        : gender === '무성'
+        ? 'NON'
         : 'NON';
 
     const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
@@ -84,8 +106,8 @@ export default function AddPetScreen() {
 
 
   const breedPlaceholder = useMemo(() => {
-    if (animalType === '강아지') return '예: 골든 리트리버';
-    if (animalType === '고양이') return '예: 코리안 숏헤어';
+    if (animalType === 'DOG') return '예: 골든 리트리버';
+    if (animalType === 'CAT') return '예: 코리안 숏헤어';
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
@@ -152,7 +174,20 @@ export default function AddPetScreen() {
               );
             }}
           />
-          <View style={{ height: 20 }} />
+          {photoUri && (
+            <Pressable
+              onPress={() => {
+                setPhotoUri(null);
+              }}
+              hitSlop={6}
+              style={{ paddingTop: 16 }}
+              accessibilityRole="button"
+            >
+              <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
+                프로필 사진 제거
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* 기본 정보 */}
@@ -175,9 +210,9 @@ export default function AddPetScreen() {
               value={animalType}
               placeholder="선택하세요"
               options={[
-                { label: '강아지', value: '강아지' },
-                { label: '고양이', value: '고양이' },
-                { label: '기타', value: '기타' },
+                { label: '강아지', value: 'DOG' },
+                { label: '고양이', value: 'CAT' },
+                { label: '기타', value: 'ETC' },
               ]}
               onChange={setAnimalType}
             />
@@ -203,6 +238,7 @@ export default function AddPetScreen() {
                 { label: '여자', value: '여자' },
                 { label: '남자(중성화)', value: '남자(중성화)' },
                 { label: '여자(중성화)', value: '여자(중성화)' },
+                { label: '무성', value: '무성' },
               ]}
               onChange={setGender}
             />

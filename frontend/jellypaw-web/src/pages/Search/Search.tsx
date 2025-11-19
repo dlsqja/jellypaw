@@ -7,7 +7,7 @@ import { LuClock3 } from 'react-icons/lu';
 import { IoIosArrowForward } from 'react-icons/io';
 import { Spinner } from '@/components/ui/spinner';
 import { useSearchStore } from '@/store/searchStore';
-import { searchPlaces, searchUsers, searchUsersWithCursor } from '@/services/api/search';
+import { searchPlaces, searchUsers, searchUsersWithCursor, searchPlacesWithCursor } from '@/services/api/search';
 import type { SearchPlacesResponse, SearchUsersResponse } from '@/types/search';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 import { BsPersonCircle } from 'react-icons/bs';
@@ -28,9 +28,10 @@ export default function Search() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const skipNextSearchRef = useRef(0);
-  const [cursor, setCursor] = useState<number | null>(0); // 장소 검색용 cursor
+  const [placeCursor, setPlaceCursor] = useState<number | null>(null); // 장소 검색용 cursor
   const [userCursor, setUserCursor] = useState<number | null>(null); // 유저 검색용 cursor
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
+  const [hasMorePlaces, setHasMorePlaces] = useState(true);
   // 검색어 공백 제거
   const removeblank = (keyword: string) => keyword.trim();
   // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
@@ -66,26 +67,35 @@ export default function Search() {
       setResults([]);
       setPlaceResults([]);
       setIsLoading(false);
-      setCursor(null);
+      setPlaceCursor(null);
       setUserCursor(null);
       setHasMoreUsers(true);
+      setHasMorePlaces(true);
       return;
     }
 
     // 검색 타입 추출
     const searchType = extractSearchType(removedBlankSearchValue);
-    if (searchType === 'place' && cursor === null) {
-      setIsLoading(false);
-      return;
-    }
     
     // 유저 검색: userCursor가 null이 아니면 첫 검색이 아니므로 이 useEffect에서는 처리하지 않음
     if (searchType === 'user' && userCursor !== null) {
       return;
     }
     
+    // 장소 검색: placeCursor가 null이 아니면 첫 검색이 아니므로 이 useEffect에서는 처리하지 않음
+    if (searchType === 'place' && placeCursor !== null) {
+      return;
+    }
+    
     // 유저 검색: 첫 검색이 아니고 더 이상 데이터가 없으면 중단
     if (searchType === 'user' && userCursor === null && !hasMoreUsers && results.length > 0) {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      return;
+    }
+    
+    // 장소 검색: 첫 검색이 아니고 더 이상 데이터가 없으면 중단
+    if (searchType === 'place' && placeCursor === null && !hasMorePlaces && placeResults && placeResults.length > 0) {
       setIsLoading(false);
       setIsLoadingMore(false);
       return;
@@ -136,28 +146,30 @@ export default function Search() {
             setIsLoading(false);
           });
 
-        // 장소 검색 요청
+        // 장소 검색 요청 (첫 검색만 - cursor: null)
       } else {
-        const requestCursor = cursor ?? 0;
-        searchPlaces(removedBlankSearchValue, requestCursor)
-          .then((places) => {
-            const nextPlaces = places.places ?? [];
-            setPlaceResults(nextPlaces);
+        searchPlacesWithCursor({ title: removedBlankSearchValue, cursor: null })
+          .then((response) => {
+            const placeResults = response.places ?? [];
+            // 첫 검색: 결과 교체
+            setPlaceResults(placeResults);
             setResults([]);
-
-            console.log('places:', nextPlaces);
-
-            if (places.nextCursor == null) {
-              setCursor(null);
-            } else if (places.nextCursor !== cursor) {
-              setCursor(places.nextCursor);
+            
+            // nextCursor 업데이트
+            if (response.nextCursor === null) {
+              setHasMorePlaces(false);
+              setPlaceCursor(null);
+            } else {
+              setHasMorePlaces(true);
+              setPlaceCursor(response.nextCursor);
             }
+            console.log('[Search] 첫 검색 places:', placeResults, 'nextCursor:', response.nextCursor);
           })
           .catch((error) => {
-            console.log(error);
+            console.log('[Search] 장소 검색 오류:', error);
             setPlaceResults([]);
-            setCursor(null);
-            console.log('places error:', error);
+            setHasMorePlaces(false);
+            setPlaceCursor(null);
           })
           .finally(() => {
             setIsLoading(false);
@@ -168,9 +180,9 @@ export default function Search() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [removedBlankSearchValue, cursor]); // userCursor 제거 - 첫 검색만 처리
+  }, [removedBlankSearchValue]); // placeCursor, userCursor 제거 - 첫 검색만 처리
 
-  // 무한 스크롤: 스크롤 이벤트로 추가 데이터 로드
+  // 무한 스크롤: 유저 검색 - 스크롤 이벤트로 추가 데이터 로드
   useEffect(() => {
     // 유저 검색이 아니거나 더 이상 불러올 데이터가 없으면 리턴
     if (!isUserQuery || !hasMoreUsers || !removedBlankSearchValue || userCursor === null || results.length === 0) {
@@ -214,10 +226,10 @@ export default function Search() {
             } else {
               setUserCursor(response.nextCursor);
             }
-            console.log('[Search] 추가 로드 results:', userResults, 'nextCursor:', response.nextCursor);
+            console.log('[Search] 유저 추가 로드 results:', userResults, 'nextCursor:', response.nextCursor);
           })
           .catch((error) => {
-            console.log('[Search] 추가 로드 실패:', error);
+            console.log('[Search] 유저 추가 로드 실패:', error);
             setHasMoreUsers(false);
             setUserCursor(null);
           })
@@ -233,6 +245,64 @@ export default function Search() {
     };
   }, [isUserQuery, hasMoreUsers, removedBlankSearchValue, userCursor, results.length, isLoadingMore, isLoading]);
 
+  // 무한 스크롤: 장소 검색 - 스크롤 이벤트로 추가 데이터 로드
+  useEffect(() => {
+    // 장소 검색이 아니거나 더 이상 불러올 데이터가 없으면 리턴
+    if (isUserQuery || !hasMorePlaces || !removedBlankSearchValue || placeCursor === null || !placeResults || placeResults.length === 0) {
+      return;
+    }
+
+    const container = document.getElementById('app-scroll-container');
+    if (!container) {
+      return;
+    }
+
+    const handleScroll = () => {
+      // 이미 로딩 중이면 리턴
+      if (isLoadingMore || isLoading) {
+        return;
+      }
+
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      const scrollBottom = scrollHeight - scrollTop - clientHeight;
+
+      // 스크롤이 하단 200px 이내에 도달했을 때
+      if (scrollBottom < 200) {
+        setIsLoadingMore(true);
+
+        searchPlacesWithCursor({ title: removedBlankSearchValue, cursor: placeCursor })
+          .then((response) => {
+            const placeResults = response.places ?? [];
+            setPlaceResults((prev) => [...(prev || []), ...placeResults]);
+            
+            // nextCursor 업데이트
+            if (response.nextCursor === null) {
+              setHasMorePlaces(false);
+              setPlaceCursor(null);
+            } else {
+              setPlaceCursor(response.nextCursor);
+            }
+            console.log('[Search] 장소 추가 로드 places:', placeResults, 'nextCursor:', response.nextCursor);
+          })
+          .catch((error) => {
+            console.log('[Search] 장소 추가 로드 실패:', error);
+            setHasMorePlaces(false);
+            setPlaceCursor(null);
+          })
+          .finally(() => {
+            setIsLoadingMore(false);
+          });
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [isUserQuery, hasMorePlaces, removedBlankSearchValue, placeCursor, placeResults?.length ?? 0, isLoadingMore, isLoading]);
+
   return (
     <>
       <Header title="검색" />
@@ -245,10 +315,12 @@ export default function Search() {
           onChange={(e) => {
             skipNextSearchRef.current = 0;
             setSearchValue(e.target.value);
-            setCursor(0);
+            setPlaceCursor(null);
             setUserCursor(null);
             setHasMoreUsers(true);
+            setHasMorePlaces(true);
             setResults([]);
+            setPlaceResults([]);
           }}
         />
         {!hasKeyword && (
@@ -263,9 +335,10 @@ export default function Search() {
                 className="flex items-center justify-between cursor-pointer"
                 onClick={() => {
                   skipNextSearchRef.current = 0;
-                  setCursor(0);
+                  setPlaceCursor(null);
                   setUserCursor(null);
                   setHasMoreUsers(true);
+                  setHasMorePlaces(true);
                   setSearchValue(item.keyword);
                 }}
               >
@@ -377,6 +450,13 @@ export default function Search() {
                     </div>
                   </div>
                 ))}
+                {/* 무한 스크롤 로딩 인디케이터 */}
+                {isLoadingMore && (
+                  <div className="flex flex-col items-center justify-center py-4 gap-2">
+                    <Spinner className="size-5 text-aqua-500" />
+                    <span className="text-gray-300 caption1">더 불러오는 중...</span>
+                  </div>
+                )}
               </>
             )}
 

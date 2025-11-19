@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
+  Linking,
   Modal,
   Pressable,
   StyleSheet,
@@ -53,6 +54,27 @@ export default function HealthCheckIntroSheet({
       duration: 200,
       useNativeDriver: true,
     }).start(onClose);
+  };
+
+  const handleRequestKitPress = async () => {
+    const KIT_REQUEST_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdp5ux6WEQkiIvguVMuu-ldhkB7uYo_1TAP3qKQ0m_fyY2-Cw/viewform?pli=1';
+    
+    // prop으로 전달된 핸들러가 있으면 먼저 호출
+    if (onRequestKitPress) {
+      onRequestKitPress();
+    }
+    
+    // 외부 URL 열기
+    try {
+      const canOpen = await Linking.canOpenURL(KIT_REQUEST_URL);
+      if (canOpen) {
+        await Linking.openURL(KIT_REQUEST_URL);
+      } else {
+        console.error('[HealthCheckIntroSheet] Cannot open URL:', KIT_REQUEST_URL);
+      }
+    } catch (error) {
+      console.error('[HealthCheckIntroSheet] Error opening URL:', error);
+    }
   };
 
   if (!visible) return null;
@@ -133,7 +155,7 @@ export default function HealthCheckIntroSheet({
                 shape="pillOutline"
                 tone="lightAqua"
                 borderTone="default"
-                onPress={onRequestKitPress}
+                onPress={handleRequestKitPress}
                 style={S.subButton}
                 titleStyle={S.subButtonText}
               />

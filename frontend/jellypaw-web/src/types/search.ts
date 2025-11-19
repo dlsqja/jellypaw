@@ -70,3 +70,15 @@ export interface SearchUsersWithCursorResponse {
   users: SearchUsersResponse[];
   nextCursor: number | null;
 }
+
+// 장소 검색 무한 스크롤 파라미터
+export interface SearchPlacesWithCursorParams {
+  title: string;
+  cursor?: number | null;
+}
+
+// 장소 검색 무한 스크롤 응답
+export interface SearchPlacesWithCursorResponse {
+  places: SearchPlacesResponse['places'];
+  nextCursor: number | null;
+}
