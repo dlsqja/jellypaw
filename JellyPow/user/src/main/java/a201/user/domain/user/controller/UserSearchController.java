@@ -2,6 +2,7 @@ package a201.user.domain.user.controller;
 
 import a201.common.response.ApiResponse;
 import a201.user.domain.user.document.UserDocument;
+import a201.user.domain.user.dto.UserSearchResponse;
 import a201.user.domain.user.dto.UserSignupResponse;
 import a201.user.domain.user.service.UserSearchService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class UserSearchController {
 
     private final UserSearchService userSearchService;
 
-    // Elasticsearch로 유저 검색
+    // Elasticsearch로 유저 검색 (기존 메서드 - 호환성 유지)
     @GetMapping
     public ApiResponse<List<UserSignupResponse>> searchUsers(@RequestParam String nickname) {
         List<UserDocument> userDocuments = userSearchService.searchUsers(nickname);
@@ -35,6 +36,18 @@ public class UserSearchController {
                 .collect(Collectors.toList());
         
         return ApiResponse.success(responses);
+    }
+
+    // Elasticsearch로 유저 검색 (cursor 기반 - 무한스크롤용, 10개씩 반환)
+    @GetMapping("/cursor")
+    public ApiResponse<UserSearchResponse> searchUsersWithCursor(
+            @RequestParam String nickname,
+            @RequestParam(required = false) Long cursor) {
+        
+        List<UserDocument> userDocuments = userSearchService.searchUsersWithCursor(nickname, cursor);
+        UserSearchResponse response = UserSearchResponse.from(userDocuments);
+        
+        return ApiResponse.success(response);
     }
 
     // MySQL → Elasticsearch 전체 동기화 (관리자용)

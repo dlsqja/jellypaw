@@ -109,7 +109,7 @@ class UserApplicationTests {
     @Commit  // 테스트 후에도 DB에 데이터 유지 (롤백 안함)
     void createKoreanDummyUsersTest() {
         // 기본 10만 개로 테스트
-        createKoreanDummyUsers(1000);
+        createKoreanDummyUsers(1000, 1001);
     }
 
     @Test
@@ -118,14 +118,14 @@ class UserApplicationTests {
     void createKoreanDummyUsersLargeTest() {
         // 더 많은 데이터 생성용 (예: 50만 개, 100만 개 등)
         // 필요에 따라 totalCount 값을 변경해서 사용하세요
-        createKoreanDummyUsers(500000);  // 50만 개
+        createKoreanDummyUsers(500000, 0);  // 50만 개
     }
 
     /**
      * 한글 더미 유저 생성 메서드
      * @param totalCount 생성할 총 유저 수
      */
-    private void createKoreanDummyUsers(int totalCount) {
+    private void createKoreanDummyUsers(int totalCount, int startIndex) {
         int batchSize = 1000;     // 1000개씩 batch 처리
         
         // 한글 이름 생성용 데이터
@@ -160,7 +160,7 @@ class UserApplicationTests {
 
             // 1. Auth 리스트 생성
             for (int i = 0; i < batchSize; i++) {
-                int index = batch * batchSize + i;
+                int index = startIndex + batch * batchSize + i;
                 Auth auth = Auth.builder()
                         .email("korean" + index + "@test.com")
                         .build();
@@ -173,7 +173,7 @@ class UserApplicationTests {
 
             // 3. User 리스트 생성 (한글 닉네임과 설명)
             for (int i = 0; i < batchSize; i++) {
-                int index = batch * batchSize + i;
+                int index = startIndex + batch * batchSize + i;
                 
                 // 한글 닉네임 생성 (랜덤 조합)
                 String nickname;
