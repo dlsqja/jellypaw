@@ -47,6 +47,9 @@ export interface UrineAnalysisSummaryItem {
   testNameKo: string;
   isNormal: boolean;
   severity: string;
+  result: string;
+  unit: string;
+  matchedValue: string;
   suspectedConditions: string[];
 }
 

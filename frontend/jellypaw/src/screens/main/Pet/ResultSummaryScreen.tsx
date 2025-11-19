@@ -1,5 +1,5 @@
 // src/screens/main/Pet/ResultSummaryScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '../../../ui/components/Text';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 
 type Props = NativeStackScreenProps<PetStackParamList, 'ResultSummary'>;
 
-type ItemStatus = 'normal' | 'good' | 'caution' | 'neutral';
+type ItemStatus = 'normal' | 'caution' | 'danger' | 'very_danger' | 'neutral';
 
 interface ResultItem {
   key: string;
@@ -32,7 +32,7 @@ function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): Res
     포도당: 'glucose',
     빌리루빈: 'bilirubin',
     케톤체: 'ketone',
-    요비중: 'sg',
+    비중: 'sg',
     잠혈: 'blood',
     pH: 'ph',
     단백질: 'protein',
@@ -48,29 +48,61 @@ function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): Res
   let dotColor: string = palette.aqua300;
 
   if (!item.isNormal) {
-    // 비정상인 경우 severity에 따라 분류
-    if (item.severity === 'high' || item.severity === '중증') {
-      statusType = 'caution';
-      statusLabel = '주의';
-      dotColor = palette.gold700;
-    } else if (item.severity === 'low' || item.severity === '경증') {
-      statusType = 'good';
-      statusLabel = '보통';
-      dotColor = '#BBF7D0';
+    const isPH = item.testNameKo === 'pH';
+    
+    if (isPH) {
+      // pH 항목의 경우
+      if (item.severity === 'strong_alkaline') {
+        statusType = 'danger';
+        statusLabel = '위험';
+        dotColor = '#EF4444'; // 빨간색
+      } else if (
+        item.severity === 'mild_acidic' ||
+        item.severity === 'slight_acidic' ||
+        item.severity === 'mild_alkaline' ||
+        item.severity === 'moderate_alkaline'
+      ) {
+        statusType = 'caution';
+        statusLabel = '주의';
+        dotColor = palette.gold700;
+      } else {
+        // 기본값
+        statusType = 'caution';
+        statusLabel = '주의';
+        dotColor = palette.gold700;
+      }
     } else {
-      statusType = 'caution';
-      statusLabel = '주의';
-      dotColor = palette.gold700;
+      // pH 제외한 항목들
+      if (item.severity === 'very_severe') {
+        statusType = 'very_danger';
+        statusLabel = '매우 위험';
+        dotColor = '#B91C1C'; // 진한 빨간색
+      } else if (item.severity === 'severe' || item.severity === '심각' || item.severity === '높음') {
+        statusType = 'danger';
+        statusLabel = '위험';
+        dotColor = '#EF4444'; // 빨간색
+      } else if (
+        item.severity === 'moderate' ||
+        item.severity === '중간' ||
+        item.severity === 'low' ||
+        item.severity === '경증' ||
+        item.severity === 'high' ||
+        item.severity === '중증'
+      ) {
+        statusType = 'caution';
+        statusLabel = '주의';
+        dotColor = palette.gold700;
+      } else {
+        // 기본값
+        statusType = 'caution';
+        statusLabel = '주의';
+        dotColor = palette.gold700;
+      }
     }
   } else {
-    // 정상인 경우
-    if (item.testNameKo === 'pH') {
-      statusType = 'neutral';
-      statusLabel = '중성';
-    } else {
-      statusType = 'normal';
-      statusLabel = '정상';
-    }
+    // 정상인 경우 (pH 중성도 정상으로 처리)
+    statusType = 'normal';
+    statusLabel = '정상';
   }
 
   return {
@@ -84,10 +116,12 @@ function convertToResultItem(item: UrineAnalysisSummaryItem, index: number): Res
 
 function statusColor(type: ItemStatus) {
   switch (type) {
-    case 'good':
-      return '#16A34A';
     case 'caution':
       return palette.gold800;
+    case 'danger':
+      return '#EF4444';
+    case 'very_danger':
+      return '#B91C1C';
     case 'neutral':
       return palette.aqua400;
     case 'normal':
@@ -132,9 +166,9 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
         // summary를 ResultItem으로 변환
         const allItems = result.summary.map((item, index) => convertToResultItem(item, index));
 
-        // isNormal에 따라 분류
-        const warning = allItems.filter((item) => item.statusType === 'caution' || item.statusType === 'good');
-        const normal = allItems.filter((item) => item.statusType === 'normal' || item.statusType === 'neutral');
+        // isNormal에 따라 분류 (주의, 위험, 매우 위험은 주의 항목에 포함)
+        const warning = allItems.filter((item) => item.statusType === 'caution' || item.statusType === 'danger' || item.statusType === 'very_danger');
+        const normal = allItems.filter((item) => item.statusType === 'normal');
 
         setWarningItems(warning);
         setNormalItems(normal);
@@ -156,6 +190,36 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
 
   const normalCount = normalItems.length;
   const hasWarning = warningItems.length > 0;
+  
+  // 전체 건강 상태 결정
+  const hasDanger = warningItems.some((item) => item.statusType === 'danger' || item.statusType === 'very_danger');
+  const cautionCount = warningItems.filter((item) => item.statusType === 'caution').length;
+  const needsCheckup = hasDanger || cautionCount >= 5; // 위험/매우위험이 있거나 주의 항목 5개 이상
+  
+  const overallStatus = useMemo(() => {
+    if (needsCheckup) {
+      return {
+        emoji: '🚨',
+        label: '검진 요망',
+        color: palette.pink400,
+        bgColor: palette.pink100,
+      };
+    } else if (hasWarning) {
+      return {
+        emoji: '⚠️',
+        label: '주의 필요',
+        color: palette.gold800,
+        bgColor: palette.gold200,
+      };
+    } else {
+      return {
+        emoji: '✅',
+        label: '정상',
+        color: palette.aqua400,
+        bgColor: palette.aqua100,
+      };
+    }
+  }, [needsCheckup, hasWarning]);
 
   const goDetail = (itemKey: string) => {
     navigation.navigate('ResultDetail', {
@@ -183,23 +247,41 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
         {/* 전체 건강 상태 카드 */}
         <View style={S.card}>
           <View style={S.healthIconWrap}>
-            <Text style={S.healthEmoji}>{hasWarning ? '⚠️' : '✅'}</Text>
+            <Text style={S.healthEmoji}>{overallStatus.emoji}</Text>
           </View>
           <Text weight="bold" style={S.healthTitle}>
             전체 건강 상태
           </Text>
 
           <View style={S.healthBadgeRow}>
-            <View style={[S.healthBadge, hasWarning ? { backgroundColor: palette.pink100 } : { backgroundColor: palette.aqua100 }]}>
-              <Text style={[S.healthBadgeText, hasWarning ? { color: palette.pink400 } : { color: palette.aqua400 }]}>
-                {hasWarning ? '주의 필요' : '정상'}
+            <View style={[S.healthBadge, { backgroundColor: overallStatus.bgColor }]}>
+              <Text style={[S.healthBadgeText, { color: overallStatus.color }]}>
+                {overallStatus.label}
               </Text>
             </View>
           </View>
 
           <Text weight="semiBold" style={S.healthDesc}>
-            {hasWarning ? '일부 항목에서 주의가 필요합니다' : '모든 검사 항목이 정상 범위입니다'}
+            {needsCheckup
+              ? '즉시 수의사와 상담하여 검진을 받으시기 바랍니다'
+              : hasWarning
+              ? '일부 항목에서 주의가 필요합니다'
+              : '모든 검사 항목이 정상 범위입니다'}
           </Text>
+
+          <View style={S.noticeBoxWrap}>
+            <View style={S.noticeBox}>
+              <Text style={S.noticeText}>
+                <Text weight="semiBold" style={S.noticeTextStrong}>
+                  주의:{' '}
+                </Text>
+                <Text style={S.noticeTextStrong}>
+                  검사 정보는 참고용이며, 정확한 진단을 위해서는 반드시 수의사와
+                  상담하시기 바랍니다.
+                </Text>
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* 주의 필요 항목 */}
@@ -263,6 +345,8 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
           </View>
 
           <View style={S.recommendList}>
+            {/* 수의사 상담 권장 (주의 항목이 있을 때만 표시) */}
+            {hasWarning && (
             <View style={[S.recommendItem, S.recommendItemWarning]}>
               <View style={S.recommendIconWrap}>
                 <Ionicons name="warning" size={14} color={palette.gold800} />
@@ -274,6 +358,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
                 <Text style={S.recommendBodyWarning}>주의 항목이 발견되었습니다. 전문의와 상담해보세요.</Text>
               </View>
             </View>
+            )}
 
             <View style={S.recommendItem}>
               <View style={S.recommendIconWrap}>
@@ -301,7 +386,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        {/* 하단 버튼들 */}
+        {/* 하단 버튼들
         <View style={S.buttonRow}>
           <Button tone="aqua" shape="pillSolid" size="default" style={S.buttonHalf} title="병원 예약" />
           <Button
@@ -315,7 +400,7 @@ export default function ResultSummaryScreen({ route, navigation }: Props) {
           />
         </View>
 
-        <Text style={S.debugText}>analysisId: {analysisId}</Text>
+        <Text style={S.debugText}>analysisId: {analysisId}</Text> */}
       </ScrollView>
     </View>
   );
@@ -374,7 +459,7 @@ const S = StyleSheet.create({
   healthTitle: {
     fontSize: 18,
     lineHeight: 26,
-    color: theme.text.primary,
+    color: palette.aqua500,
     marginBottom: 8,
   },
   healthBadgeRow: {
@@ -393,8 +478,28 @@ const S = StyleSheet.create({
   healthDesc: {
     fontSize: 14,
     lineHeight: 20,
-    color: theme.text.primary,
+    color: palette.aqua500,
     textAlign: 'center',
+    // marginBottom: 16,
+  },
+  noticeBoxWrap: {
+    marginTop: 16,
+    width: '100%',
+  },
+  noticeBox: {
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: palette.gray100,
+    borderWidth: 1,
+    borderColor: palette.gray200,
+  },
+  noticeText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: palette.gray700,
+  },
+  noticeTextStrong: {
+    color: palette.aqua500,
   },
   section: {
     width: '100%',
@@ -420,7 +525,7 @@ const S = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    color: theme.text.primary,
+    color: palette.aqua500,
   },
   chip: {
     flexDirection: 'row',
@@ -432,7 +537,7 @@ const S = StyleSheet.create({
   },
   chipText: {
     fontSize: 12,
-    color: theme.text.primary,
+    color: palette.aqua500,
     marginRight: 4,
   },
   normalList: {},
@@ -461,7 +566,7 @@ const S = StyleSheet.create({
   },
   resultLabel: {
     fontSize: 14,
-    color: theme.text.primary,
+    color: palette.aqua500,
   },
   resultRight: {
     flexDirection: 'row',
@@ -506,13 +611,13 @@ const S = StyleSheet.create({
   },
   recommendTitle: {
     fontSize: 14,
-    color: theme.text.primary,
+    color: palette.aqua500,
     marginBottom: 4,
   },
   recommendBody: {
     fontSize: 12,
     lineHeight: 16,
-    color: theme.text.primary,
+    color: palette.aqua500,
   },
   recommendTitleWarning: {
     fontSize: 14,
