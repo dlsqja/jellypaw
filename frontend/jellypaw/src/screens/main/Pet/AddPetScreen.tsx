@@ -43,13 +43,13 @@ export default function AddPetScreen() {
   );
 
   const [animalType, setAnimalType] =
-    useState<'강아지' | '고양이' | '기타' | ''>('');
+    useState<'DOG' | 'CAT' | 'ETC' | ''>('');
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [gender, setGender] =
-    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
+    useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '무성' | ''>(''); // ✅ 기본 ''로 (placeholder 보이게)
 
   const onSave = async () => {
   if (!name.trim()) {
@@ -59,10 +59,12 @@ export default function AddPetScreen() {
 
   try {
     const species =
-      animalType === '강아지'
+      animalType === 'DOG'
         ? 'DOG'
-        : animalType === '고양이'
+        : animalType === 'CAT'
         ? 'CAT'
+        : animalType === 'ETC'
+        ? 'ETC'
         : undefined;
 
     const genderEnum =
@@ -74,6 +76,8 @@ export default function AddPetScreen() {
         ? 'MALE_NEUTERING'
         : gender === '여자(중성화)'
         ? 'FEMALE_NEUTERING'
+        : gender === '무성'
+        ? 'NON'
         : 'NON';
 
     const ageNum = age.trim() ? parseInt(age.trim(), 10) : undefined;
@@ -102,8 +106,8 @@ export default function AddPetScreen() {
 
 
   const breedPlaceholder = useMemo(() => {
-    if (animalType === '강아지') return '예: 골든 리트리버';
-    if (animalType === '고양이') return '예: 코리안 숏헤어';
+    if (animalType === 'DOG') return '예: 골든 리트리버';
+    if (animalType === 'CAT') return '예: 코리안 숏헤어';
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
@@ -206,9 +210,9 @@ export default function AddPetScreen() {
               value={animalType}
               placeholder="선택하세요"
               options={[
-                { label: '강아지', value: '강아지' },
-                { label: '고양이', value: '고양이' },
-                { label: '기타', value: '기타' },
+                { label: '강아지', value: 'DOG' },
+                { label: '고양이', value: 'CAT' },
+                { label: '기타', value: 'ETC' },
               ]}
               onChange={setAnimalType}
             />
@@ -234,6 +238,7 @@ export default function AddPetScreen() {
                 { label: '여자', value: '여자' },
                 { label: '남자(중성화)', value: '남자(중성화)' },
                 { label: '여자(중성화)', value: '여자(중성화)' },
+                { label: '무성', value: '무성' },
               ]}
               onChange={setGender}
             />

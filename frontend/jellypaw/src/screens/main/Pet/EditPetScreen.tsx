@@ -41,12 +41,12 @@ const toImageUrl = (u?: string | null) => {
   return null;
 };
 
-const toSpecies = (label: '강아지' | '고양이' | '기타' | ''): PetSpecies | undefined =>
-  label === '강아지' ? 'DOG' : label === '고양이' ? 'CAT' : undefined;
+const toSpecies = (label: 'DOG' | 'CAT' | 'ETC' | ''): PetSpecies | undefined =>
+  label === 'DOG' ? 'DOG' : label === 'CAT' ? 'CAT' : label === 'ETC' ? 'ETC' : undefined;
 
-const fromSpecies = (sp?: PetSpecies): '강아지' | '고양이' | '기타' | '' => (sp === 'DOG' ? '강아지' : sp === 'CAT' ? '고양이' : '기타');
+const fromSpecies = (sp?: PetSpecies): 'DOG' | 'CAT' | 'ETC' | '' => (sp === 'DOG' ? 'DOG' : sp === 'CAT' ? 'CAT' : sp === 'ETC' ? 'ETC' : '');
 
-const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''): PetGender | undefined => {
+const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '무성' | ''): PetGender | undefined => {
   switch (label) {
     case '남자':
       return 'MALE';
@@ -56,12 +56,14 @@ const toGender = (label: '남자' | '여자' | '남자(중성화)' | '여자(중
       return 'MALE_NEUTERING';
     case '여자(중성화)':
       return 'FEMALE_NEUTERING';
+    case '무성':
+      return 'NON';
     default:
       return 'NON';
   }
 };
 
-const fromGender = (g?: PetGender): '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '' => {
+const fromGender = (g?: PetGender): '남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '무성' | '' => {
   switch (g) {
     case 'MALE':
       return '남자';
@@ -71,6 +73,8 @@ const fromGender = (g?: PetGender): '남자' | '여자' | '남자(중성화)' | 
       return '남자(중성화)';
     case 'FEMALE_NEUTERING':
       return '여자(중성화)';
+    case 'NON':
+      return '무성';
     default:
       return '';
   }
@@ -110,11 +114,11 @@ export default function EditPetScreen() {
   const [deletePhoto, setDeletePhoto] = useState(false); // ✅ 추가: 삭제 의도 플래그
 
   const [name, setName] = useState('');
-  const [animalType, setAnimalType] = useState<'강아지' | '고양이' | '기타' | ''>('');
+  const [animalType, setAnimalType] = useState<'DOG' | 'CAT' | 'ETC' | ''>('');
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
-  const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | ''>('');
+  const [gender, setGender] = useState<'남자' | '여자' | '남자(중성화)' | '여자(중성화)' | '무성' | ''>('');
 
   // 초기 프로필
   useEffect(() => {
@@ -148,8 +152,8 @@ export default function EditPetScreen() {
   }, [petId]);
 
   const breedPlaceholder = useMemo(() => {
-    if (animalType === '강아지') return '예: 골든 리트리버';
-    if (animalType === '고양이') return '예: 코리안 숏헤어';
+    if (animalType === 'DOG') return '예: 골든 리트리버';
+    if (animalType === 'CAT') return '예: 코리안 숏헤어';
     return '예: 햄스터 / 앵무새 등';
   }, [animalType]);
 
@@ -297,17 +301,12 @@ export default function EditPetScreen() {
             value={animalType}
             placeholder="선택하세요"
             options={[
-              { label: '강아지', value: '강아지' },
-              { label: '고양이', value: '고양이' },
-              { label: '기타', value: '기타' },
+              { label: '강아지', value: 'DOG' },
+              { label: '고양이', value: 'CAT' },
+              { label: '기타', value: 'ETC' },
             ]}
             onChange={setAnimalType}
           />
-
-          {/* <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
-
-          <Input label="나이" placeholder="예: 3" value={age} onChangeText={setAge} keyboardType="number-pad" />
-          <Input label="체중" placeholder="예: 4.2" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
 
           <Dropdown
             label="성별"
@@ -318,9 +317,15 @@ export default function EditPetScreen() {
               { label: '여자', value: '여자' },
               { label: '남자(중성화)', value: '남자(중성화)' },
               { label: '여자(중성화)', value: '여자(중성화)' },
+              { label: '무성', value: '무성' },
             ]}
             onChange={setGender}
           />
+          {/* <Input label="품종" placeholder={breedPlaceholder} value={breed} onChangeText={setBreed} /> */}
+
+          <Input label="나이" placeholder="예: 3" value={age} onChangeText={setAge} keyboardType="number-pad" />
+          <Input label="체중" placeholder="예: 4.2" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
+
 
           <View style={{ paddingTop: 8, gap: 16, paddingBottom: 32 }}>
             <Button title="수정 완료" shape="pillSolid" tone="aqua" onPress={onSave} />

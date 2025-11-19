@@ -1,11 +1,11 @@
-export type PetSpecies = 'CAT' | 'DOG';
+export type PetSpecies = 'CAT' | 'DOG' | 'ETC';
 export type PetGender = 'FEMALE' | 'MALE' | 'FEMALE_NEUTERING' | 'MALE_NEUTERING' | 'NON';
 
 // 펫 전체 목록
 export interface getPetListResponse {
   name?: string;
   petId?: number;
-  species?: 'CAT' | 'DOG';
+  species?: 'CAT' | 'DOG' | 'ETC';
   photoUrl?: string | null;
 }
 
@@ -14,7 +14,7 @@ export interface getPetDetailResponse extends getPetListResponse {
   age?: number;
   code?: number;
   gender?: 'FEMALE' | 'FEMALE_NEUTERING' | 'MALE' | 'MALE_NEUTERING' | 'NON';
-  species?: 'CAT' | 'DOG';
+  species?: 'CAT' | 'DOG' | 'ETC';
   weight?: number;
 }
 
