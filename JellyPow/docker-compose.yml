@@ -17,7 +17,7 @@ services:
     container_name: kafka
     environment:
       TZ: Asia/Seoul
-
+      #로컬 테스트 시 주석
     #      KAFKA_CLUSTER_ID: "abcdefghijklmnopqrstuv"
     #      KAFKA_PROCESS_ROLES: "broker,controller"
     #      KAFKA_NODE_ID: 1
@@ -30,7 +30,7 @@ services:
     #      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     #      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     #      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    #
+    # 여기까지
     ports:
       - "9092:9092"
     networks:
@@ -102,8 +102,8 @@ services:
       - "9300:9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - msa-net
+    #    networks:
+    #      - msa-net
     entrypoint:
       - bash
       - -c
@@ -141,7 +141,6 @@ volumes:
   mysql_data:
   elasticsearch_data:
   redis_data:
-
-networks:
-  msa-net:
-    external: true
+#networks:
+#  msa-net:
+#    external: true

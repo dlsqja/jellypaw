@@ -76,11 +76,5 @@ public class BoardController {
 
         return ApiResponse.success(null);
     }
-
-
-
-
-
-
 }
 

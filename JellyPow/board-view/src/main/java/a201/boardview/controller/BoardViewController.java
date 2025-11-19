@@ -43,4 +43,28 @@ public class BoardViewController {
 
         return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardList));
     }
+
+    @GetMapping("/my")
+    public ApiResponse<BoardSimpleListResponse> getMyBoards(@RequestHeader("X-User-id")Long userId) {
+
+        List<BoardView> boardViews = boardViewService.getMyBoards(userId);
+
+        return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
+    }
+
+    @GetMapping("/{nickname}")
+    public ApiResponse<BoardSimpleListResponse> getBoardsByNickname(@RequestHeader("X-User-id") Long userId ,@PathVariable("nickname") String nickname) {
+
+        List<BoardView> boardViews = boardViewService.getBoardsByNickname(nickname);
+
+        return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
+    }
+
+    @GetMapping("/places/{placeId}")
+    public ApiResponse<BoardSimpleListResponse> getBoardsByPlaceId(@RequestHeader("X-User-id") Long userId ,@PathVariable("placeId") Long placeId) {
+
+        List<BoardView> boardViews = boardViewService.getBoardsByPlaceId(placeId);
+
+        return ApiResponse.success(BoardSimpleListResponse.fromEntity(boardViews));
+    }
 }
