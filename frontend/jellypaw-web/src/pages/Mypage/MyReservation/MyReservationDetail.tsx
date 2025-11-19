@@ -83,7 +83,7 @@ export default function MyReservationDetail() {
               </div>
               <div className="flex flex-col gap-1 ">
                 <p className="text-aqua-500 p2-b">요청 사항</p>
-                <p className="text-aqua-500 p2 whitespace-pre-line">{reservationData.content}</p>
+                <p className="text-aqua-500 p2 whitespace-pre-line break-words">{reservationData.content}</p>
               </div>
             </div>
           </CardContent>

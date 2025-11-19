@@ -28,7 +28,7 @@ export default function Replies({ profileImageUrl, name, content, createdAt, lik
               </button>
             </div>
           </div>
-          <div className="text-aqua-500 p3 whitespace-pre-line">{content}</div>
+          <div className="text-aqua-500 p3 whitespace-pre-line break-words">{content}</div>
         </div>
         {/* 댓글 작성 시간, 좋아요, 댓글 보기, 댓글 달기 */}
         <div className="flex justify-start items-center">

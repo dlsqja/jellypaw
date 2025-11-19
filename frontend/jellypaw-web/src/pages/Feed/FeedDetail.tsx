@@ -390,7 +390,7 @@ export default function FeedDetail() {
           {/* 본문 */}
           <div className="flex flex-col">
             <p className="text-aqua-500 p1-b flex-shrink-0">{detailData?.title}</p>
-            <span className="text-aqua-500 p2 whitespace-pre-line">{detailData?.content}</span>
+            <div className="text-aqua-500 p2 whitespace-pre-line break-words">{detailData?.content}</div>
           </div>
 
           {/* 액션 버튼들 */}

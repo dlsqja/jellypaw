@@ -117,7 +117,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
                 )}
               </div>
             </div>
-            <div className="text-aqua-500 p2 whitespace-pre-line">{content || ''}</div>
+            <div className="text-aqua-500 p2 whitespace-pre-line break-words">{content || ''}</div>
             {/* 댓글 작성 시간, 좋아요, 댓글 보기, 댓글 달기 */}
             <div className="flex mt-1">
               <button type="button" className="cursor-pointer"></button>
@@ -176,7 +176,7 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
                         <div className="text-aqua-500 p2-b">{child.userId.nickname}</div>
                         <div className="text-gray-300 p3">{childTime}</div>
                       </div>
-                      <div className="text-aqua-500 p2 mt-1 whitespace-pre-line">{child.content || ''}</div>
+                      <div className="text-aqua-500 p2 mt-1 whitespace-pre-line break-words">{child.content || ''}</div>
                     </div>
                   </div>
                 );
