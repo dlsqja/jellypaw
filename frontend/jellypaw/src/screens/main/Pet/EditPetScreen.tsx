@@ -1,6 +1,6 @@
 // src/screens/pet/EditPetScreen.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View, Platform, BackHandler } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import { Text } from '../../../ui/components/Text';
 import Input from '../../../ui/components/Input';
@@ -8,7 +8,7 @@ import Dropdown from '../../../ui/components/Dropdown';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
 import { Button } from '../../../ui/components/Button';
 import { palette, theme } from '../../../ui/system/variants';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { launchCamera, launchImageLibrary, ImagePickerResponse } from 'react-native-image-picker';
 import { useUpdatePetInfo, useUpdatePetImage, useDeletePet, useDeletePetImage } from '../../../services/queries/petHooks';
 
@@ -80,6 +80,24 @@ export default function EditPetScreen() {
   const route = useRoute<any>();
   const nav = useNavigation<any>();
   const { petId, initial } = (route.params || {}) as RouteParams;
+
+  // Android 하드웨어 뒤로가기 처리
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (nav.canGoBack()) {
+          nav.goBack();
+          return true; // 이벤트 소비
+        }
+        return false; // 기본 동작 (앱 종료)
+      };
+
+      if (Platform.OS === 'android') {
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
+      }
+    }, [nav])
+  );
 
   useEffect(() => {
     if (!petId) {
@@ -248,20 +266,22 @@ export default function EditPetScreen() {
               );
             }}
           />
-          <Pressable
-            onPress={() => {
-              // ✅ 기본이미지로 즉시 전환 + 삭제 의도 표기
-              setPhotoUri(null);
-              setDeletePhoto(true);
-            }}
-            hitSlop={6}
-            style={{ paddingTop: 16 }}
-            accessibilityRole="button"
-          >
-            <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
-              프로필 사진 제거
-            </Text>
-          </Pressable>
+          {photoUri && (
+            <Pressable
+              onPress={() => {
+                // ✅ 기본이미지로 즉시 전환 + 삭제 의도 표기
+                setPhotoUri(null);
+                setDeletePhoto(true);
+              }}
+              hitSlop={6}
+              style={{ paddingTop: 16 }}
+              accessibilityRole="button"
+            >
+              <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
+                프로필 사진 제거
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* 기본 정보 */}

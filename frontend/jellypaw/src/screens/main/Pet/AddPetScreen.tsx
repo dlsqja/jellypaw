@@ -1,15 +1,15 @@
 // src/screens/pet/AddPetScreen.tsx
 import React, { useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Platform, BackHandler, Pressable } from 'react-native';
 import BackHeader from '../../../ui/components/BackHeader';
 import { Text } from '../../../ui/components/Text';
 import Input from '../../../ui/components/Input';
 import { Button } from '../../../ui/components/Button';
 import PhotoPicker from '../../../ui/components/PhotoPicker';
-import { palette } from '../../../ui/system/variants';
+import { palette, theme } from '../../../ui/system/variants';
 import Dropdown from '../../../ui/components/Dropdown';
 import { createPet } from '../../../services/api/pet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   launchCamera,
   launchImageLibrary,
@@ -23,6 +23,24 @@ export default function AddPetScreen() {
   const nav = useNavigation<any>();
   const qc = useQueryClient(); 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+
+  // Android 하드웨어 뒤로가기 처리
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (nav.canGoBack()) {
+          nav.goBack();
+          return true; // 이벤트 소비
+        }
+        return false; // 기본 동작 (앱 종료)
+      };
+
+      if (Platform.OS === 'android') {
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+        return () => subscription.remove();
+      }
+    }, [nav])
+  );
 
   const [animalType, setAnimalType] =
     useState<'강아지' | '고양이' | '기타' | ''>('');
@@ -152,7 +170,20 @@ export default function AddPetScreen() {
               );
             }}
           />
-          <View style={{ height: 20 }} />
+          {photoUri && (
+            <Pressable
+              onPress={() => {
+                setPhotoUri(null);
+              }}
+              hitSlop={6}
+              style={{ paddingTop: 16 }}
+              accessibilityRole="button"
+            >
+              <Text weight="semiBold" style={{ color: theme.icon.active, fontSize: 16, lineHeight: 22 }}>
+                프로필 사진 제거
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         {/* 기본 정보 */}
