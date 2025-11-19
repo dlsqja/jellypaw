@@ -518,27 +518,19 @@ export default function Feed() {
       >
         <div className="flex flex-col items-center gap-2">
           {isRefreshing ? (
-            <>
-              <div className="w-6 h-6 border-2 border-aqua-300 border-t-transparent rounded-full animate-spin" />
-              <span className="text-aqua-500 p3-b">새로고침 중...</span>
-            </>
+            <div className="w-6 h-6 border-2 border-aqua-300 border-t-transparent rounded-full animate-spin" />
           ) : (
-            <>
-              <div
-                className="w-6 h-6 border-2 border-aqua-300 rounded-full flex items-center justify-center"
-                style={{
-                  transform: `rotate(${pullProgress * 180}deg)`,
-                  transition: 'transform 0.2s ease-out',
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={shouldTrigger ? 'text-aqua-500' : 'text-aqua-300'}>
-                  <path d="M6 2V6L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <span className={`p3-b ${shouldTrigger ? 'text-aqua-500' : 'text-gray-400'}`} style={{ transition: 'color 0.2s ease-out' }}>
-                {shouldTrigger ? '놓으면 새로고침' : '당겨서 새로고침'}
-              </span>
-            </>
+            <div
+              className="w-6 h-6 border-2 border-aqua-300 rounded-full flex items-center justify-center"
+              style={{
+                transform: `rotate(${pullProgress * 180}deg)`,
+                transition: 'transform 0.2s ease-out',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={shouldTrigger ? 'text-aqua-500' : 'text-aqua-300'}>
+                <path d="M6 2V6L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           )}
         </div>
       </div>
