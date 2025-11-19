@@ -4,13 +4,20 @@ import { IoArrowBack } from 'react-icons/io5';
 interface BackHeaderProps {
   title: string;
   to?: string; // 특정 경로로 이동할 때 사용
+  onBack?: () => void; // 커스텀 뒤로가기 핸들러
 }
 
-export default function BackHeader({ title, to }: BackHeaderProps) {
+export default function BackHeader({ title, to, onBack }: BackHeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    console.log('[BackHeader] handleBack called, to:', to);
+    console.log('[BackHeader] handleBack called, to:', to, 'onBack:', onBack);
+    // 커스텀 핸들러가 있으면 우선 사용
+    if (onBack) {
+      console.log('[BackHeader] Using custom onBack handler');
+      onBack();
+      return;
+    }
     // 특정 경로로 이동할 때 사용
     if (to) {
       console.log('[BackHeader] Navigating to:', to);

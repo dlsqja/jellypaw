@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import BackHeader from '@/components/headers/BackHeader';
 import LocationProfile from './components/LocationProfile';
 import LocationInfo from './components/LocationInfo';
@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function LocationSearchDetail() {
   const { locationId } = useParams();
+  const navigate = useNavigate();
   const [locationData, setLocationData] = useState<SearchPlacesDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [placeFeeds, setPlaceFeeds] = useState<GetPlaceFeedsResponse | null>(null);
@@ -54,7 +55,12 @@ export default function LocationSearchDetail() {
   if (isLoading) {
     return (
       <>
-        <BackHeader title="" />
+        <BackHeader 
+          title="" 
+          onBack={() => {
+            navigate('/search', { state: { fromDetail: true } });
+          }}
+        />
         <div className="flex flex-col justify-center items-center gap-4 py-8">
           <Spinner className="size-8 text-aqua-500" />
           <span className="text-gray-300 p2-b">장소 정보를 불러오는 중...</span>
@@ -67,7 +73,12 @@ export default function LocationSearchDetail() {
   if (!locationData) {
     return (
       <>
-        <BackHeader title="" />
+        <BackHeader 
+          title="" 
+          onBack={() => {
+            navigate('/search', { state: { fromDetail: true } });
+          }}
+        />
         <div className="flex flex-col justify-center items-center gap-4 py-8">
           <p className="text-gray-300 p2-b">장소 정보를 불러올 수 없습니다.</p>
         </div>
@@ -77,7 +88,12 @@ export default function LocationSearchDetail() {
 
   return (
     <>
-      <BackHeader title="" />
+      <BackHeader 
+        title="" 
+        onBack={() => {
+          navigate('/search', { state: { fromDetail: true } });
+        }}
+      />
       <div className="flex flex-col gap-4 mb-4">
         {/* 장소 프로필 , 기능 목록, 기본 정보, 인증직원(존재할 때만)*/}
         <LocationProfile {...locationData} />

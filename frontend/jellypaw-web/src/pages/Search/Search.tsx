@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useLayoutEffect, useCallback } from 'react';
 import Header from '@/components/headers/Header';
 import { Input } from '@/components/ui/input';
 import IconText from '@/components/texts/IconText';
@@ -11,7 +11,10 @@ import { searchPlaces, searchUsers, searchUsersWithCursor, searchPlacesWithCurso
 import type { SearchPlacesResponse, SearchUsersResponse } from '@/types/search';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 import { BsPersonCircle } from 'react-icons/bs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const SEARCH_STATE_KEY = 'search-state';
+export const SEARCH_SCROLL_KEY = 'search-scroll-top';
 
 // 검색 페이지 컴포넌트
 export default function Search() {
@@ -21,6 +24,7 @@ export default function Search() {
   const { recentSearches, addSearch, removeSearch, clearSearches } = useSearchStore();
   // 네비게이션 핸들러
   const navigate = useNavigate();
+  const location = useLocation();
 
   // 검색 결과 상태
   const [results, setResults] = useState<SearchUsersResponse[]>([]);
@@ -32,12 +36,111 @@ export default function Search() {
   const [userCursor, setUserCursor] = useState<number | null>(null); // 유저 검색용 cursor
   const [hasMoreUsers, setHasMoreUsers] = useState(true);
   const [hasMorePlaces, setHasMorePlaces] = useState(true);
+  const restoredRef = useRef(false);
+  const scrollRestoredRef = useRef(false);
   // 검색어 공백 제거
   const removeblank = (keyword: string) => keyword.trim();
   // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
   const extractSearchType = (keyword: string): 'user' | 'place' => (keyword.startsWith('@') ? 'user' : 'place');
   // 사용자 키워드 정규화
   const sanitizeUserKeyword = (keyword: string) => keyword.replace(/^@+/, '');
+
+  // 검색 상태를 sessionStorage에 저장 (useCallback으로 최신 state 참조 보장)
+  const saveSearchState = useCallback(() => {
+    const state = {
+      searchValue,
+      results,
+      placeResults,
+      userCursor,
+      placeCursor,
+      hasMoreUsers,
+      hasMorePlaces,
+    };
+    window.sessionStorage.setItem(SEARCH_STATE_KEY, JSON.stringify(state));
+  }, [searchValue, results, placeResults, userCursor, placeCursor, hasMoreUsers, hasMorePlaces]);
+
+  // 검색 상태를 sessionStorage에서 복원
+  const restoreSearchState = () => {
+    if (restoredRef.current) return;
+    
+    const saved = window.sessionStorage.getItem(SEARCH_STATE_KEY);
+    if (saved) {
+      try {
+        const state = JSON.parse(saved);
+        // 복원 중에는 검색을 건너뛰도록 설정 (복원 후 검색 useEffect가 실행되지 않도록)
+        skipNextSearchRef.current = 10; // 충분히 큰 값으로 설정하여 복원 중 검색 방지
+        setSearchValue(state.searchValue || '');
+        setResults(state.results || []);
+        setPlaceResults(state.placeResults || []);
+        setUserCursor(state.userCursor ?? null);
+        setPlaceCursor(state.placeCursor ?? null);
+        setHasMoreUsers(state.hasMoreUsers ?? true);
+        setHasMorePlaces(state.hasMorePlaces ?? true);
+        restoredRef.current = true;
+        // 스크롤 복원 ref 리셋 (스크롤 복원이 실행되도록)
+        scrollRestoredRef.current = false;
+        console.log('[Search] 검색 상태 복원:', state);
+        // 복원 완료 후 skipNextSearchRef 리셋 (다음 검색은 정상적으로 작동하도록)
+        setTimeout(() => {
+          skipNextSearchRef.current = 0;
+        }, 100);
+      } catch (error) {
+        console.error('[Search] 검색 상태 복원 실패:', error);
+        skipNextSearchRef.current = 0;
+      }
+    }
+  };
+
+  // 검색 상태 복원 (페이지 로드 시)
+  useEffect(() => {
+    // 뒤로가기로 돌아온 경우에만 복원
+    if (location.state?.fromDetail) {
+      restoreSearchState();
+    }
+  }, [location.state]);
+
+  // 스크롤 위치 복원 (검색 결과가 로드된 후)
+  useLayoutEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+
+    // 스크롤 컨테이너가 없으면 리턴
+    if (!container) {
+      return;
+    }
+
+    // 뒤로가기로 돌아온 경우가 아니면 리턴
+    if (!location.state?.fromDetail) {
+      return;
+    }
+
+    // 아직 검색 결과가 로드 중이면 리턴
+    if (isLoading) {
+      return;
+    }
+
+    // 검색 결과가 없으면 리턴
+    const hasResults = results.length > 0 || (placeResults && placeResults.length > 0);
+    if (!hasResults) {
+      scrollRestoredRef.current = true;
+      return;
+    }
+
+    // 이미 스크롤을 복원했으면 리턴
+    if (scrollRestoredRef.current) {
+      return;
+    }
+
+    // 스크롤 위치 복원
+    const raw = window.sessionStorage.getItem(SEARCH_SCROLL_KEY);
+    const saved = raw ? Number(raw) : 0;
+
+    if (!Number.isNaN(saved) && saved > 0) {
+      container.scrollTo({ top: saved, left: 0, behavior: 'auto' });
+      console.log('[Search] 스크롤 위치 복원:', saved);
+    }
+
+    scrollRestoredRef.current = true;
+  }, [isLoading, results.length, placeResults?.length ?? 0, location.state?.fromDetail]);
 
   // 검색어 제출
   const handleSubmit = (keyword: string, type?: 'user' | 'place') => {
@@ -59,6 +162,12 @@ export default function Search() {
     // 다음 검색 건너뛰기
     if (skipNextSearchRef.current > 0) {
       skipNextSearchRef.current -= 1;
+      return;
+    }
+
+    // 복원 중이거나 복원된 상태에서는 검색을 실행하지 않음
+    // (복원된 상태에서는 이미 results나 placeResults가 있고, cursor도 설정되어 있음)
+    if (restoredRef.current && (results.length > 0 || (placeResults && placeResults.length > 0))) {
       return;
     }
 
@@ -135,6 +244,10 @@ export default function Search() {
               setUserCursor(response.nextCursor);
             }
             console.log('[Search] 첫 검색 results:', userResults, 'nextCursor:', response.nextCursor);
+            // 검색 상태 저장
+            setTimeout(() => {
+              saveSearchState();
+            }, 0);
           })
           .catch((error) => {
             console.log(error);
@@ -164,6 +277,10 @@ export default function Search() {
               setPlaceCursor(response.nextCursor);
             }
             console.log('[Search] 첫 검색 places:', placeResults, 'nextCursor:', response.nextCursor);
+            // 검색 상태 저장
+            setTimeout(() => {
+              saveSearchState();
+            }, 0);
           })
           .catch((error) => {
             console.log('[Search] 장소 검색 오류:', error);
@@ -217,7 +334,12 @@ export default function Search() {
         searchUsersWithCursor({ nickname: keyword, cursor: userCursor })
           .then((response) => {
             const userResults = response.users ?? [];
-            setResults((prev) => [...prev, ...userResults]);
+            // 중복 제거: 기존 결과에 없는 항목만 추가
+            setResults((prev) => {
+              const existingIds = new Set(prev.map((r) => r.userId));
+              const newResults = userResults.filter((r) => !existingIds.has(r.userId));
+              return [...prev, ...newResults];
+            });
             
             // nextCursor 업데이트
             if (response.nextCursor === null) {
@@ -227,6 +349,10 @@ export default function Search() {
               setUserCursor(response.nextCursor);
             }
             console.log('[Search] 유저 추가 로드 results:', userResults, 'nextCursor:', response.nextCursor);
+            // 검색 상태 저장
+            setTimeout(() => {
+              saveSearchState();
+            }, 0);
           })
           .catch((error) => {
             console.log('[Search] 유저 추가 로드 실패:', error);
@@ -275,7 +401,12 @@ export default function Search() {
         searchPlacesWithCursor({ title: removedBlankSearchValue, cursor: placeCursor })
           .then((response) => {
             const placeResults = response.places ?? [];
-            setPlaceResults((prev) => [...(prev || []), ...placeResults]);
+            // 중복 제거: 기존 결과에 없는 항목만 추가
+            setPlaceResults((prev) => {
+              const existingIds = new Set((prev || []).map((p) => p.id));
+              const newResults = placeResults.filter((p) => !existingIds.has(p.id));
+              return [...(prev || []), ...newResults];
+            });
             
             // nextCursor 업데이트
             if (response.nextCursor === null) {
@@ -285,6 +416,10 @@ export default function Search() {
               setPlaceCursor(response.nextCursor);
             }
             console.log('[Search] 장소 추가 로드 places:', placeResults, 'nextCursor:', response.nextCursor);
+            // 검색 상태 저장
+            setTimeout(() => {
+              saveSearchState();
+            }, 0);
           })
           .catch((error) => {
             console.log('[Search] 장소 추가 로드 실패:', error);
@@ -314,13 +449,19 @@ export default function Search() {
           value={searchValue}
           onChange={(e) => {
             skipNextSearchRef.current = 0;
-            setSearchValue(e.target.value);
+            const newValue = e.target.value;
+            setSearchValue(newValue);
             setPlaceCursor(null);
             setUserCursor(null);
             setHasMoreUsers(true);
             setHasMorePlaces(true);
             setResults([]);
             setPlaceResults([]);
+            // 검색어 변경 시 저장된 상태 초기화 및 복원 상태 리셋
+            window.sessionStorage.removeItem(SEARCH_STATE_KEY);
+            window.sessionStorage.removeItem(SEARCH_SCROLL_KEY);
+            restoredRef.current = false;
+            scrollRestoredRef.current = false;
           }}
         />
         {!hasKeyword && (
@@ -384,9 +525,15 @@ export default function Search() {
                       if (!result.userId) {
                         return;
                       }
+                      // 스크롤 위치 저장
+                      const container = document.getElementById('app-scroll-container');
+                      if (container) {
+                        window.sessionStorage.setItem(SEARCH_SCROLL_KEY, String(container.scrollTop));
+                      }
+                      // 검색 상태 저장 (원래 검색어 유지)
+                      saveSearchState();
                       skipNextSearchRef.current = 2;
-                      handleSubmit(result.nickname || '', 'user');
-                      setSearchValue(result.nickname ? `@${result.nickname}` : '');
+                      // 검색어는 변경하지 않음 (원래 검색어 유지)
                       // 검색 결과를 state로 전달하여 초기 데이터로 사용
                       navigate(`/search/person/${result.userId}`, {
                         state: {
@@ -435,8 +582,15 @@ export default function Search() {
                     key={place.id}
                     className="w-full bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
                     onClick={() => {
+                      // 스크롤 위치 저장
+                      const container = document.getElementById('app-scroll-container');
+                      if (container) {
+                        window.sessionStorage.setItem(SEARCH_SCROLL_KEY, String(container.scrollTop));
+                      }
+                      // 검색 상태 저장 (원래 검색어 유지)
+                      saveSearchState();
                       skipNextSearchRef.current = 2;
-                      handleSubmit(place.title || '', 'place');
+                      // 검색어는 변경하지 않음 (원래 검색어 유지)
                       navigate(`/search/location/${place.id}`);
                     }}
                   >

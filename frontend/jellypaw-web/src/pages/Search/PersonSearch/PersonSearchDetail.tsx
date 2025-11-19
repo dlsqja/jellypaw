@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import BackHeader from '@/components/headers/BackHeader';
 import SearchProfile from './SearchProfile';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,7 @@ const categoriesData = [
 export default function PersonSearchDetail() {
   const { personId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const searchResult = (location.state as { searchResult?: SearchUsersResponse } | undefined)?.searchResult;
 
   // state로 전달된 검색 결과를 초기 데이터로 변환 (useMemo로 메모이제이션)
@@ -182,7 +183,12 @@ export default function PersonSearchDetail() {
 
   return (
     <>
-      <BackHeader title="" />
+      <BackHeader 
+        title="" 
+        onBack={() => {
+          navigate('/search', { state: { fromDetail: true } });
+        }}
+      />
       {/* 프로필 */}
       <SearchProfile
         profileData={targetProfileData}
