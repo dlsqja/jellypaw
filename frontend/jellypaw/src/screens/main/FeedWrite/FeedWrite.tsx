@@ -73,9 +73,11 @@ export default function FeedWrite({ route, navigation }: Props) {
   const screenHeight = Dimensions.get('window').height;
   const headerHeight = 60;
   const bottomToolbarHeight = 48;
-  const topContentHeight = 120; // 날짜, 카테고리, 제목, 구분선 등 대략적인 높이
-  const imageSectionHeight = images.length > 0 ? 142 : 0; // 사진 목록 높이
-  const contentSectionHeight = screenHeight - headerHeight - bottomToolbarHeight - insets.top - insets.bottom - topContentHeight - imageSectionHeight;
+  const topContentHeight = 80; // 날짜, 카테고리, 제목, 구분선 등 대략적인 높이
+  const locationSectionHeight = location ? 40 : 0; // 장소 섹션 높이 (장소가 있을 때만)
+  const imageSectionHeight = images.length > 0 ? 180 : 0; // 사진 목록 높이
+  const contentSectionHeight =
+    screenHeight - headerHeight - bottomToolbarHeight - insets.top - insets.bottom - topContentHeight - imageSectionHeight - locationSectionHeight;
 
   // 카테고리 목록
   const categories = [
