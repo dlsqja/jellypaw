@@ -13,7 +13,6 @@ import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,32 +25,38 @@ public class UserSearchService {
     private final UserSearchRepository userSearchRepository;
     private final ElasticsearchOperations elasticsearchOperations;
 
-    // Elasticsearch에서 유저 검색
+    // Elasticsearch에서 유저 검색 (기존 메서드 - 호환성 유지)
     // 검색 방식:
-    // - nickname.ngram^3: 부분 일치 검색 (포함 검색) - "강남" → "서울강남", "강남역" 모두 매칭
-    // - nickname.edge^1.5: 접두사 검색 (prefix) - "강남" → "강남역", "강남구"만 매칭
-    // - nickname.nori^2: 한국어 형태소 분석 검색 - "강남역" → "강남", "역"으로 분리하여 검색
-    @TimeTrace
+    // - match_phrase: 전체 구문이 포함된 것만 검색 (AND 조건) - "조용한문어6" → "조용한문어6" 전체가 포함된 닉네임만
+    // - match_phrase_prefix: 구문 검색 + 접두사 검색 - "조용한문어" → "조용한문어6", "조용한문어123" 등
+    // - match: 부분 일치 검색 (OR 조건) - "조용한" → "조용한문어", "조용한코끼리" 등
+    //@TimeTrace
     public List<UserDocument> searchUsers(String nickname) {
-        // bool 쿼리로 여러 필드를 should로 묶어 검색
-        // - nickname.ngram^3: 포함 검색 (가장 높은 가중치)
-        // - nickname.nori^2: 한국어 형태소 분석 검색
-        // - nickname.edge^1.5: 접두사 검색
-        // minimum_should_match: 1 - 하나라도 매칭되면 검색
+        // bool 쿼리로 여러 필드를 should로 묶어 검색 (가장 정확한 것부터 우선순위)
+        // - match_phrase: 전체 구문이 정확히 포함된 것 (가장 높은 가중치)
+        // - match_phrase_prefix: 구문 + 접두사 검색
+        // - match: 부분 일치 검색 (fallback)
         String queryJson = String.format(
             "{\"bool\": {" +
                 "\"should\": [" +
-                    "{\"multi_match\": {" +
-                        "\"query\": \"%s\"," +
-                        "\"fields\": [\"nickname.ngram^3\"]" +
+                    "{\"match_phrase\": {" +
+                        "\"nickname.ngram\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"boost\": 3.0" +
+                        "}" +
                     "}}," +
-                    "{\"multi_match\": {" +
-                        "\"query\": \"%s\"," +
-                        "\"fields\": [\"nickname.nori^2\"]" +
+                    "{\"match_phrase_prefix\": {" +
+                        "\"nickname.edge\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"boost\": 2.0" +
+                        "}" +
                     "}}," +
-                    "{\"multi_match\": {" +
-                        "\"query\": \"%s\"," +
-                        "\"fields\": [\"nickname.edge^1.5\"]" +
+                    "{\"match\": {" +
+                        "\"nickname.nori\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"operator\": \"and\"," +
+                            "\"boost\": 1.0" +
+                        "}" +
                     "}}" +
                 "]," +
                 "\"minimum_should_match\": 1" +
@@ -61,6 +66,71 @@ public class UserSearchService {
         
         StringQuery query = new StringQuery(queryJson);
         query.setMaxResults(1000);  // 안전한 크기로 제한 (shard fail 방지)
+        SearchHits<UserDocument> searchHits = elasticsearchOperations.search(query, UserDocument.class);
+        
+        return searchHits.stream()
+                .map(SearchHit::getContent)
+                .collect(Collectors.toList());
+    }
+
+    // Elasticsearch에서 유저 검색 (cursor 기반 - 무한스크롤용, 10개씩 반환)
+    // 검색 방식:
+    // - match_phrase: 전체 구문이 포함된 것만 검색 (AND 조건)
+    // - match_phrase_prefix: 구문 검색 + 접두사 검색
+    // - match: 부분 일치 검색 (AND 조건)
+    // - cursor: 마지막으로 조회한 userId (null이면 첫 페이지)
+    public List<UserDocument> searchUsersWithCursor(String nickname, Long cursor) {
+        // 검색 쿼리 부분
+        String searchQuery = String.format(
+            "{\"bool\": {" +
+                "\"should\": [" +
+                    "{\"match_phrase\": {" +
+                        "\"nickname.ngram\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"boost\": 3.0" +
+                        "}" +
+                    "}}," +
+                    "{\"match_phrase_prefix\": {" +
+                        "\"nickname.edge\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"boost\": 2.0" +
+                        "}" +
+                    "}}," +
+                    "{\"match\": {" +
+                        "\"nickname.nori\": {" +
+                            "\"query\": \"%s\"," +
+                            "\"operator\": \"and\"," +
+                            "\"boost\": 1.0" +
+                        "}" +
+                    "}}" +
+                "]," +
+                "\"minimum_should_match\": 1" +
+            "}}",
+            nickname, nickname, nickname
+        );
+
+        // cursor가 있으면 id > cursor 조건 추가
+        String queryJson;
+        if (cursor != null) {
+            queryJson = String.format(
+                "{\"bool\": {" +
+                    "\"must\": [" +
+                        "{\"range\": {" +
+                            "\"id\": {" +
+                                "\"gt\": %d" +
+                            "}" +
+                        "}}," +
+                        "%s" +
+                    "]" +
+                "}}",
+                cursor, searchQuery
+            );
+        } else {
+            queryJson = searchQuery;
+        }
+        
+        StringQuery query = new StringQuery(queryJson);
+        query.setMaxResults(10);  // 10개씩 반환
         SearchHits<UserDocument> searchHits = elasticsearchOperations.search(query, UserDocument.class);
         
         return searchHits.stream()

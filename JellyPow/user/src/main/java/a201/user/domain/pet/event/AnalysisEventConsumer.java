@@ -83,15 +83,13 @@ public class AnalysisEventConsumer {
                 return;
             }
 
-            String title;
+            String title = "JellyPaw🐾";
             String body;
 
             if ("SUCCESS".equals(event.getStatus())) {
-                title = "분석 완료";
-                body = pet != null ? pet.getName() + "의 건강 분석이 완료되었습니다." : "반려동물 건강 분석이 완료되었습니다.";
+                body ="분석 완료\n" + (pet != null ? pet.getName() + "의 건강 분석이 완료되었습니다." : "반려동물 건강 분석이 완료되었습니다.");
             } else {
-                title = "분석 실패";
-                body = pet != null ? pet.getName() + "의 건강 분석이 실패했습니다." : "반려동물 건강 분석이 실패했습니다.";
+                body = "분석 실패\n" + (pet != null ? pet.getName() + "의 건강 분석이 실패했습니다." : "반려동물 건강 분석이 실패했습니다.");
             }
 
             boolean sent = fcmService.sendNotification(user.getFcmToken(), title, body);

@@ -40,6 +40,8 @@ public class AnalysisResponse {
                         .testNameKo(summary.getTestNameKo())
                         .isNormal(summary.getIsNormal())
                         .severity(summary.getSeverity())
+                        .result(summary.getResult())
+                        .unit(summary.getUnit())
                         .suspectedConditions(summary.getSuspectedConditions())
                         .build())
                 .collect(Collectors.toList());

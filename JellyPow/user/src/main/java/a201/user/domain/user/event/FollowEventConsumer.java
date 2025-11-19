@@ -45,8 +45,8 @@ public class FollowEventConsumer {
                     
                     // 팔로우 알림 전송 (팔로우 받은 사용자에게 알림)
                     if (toUser.getFcmToken() != null && !toUser.getFcmToken().isEmpty()) {
-                        String title = "새 팔로워🐾";
-                        String body = fromUser != null ? fromUser.getNickname() + "님이 팔로우했습니다." : "누군가 팔로우했습니다.";
+                        String title = "JellyPaw🐾";
+                        String body = "새 팔로워\n" + (fromUser != null ? fromUser.getNickname() + "님이 팔로우했습니다." : "누군가 팔로우했습니다.");
                         fcmService.sendNotification(toUser.getFcmToken(), title, body);
                     }
                 }

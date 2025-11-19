@@ -11,15 +11,25 @@ import a201.user.domain.pet.document.AnalysisDocument;
 import a201.user.domain.pet.entity.Pet;
 import a201.user.domain.pet.service.AnalysisService;
 import a201.user.domain.pet.service.PetService;
+import a201.user.domain.user.entity.User;
+import a201.user.domain.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+@Slf4j
 @Tag(name = "Pet", description = "반려동물 관리 API")
 @RestController
 @RequestMapping("/pets")
@@ -29,7 +39,7 @@ public class PetController {
     private final PetService petService;
     private final AiClient aiClient;
     private final AnalysisService analysisService;
-
+	private final UserService userService;
     @Operation(summary = "반려동물 목록 조회", description = "사용자의 반려동물 목록을 조회합니다.")
     @GetMapping
     public ApiResponse<PetSimpleListResponse> getPetList(@RequestHeader("X-User-Id") Long userId) {
@@ -108,6 +118,19 @@ public class PetController {
             @PathVariable Long petId,
             @RequestPart("file") MultipartFile file) {
         
+        // 파일 바이트를 먼저 읽어서 저장 (transferTo는 파일을 이동시키므로 getBytes() 먼저 호출)
+        byte[] fileBytes = null;
+        try {
+            fileBytes = file.getBytes();
+            // 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+            String savedFilePath = saveTemporaryFileFromBytes(fileBytes, file, userId, petId);
+            if (savedFilePath != null) {
+                log.info("임시 파일 저장 완료: {}", savedFilePath);
+            }
+        } catch (IOException e) {
+            log.error("파일 읽기 실패: {}", e.getMessage(), e);
+        }
+        
         // AI 서버로 이미지 분석 요청 (비동기, 즉시 202 반환)
         // userId, petId를 함께 전달하여 나중에 Kafka 이벤트에서 구분 가능하도록 함
         Map<String, Object> response = aiClient.analyzeImage(file, userId, petId);
@@ -115,6 +138,54 @@ public class PetController {
         // 202 Accepted 응답 (요청이 큐에 추가되었음을 알림)
         // 실제 분석 결과는 Kafka 이벤트를 통해 나중에 받게 됨
         return ApiResponse.success(response);
+    }
+    
+    /**
+     * 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+     * @param fileBytes 파일 바이트 배열
+     * @param file 원본 MultipartFile (메타데이터용)
+     * @param userId 사용자 ID
+     * @param petId 반려동물 ID
+     * @return 저장된 파일 경로 (실패 시 null)
+     */
+    private String saveTemporaryFileFromBytes(byte[] fileBytes, MultipartFile file, Long userId, Long petId) {
+        try {
+            // 임시 디렉토리 생성
+            String tempDir = System.getProperty("java.io.tmpdir") + File.separator + "jellypaw_uploads";
+            Path tempDirPath = Paths.get(tempDir);
+            if (!Files.exists(tempDirPath)) {
+                Files.createDirectories(tempDirPath);
+            }
+            
+            // 고유한 파일명 생성 (userId_petId_UUID.확장자)
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+			User user = userService.getUserById(userId);
+			Pet pet = petService.getPet(petId);
+            String uniqueFilename = String.format("%s_%s_%s%s", user.getNickname(), pet.getName(), UUID.randomUUID(), extension);
+            Path tempFilePath = tempDirPath.resolve(uniqueFilename);
+            
+            // 바이트 배열로 파일 저장
+            Files.write(tempFilePath, fileBytes);
+            
+            // 로그 출력
+            // log.info("=== 임시 파일 저장 완료 ===");
+            // log.info("원본 파일명: {}", originalFilename);
+            // log.info("저장 파일명: {}", uniqueFilename);
+            // log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
+            // log.info("파일 크기: {} bytes ({} KB)", fileBytes.length, fileBytes.length / 1024.0);
+            // log.info("Content-Type: {}", file.getContentType());
+            // log.info("userId: {}, petId: {}", userId, petId);
+            
+            return tempFilePath.toAbsolutePath().toString();
+            
+        } catch (IOException e) {
+            log.error("임시 파일 저장 실패: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     @Operation(summary = "반려동물 분석 결과 목록 조회", description = "특정 반려동물의 분석 결과 목록을 최신순으로 조회합니다.")

@@ -66,14 +66,14 @@ public class KakaoAuthController {
         try {
             // 1. 카카오 인증 코드로 액세스 토큰 받기
             String accessToken = kakaoAuthService.getAccessToken(code);
-            log.info("카카오 액세스 토큰: {}", accessToken);
+            // log.info("카카오 액세스 토큰: {}", accessToken);
 
             // 2. 액세스 토큰으로 사용자 정보 조회
             Map<String, Object> userInfo = kakaoAuthService.getUserInfo(accessToken);
-            log.info("카카오 사용자 정보: {}", userInfo);
+            // log.info("카카오 사용자 정보: {}", userInfo);
             
             String email = kakaoAuthService.extractEmail(userInfo);
-            log.info("카카오 이메일: {}", email);
+            // log.info("카카오 이메일: {}", email);
 
             // 3. Auth 테이블 확인
             Optional<Auth> authOptional = authRepository.findByEmail(email);
@@ -108,7 +108,7 @@ public class KakaoAuthController {
             
             // JWT 토큰 생성
             String jwtToken = jwtUtil.generateToken(user.getId(), user.getRole());
-            log.info("JWT 토큰 생성 완료 - userId: {}, role: {}", user.getId(), user.getRole());
+            // log.info("JWT 토큰 생성 완료 - userId: {}, role: {}", user.getId(), user.getRole());
 
             return KakaoLoginResponse.builder()
                     .needSignup(false)

@@ -16,7 +16,7 @@ public class UserEventConsumer {
     private final BoardUserService boardUserService;
     @KafkaListener(topics = "user-create-topic", groupId = "board-view-service")
     public void handleUserCreate(String message) {
-        log.info("User 생성 이벤트 수신: {}", message);
+        // log.info("User 생성 이벤트 수신: {}", message);
         
         try {
             UserEvent event = JsonUtil.fromJsonString(message, UserEvent.class);
@@ -28,7 +28,7 @@ public class UserEventConsumer {
 
     @KafkaListener(topics = "user-update-topic", groupId = "board-view-service")
     public void handleUserUpdate(String message) {
-        log.info("User 업데이트 이벤트 수신: {}", message);
+        // log.info("User 업데이트 이벤트 수신: {}", message);
         
         try {
             UserEvent event = JsonUtil.fromJsonString(message, UserEvent.class);

@@ -31,7 +31,7 @@ public class PublicUserController {
             
             // JWT 토큰 생성
             String jwtToken = jwtUtil.generateToken(response.getUserId(), response.getRole());
-            log.info("회원가입 완료 - JWT 토큰 생성 - userId: {}, role: {}", response.getUserId(), response.getRole());
+            // log.info("회원가입 완료 - JWT 토큰 생성 - userId: {}, role: {}", response.getUserId(), response.getRole());
             
             // 토큰을 포함한 응답 반환
             UserSignupResponse responseWithToken = UserSignupResponse.from(
