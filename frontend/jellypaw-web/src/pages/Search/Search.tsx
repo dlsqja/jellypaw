@@ -7,7 +7,7 @@ import { LuClock3 } from 'react-icons/lu';
 import { IoIosArrowForward } from 'react-icons/io';
 import { Spinner } from '@/components/ui/spinner';
 import { useSearchStore } from '@/store/searchStore';
-import { searchPlaces, searchUsers } from '@/services/api/search';
+import { searchPlaces, searchUsers, searchUsersWithCursor } from '@/services/api/search';
 import type { SearchPlacesResponse, SearchUsersResponse } from '@/types/search';
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 import { BsPersonCircle } from 'react-icons/bs';
@@ -26,8 +26,11 @@ export default function Search() {
   const [results, setResults] = useState<SearchUsersResponse[]>([]);
   const [placeResults, setPlaceResults] = useState<SearchPlacesResponse['places']>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const skipNextSearchRef = useRef(0);
-  const [cursor, setCursor] = useState<number | null>(0);
+  const [cursor, setCursor] = useState<number | null>(0); // 장소 검색용 cursor
+  const [userCursor, setUserCursor] = useState<number | null>(null); // 유저 검색용 cursor
+  const [hasMoreUsers, setHasMoreUsers] = useState(true);
   // 검색어 공백 제거
   const removeblank = (keyword: string) => keyword.trim();
   // 검색 타입 추출 - @ 유저명 혹은 장소명 판별
@@ -50,7 +53,7 @@ export default function Search() {
   const isUserQuery = useMemo(() => removedBlankSearchValue.startsWith('@'), [removedBlankSearchValue]);
   const hasKeyword = removedBlankSearchValue.length > 0;
 
-  // 검색 요청
+  // 검색 요청 (첫 검색만 - userCursor === null일 때만)
   useEffect(() => {
     // 다음 검색 건너뛰기
     if (skipNextSearchRef.current > 0) {
@@ -64,6 +67,8 @@ export default function Search() {
       setPlaceResults([]);
       setIsLoading(false);
       setCursor(null);
+      setUserCursor(null);
+      setHasMoreUsers(true);
       return;
     }
 
@@ -73,32 +78,59 @@ export default function Search() {
       setIsLoading(false);
       return;
     }
+    
+    // 유저 검색: userCursor가 null이 아니면 첫 검색이 아니므로 이 useEffect에서는 처리하지 않음
+    if (searchType === 'user' && userCursor !== null) {
+      return;
+    }
+    
+    // 유저 검색: 첫 검색이 아니고 더 이상 데이터가 없으면 중단
+    if (searchType === 'user' && userCursor === null && !hasMoreUsers && results.length > 0) {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+      return;
+    }
+    
     // 로딩 상태 설정
     setIsLoading(true);
     // 검색 요청 타임아웃
     const timeoutId = setTimeout(() => {
       // 유저 검색 요청
       if (searchType === 'user') {
-        // 유저 검색어 @이후 값 추룰룰
+        // 유저 검색어 @이후 값 추출
         const keyword = sanitizeUserKeyword(removedBlankSearchValue);
         // 유저 검색어 없으면 초기화
         if (!keyword) {
           setResults([]);
           setIsLoading(false);
+          setUserCursor(null);
+          setHasMoreUsers(true);
           return;
         }
 
-        // 유저 검색 요청
-        searchUsers(keyword)
-          .then((users) => {
-            const userResults = users ?? [];
+        // 유저 검색 요청 (첫 검색만 - cursor: null)
+        searchUsersWithCursor({ nickname: keyword, cursor: null })
+          .then((response) => {
+            const userResults = response.users ?? [];
+            // 첫 검색: 결과 교체
             setResults(userResults);
             setPlaceResults([]);
-            console.log('results:', userResults);
+            
+            // nextCursor 업데이트
+            if (response.nextCursor === null) {
+              setHasMoreUsers(false);
+              setUserCursor(null);
+            } else {
+              setHasMoreUsers(true);
+              setUserCursor(response.nextCursor);
+            }
+            console.log('[Search] 첫 검색 results:', userResults, 'nextCursor:', response.nextCursor);
           })
           .catch((error) => {
             console.log(error);
             setResults([]);
+            setHasMoreUsers(false);
+            setUserCursor(null);
           })
           .finally(() => {
             setIsLoading(false);
@@ -136,7 +168,70 @@ export default function Search() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [removedBlankSearchValue, cursor]);
+  }, [removedBlankSearchValue, cursor]); // userCursor 제거 - 첫 검색만 처리
+
+  // 무한 스크롤: 스크롤 이벤트로 추가 데이터 로드
+  useEffect(() => {
+    // 유저 검색이 아니거나 더 이상 불러올 데이터가 없으면 리턴
+    if (!isUserQuery || !hasMoreUsers || !removedBlankSearchValue || userCursor === null || results.length === 0) {
+      return;
+    }
+
+    const container = document.getElementById('app-scroll-container');
+    if (!container) {
+      return;
+    }
+
+    const handleScroll = () => {
+      // 이미 로딩 중이면 리턴
+      if (isLoadingMore || isLoading) {
+        return;
+      }
+
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      const scrollBottom = scrollHeight - scrollTop - clientHeight;
+
+      // 스크롤이 하단 200px 이내에 도달했을 때
+      if (scrollBottom < 200) {
+        const keyword = sanitizeUserKeyword(removedBlankSearchValue);
+        if (!keyword) {
+          return;
+        }
+
+        setIsLoadingMore(true);
+
+        searchUsersWithCursor({ nickname: keyword, cursor: userCursor })
+          .then((response) => {
+            const userResults = response.users ?? [];
+            setResults((prev) => [...prev, ...userResults]);
+            
+            // nextCursor 업데이트
+            if (response.nextCursor === null) {
+              setHasMoreUsers(false);
+              setUserCursor(null);
+            } else {
+              setUserCursor(response.nextCursor);
+            }
+            console.log('[Search] 추가 로드 results:', userResults, 'nextCursor:', response.nextCursor);
+          })
+          .catch((error) => {
+            console.log('[Search] 추가 로드 실패:', error);
+            setHasMoreUsers(false);
+            setUserCursor(null);
+          })
+          .finally(() => {
+            setIsLoadingMore(false);
+          });
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [isUserQuery, hasMoreUsers, removedBlankSearchValue, userCursor, results.length, isLoadingMore, isLoading]);
 
   return (
     <>
@@ -151,6 +246,9 @@ export default function Search() {
             skipNextSearchRef.current = 0;
             setSearchValue(e.target.value);
             setCursor(0);
+            setUserCursor(null);
+            setHasMoreUsers(true);
+            setResults([]);
           }}
         />
         {!hasKeyword && (
@@ -166,6 +264,8 @@ export default function Search() {
                 onClick={() => {
                   skipNextSearchRef.current = 0;
                   setCursor(0);
+                  setUserCursor(null);
+                  setHasMoreUsers(true);
                   setSearchValue(item.keyword);
                 }}
               >
@@ -243,6 +343,13 @@ export default function Search() {
                     </div>
                   </div>
                 ))}
+                {/* 무한 스크롤 로딩 인디케이터 */}
+                {isLoadingMore && (
+                  <div className="flex flex-col items-center justify-center py-4 gap-2">
+                    <Spinner className="size-5 text-aqua-500" />
+                    <span className="text-gray-300 caption1">더 불러오는 중...</span>
+                  </div>
+                )}
               </>
             )}
 

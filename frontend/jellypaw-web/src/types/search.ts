@@ -58,3 +58,15 @@ export interface SearchPlacesDetailResponse {
 export interface GetPlaceFeedsResponse {
   boards?: GetFeedsResponse[];
 }
+
+// 유저 검색 무한 스크롤 파라미터
+export interface SearchUsersWithCursorParams {
+  nickname: string;
+  cursor?: number | null;
+}
+
+// 유저 검색 무한 스크롤 응답
+export interface SearchUsersWithCursorResponse {
+  users: SearchUsersResponse[];
+  nextCursor: number | null;
+}
