@@ -20,8 +20,9 @@ export const searchUsers = async (keyword: string): Promise<SearchUsersResponse[
 };
 
 // 유저 검색 상세 조회
-export const searchUsersDetail = async (targetUserId: number): Promise<SearchUsersDetailResponse> => {
-  const response = await apiClient.get(`/users/${targetUserId}`);
+export const searchUsersDetail = async (nickname: string): Promise<SearchUsersDetailResponse> => {
+  const response = await apiClient.get(`/users/${nickname}`);
+  console.log('response', response);
   return response.data.data;
 };
 
