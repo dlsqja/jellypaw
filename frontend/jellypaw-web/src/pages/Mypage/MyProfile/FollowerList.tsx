@@ -6,6 +6,8 @@ import { getFollowing } from '@/services/api/followers';
 import { follow, unfollow } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse, GetFollowingResponse } from '@/types/followers';
+import { searchUsersDetail } from '@/services/api/search';
+import type { SearchUsersResponse } from '@/types/search';
 import { FaPaw } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 
@@ -102,9 +104,61 @@ export default function FollowerList() {
   };
 
   // 프로필 클릭 핸들러
-  const handleProfileClick = (userId?: number) => {
-    if (userId) {
-      navigate(`/search/person/${userId}`);
+  const handleProfileClick = async (userId?: number, nickname?: string) => {
+    if (!userId || !nickname) return;
+
+    try {
+      // searchUsersDetail을 사용하여 프로필 정보 조회
+      const profileData = await searchUsersDetail(nickname);
+      
+      if (profileData) {
+        // SearchUsersResponse 형태로 변환
+        const searchResult: SearchUsersResponse = {
+          userId: profileData.userId,
+          nickname: profileData.nickname,
+          description: profileData.description,
+          profileImg: profileData.profileImg,
+          backgroundImg: profileData.backgroundImg,
+          follower: profileData.followerNum,
+          following: profileData.followingNum,
+        };
+        
+        // 프로필 상세 페이지로 이동 (state로 검색 결과 전달)
+        navigate(`/search/person/${userId}`, {
+          state: {
+            searchResult,
+            from: '/mypage/followers', // 출발지 정보 추가
+            activeTab: activeTab, // 현재 활성 탭 정보 추가
+          },
+        });
+      } else {
+        // 프로필 정보를 가져올 수 없으면 기본 정보로 이동
+        const searchResult: SearchUsersResponse = {
+          userId,
+          nickname,
+        };
+        navigate(`/search/person/${userId}`, {
+          state: {
+            searchResult,
+            from: '/mypage/followers', // 출발지 정보 추가
+            activeTab: activeTab, // 현재 활성 탭 정보 추가
+          },
+        });
+      }
+    } catch (error) {
+      console.error('프로필 조회 실패:', error);
+      // 에러 발생 시 기본 정보로 이동
+      const searchResult: SearchUsersResponse = {
+        userId,
+        nickname,
+      };
+      navigate(`/search/person/${userId}`, {
+        state: {
+          searchResult,
+          from: '/mypage/followers', // 출발지 정보 추가
+          activeTab: activeTab, // 현재 활성 탭 정보 추가
+        },
+      });
     }
   };
 
@@ -155,7 +209,7 @@ export default function FollowerList() {
               return (
                 <div key={user.userId || user.nickname} className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 bg-gray-100">
                   {/* 프로필 이미지 */}
-                  <button type="button" onClick={() => handleProfileClick(user.userId)} className="flex-shrink-0 cursor-pointer">
+                  <button type="button" onClick={() => handleProfileClick(user.userId, user.nickname)} className="flex-shrink-0 cursor-pointer">
                     {user.profileImg ? (
                       <div className="w-12 h-12 rounded-full overflow-hidden border border-white">
                         <img className="w-full h-full object-cover" src={`${IMAGE_BASE_URL}${user.profileImg}`} alt={user.nickname} />
@@ -172,7 +226,7 @@ export default function FollowerList() {
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => handleProfileClick(user.userId)}
+                        onClick={() => handleProfileClick(user.userId, user.nickname)}
                         className="text-aqua-500 p2-b cursor-pointer hover:opacity-70"
                       >
                         {user.nickname}

@@ -40,7 +40,10 @@ export default function PersonSearchDetail() {
   const { personId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const searchResult = (location.state as { searchResult?: SearchUsersResponse } | undefined)?.searchResult;
+  const state = location.state as { searchResult?: SearchUsersResponse; from?: string; activeTab?: 'following' | 'follower' } | undefined;
+  const searchResult = state?.searchResult;
+  const from = state?.from; // 출발지 정보
+  const activeTab = state?.activeTab; // 활성 탭 정보
 
   // state로 전달된 검색 결과를 초기 데이터로 변환 (useMemo로 메모이제이션)
   const SearchResultData = useMemo<SearchUsersDetailResponse | null>(() => {
@@ -186,7 +189,14 @@ export default function PersonSearchDetail() {
       <BackHeader 
         title="" 
         onBack={() => {
-          navigate('/search', { state: { fromDetail: true } });
+          // 출발지에 따라 다른 경로로 이동
+          if (from === '/mypage/followers') {
+            // 활성 탭 정보가 있으면 해당 탭으로 돌아가기
+            const tabParam = activeTab ? `?type=${activeTab}` : '';
+            navigate(`/mypage/followers${tabParam}`, { state: { fromDetail: true } });
+          } else {
+            navigate('/search', { state: { fromDetail: true } });
+          }
         }}
       />
       {/* 프로필 */}
