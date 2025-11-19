@@ -88,7 +88,7 @@ export default function ArticleBox({ feed, imageUrl, title, date, content, likeC
 
   return (
     <div
-      className={`px-4 pb-2 border-b border-gray-200 last:border-b-0 flex items-start gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
+      className={`w-full px-4 pb-2 border-b border-gray-200 last:border-b-0 flex items-start gap-4 ${isClickable ? 'cursor-pointer' : ''}`}
       onClick={isClickable ? handleArticleClick : undefined}
     >
       {/* 이미지 또는 카테고리 아이콘 */}
@@ -97,13 +97,13 @@ export default function ArticleBox({ feed, imageUrl, title, date, content, likeC
       ) : (
         <div className="w-20 h-20 rounded-lg bg-white-100 flex items-center justify-center flex-shrink-0">{renderCategoryIcon()}</div>
       )}
-      <div className="flex-1 flex flex-col gap-1">
+      <div className="flex-1 flex flex-col gap-1 min-w-0 w-0">
         {/* 제목 */}
-        <div className="text-aqua-500 p2-b ">{title}</div>
+        <div className="text-aqua-500 p2-b truncate w-full">{title}</div>
         {/* 날짜 */}
         <div className="text-gray-300 caption1">{formatDate(date)}</div>
         {/* 본문 */}
-        <div className="text-aqua-500 caption1 line-clamp-2 whitespace-pre-line">{content}</div>
+        <div className="text-aqua-500 caption1 line-clamp-2 break-words overflow-hidden w-full">{content || ''}</div>
         {/* 좋아요, 댓글 수 */}
         <div className="flex justify-end items-center">
           <div className="flex items-center">
