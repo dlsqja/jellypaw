@@ -57,18 +57,11 @@ export default function MenuBar() {
   // 피드
   const handleFeedPress = () => {
     if (route.name === 'FeedStack') {
-        
-        if (navigation.canGoBack()) {
-            navigation.goBack();
-            clearFeedScroll();
-            return;
-        }
-        
-        DeviceEventEmitter.emit('WEBVIEW_GO_BACK'); 
-        DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
-
-
+        // FeedStack 내부에서 피드 탭 클릭
+        // WebView의 현재 경로를 확인하여 처리
+        DeviceEventEmitter.emit('CHECK_FEED_WEBVIEW_PATH');
     } else {
+        // 다른 탭에서 피드로 이동 → 스크롤 초기화
         navigation.navigate('FeedStack', { screen: 'Feed' });
         clearFeedScroll(); 
     }

@@ -121,11 +121,47 @@ export default function AuthorizedWebView({
         }
     });
 
+  // 🔹 피드 탭 클릭 시 WebView 경로 확인
+  const checkFeedWebViewPathSub = DeviceEventEmitter.addListener('CHECK_FEED_WEBVIEW_PATH', () => {
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          const path = window.location.pathname;
+          const isFeedList = path === '/feed' || path === '/feed/';
+          
+          console.log('[WEB] CHECK_FEED_WEBVIEW_PATH: current path =', path, 'isFeedList =', isFeedList);
+          
+          if (isFeedList) {
+            // 이미 피드 목록이면 → 스크롤 초기화
+            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+              type: 'FEED_TAB_CLICKED', 
+              shouldRestoreScroll: false 
+            }));
+          } else {
+            // 피드 상세나 다른 페이지면 → 스크롤 복원하며 /feed로 이동
+            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+              type: 'FEED_TAB_CLICKED', 
+              shouldRestoreScroll: true 
+            }));
+          }
+        } catch(e) {
+          console.error('[WEB] CHECK_FEED_WEBVIEW_PATH error', e);
+          window.ReactNativeWebView.postMessage(JSON.stringify({ 
+            type: 'FEED_TAB_CLICKED', 
+            shouldRestoreScroll: false 
+          }));
+        }
+      })();
+      true;
+    `);
+  });
+
   return () => {
     feedUpdatedSub.remove();
     clearFeedScrollSub.remove();
     feedScrollToTopSub.remove();
     webviewGoBackSub.remove();
+    checkFeedWebViewPathSub.remove();
   };
 }, [canGoBack]);
 
@@ -156,6 +192,8 @@ export default function AuthorizedWebView({
       const msg = JSON.parse(raw);
 
       if (msg.type === 'DEBUG') {
+        // WebView에서 보낸 디버그 메시지 출력
+        console.log('[WEB DEBUG]', msg.message || msg);
         return;
       }
 
@@ -164,6 +202,68 @@ export default function AuthorizedWebView({
           screen: 'FeedWrite',
           params: { mode: 'edit', categoryId: 0, categoryName: '', categoryValue: '' },
         });
+        return;
+      }
+
+      if (msg.type === 'FEED_TAB_CLICKED') {
+        const shouldRestoreScroll = msg.shouldRestoreScroll === true;
+        console.log('[AuthorizedWebView] FEED_TAB_CLICKED received, shouldRestoreScroll =', shouldRestoreScroll);
+        
+        if (shouldRestoreScroll) {
+          // 스크롤 복원하며 /feed로 이동 (WebView 내부 라우팅)
+          // 즉시 실행되도록 최적화
+          const navigationScript = `
+            (function() {
+              try {
+                const currentPath = window.location.pathname;
+                if (currentPath === '/feed' || currentPath === '/feed/') {
+                  return;
+                }
+                
+                // 방법 1: 전역 함수 직접 호출 (가장 빠름)
+                if (typeof window.__REACT_ROUTER_NAVIGATE === 'function') {
+                  window.__REACT_ROUTER_NAVIGATE('/feed');
+                  return;
+                }
+                
+                // 방법 2: CustomEvent 발생 (동기적으로 처리)
+                const event = new CustomEvent('NAVIGATE_TO_FEED', { 
+                  detail: { restoreScroll: true },
+                  bubbles: true,
+                  cancelable: true
+                });
+                const dispatched = window.dispatchEvent(event);
+                
+                // 방법 3: 즉시 window.history.pushState + popstate 이벤트 (React Router가 감지)
+                // 이 방법이 가장 빠르고 React Router와 호환됨
+                if (window.history && window.history.pushState) {
+                  window.history.pushState(null, '', '/feed');
+                  window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+                  return;
+                }
+                
+                // 최종 폴백: window.location (페이지 리로드 발생하지만 확실함)
+                window.location.href = '/feed';
+              } catch(e) {
+                // 에러 발생 시 최종 폴백
+                try {
+                  window.location.href = '/feed';
+                } catch(e2) {
+                  console.error('[WEB] Navigation failed:', e2);
+                }
+              }
+            })();
+            true;
+          `;
+          
+          console.log('[AuthorizedWebView] Injecting navigation script...');
+          webRef.current?.injectJavaScript(navigationScript);
+          
+          // FEED_SCROLL_TO_TOP은 emit하지 않음 (스크롤 복원해야 하므로)
+        } else {
+          // 이미 피드 목록이면 → 스크롤 초기화
+          DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
+        }
         return;
       }
 

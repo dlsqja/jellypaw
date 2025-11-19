@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback, useLayoutEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiUsers } from 'react-icons/fi';
 import Header from '@/components/headers/Header';
 import Followers from '@/pages/Feed/Components/Followers';
@@ -21,6 +22,7 @@ export const FEED_SCROLL_KEY = 'feed-scroll-top';
 export const FOLLOWINGS_DIRTY_KEY = 'followings-dirty';
 
 export default function Feed() {
+  const navigate = useNavigate();
   const { data: profileData } = useProfile();
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
@@ -225,6 +227,23 @@ export default function Feed() {
       window.removeEventListener('FEED_SCROLL_TO_TOP', handler as any);
     };
   }, []);
+
+  // 🔹 피드 탭 클릭 시 /feed로 네비게이션 (스크롤 복원)
+  useEffect(() => {
+    const handler = (event: CustomEvent<{ restoreScroll: boolean }>) => {
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/feed' && currentPath !== '/feed/') {
+        // /feed로 이동 (스크롤은 기존 로직으로 복원됨)
+        navigate('/feed', { replace: false });
+        console.log('[Feed] NAVIGATE_TO_FEED: navigating to /feed for scroll restoration');
+      }
+    };
+
+    window.addEventListener('NAVIGATE_TO_FEED', handler as EventListener);
+    return () => {
+      window.removeEventListener('NAVIGATE_TO_FEED', handler as EventListener);
+    };
+  }, [navigate]);
 
   // 🔹 맨 위에서 아래로 당기면 새로고침
   useEffect(() => {
