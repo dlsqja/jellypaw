@@ -11,7 +11,10 @@ const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
 export default function CertifiedStaffProfile({ name, profileImageUrl, description, onClick }: CertifiedStaffProfileProps) {
   return (
-    <div className="flex items-center gap-3">
+    <div 
+      className={`flex items-center gap-3 ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {/* 프로필 이미지 */}
       {profileImageUrl ? (
         <img className="w-12 h-12 rounded-full object-cover flex-shrink-0" src={`${IMAGE_BASE_URL}${profileImageUrl}`} alt={name} />

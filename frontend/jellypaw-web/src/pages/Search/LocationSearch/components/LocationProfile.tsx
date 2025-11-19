@@ -11,6 +11,7 @@ import { MdOutlinePhone } from 'react-icons/md';
 import type { SearchPlacesDetailResponse } from '@/types/search';
 import { BsPersonFillCheck } from 'react-icons/bs';
 import { useNavigate } from 'react-router-dom';
+import type { SearchUsersResponse } from '@/types/search';
 
 export default function LocationProfile({
   id,
@@ -27,8 +28,20 @@ export default function LocationProfile({
 
   // 사용자 프로필 상세 페이지로 이동
   const handleUserProfileClick = () => {
-    if (user?.userId) {
-      navigate(`/search/person/${user.userId}`);
+    if (user?.userId && user?.nickname) {
+      // user 정보를 SearchUsersResponse 형태로 변환하여 state로 전달
+      const searchResult: SearchUsersResponse = {
+        userId: user.userId,
+        nickname: user.nickname,
+        profileImg: user.profileImg,
+        description: user.description,
+        backgroundImg: user.backgroundImg,
+        follower: user.followerNum,
+        following: user.followingNum,
+      };
+      navigate(`/search/person/${user.userId}`, {
+        state: { searchResult },
+      });
     }
   };
 
