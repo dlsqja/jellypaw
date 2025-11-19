@@ -73,7 +73,7 @@ export default function FeedWrite({ route, navigation }: Props) {
   const screenHeight = Dimensions.get('window').height;
   const headerHeight = 60;
   const bottomToolbarHeight = 48;
-  const topContentHeight = 80; // 날짜, 카테고리, 제목, 구분선 등 대략적인 높이
+  const topContentHeight = 100; // 날짜, 카테고리, 제목, 구분선 등 대략적인 높이
   const locationSectionHeight = location ? 40 : 0; // 장소 섹션 높이 (장소가 있을 때만)
   const imageSectionHeight = images.length > 0 ? 180 : 0; // 사진 목록 높이
   const contentSectionHeight =
@@ -575,11 +575,11 @@ export default function FeedWrite({ route, navigation }: Props) {
           <View style={styles.divider} />
 
           {/* 내용 입력 */}
-          <View style={[styles.contentSection, { height: Math.max(contentSectionHeight, 200) }]}>
+          <View style={styles.contentSection}>
             <Pressable style={styles.contentInputContainer} onPress={() => contentInputRef.current?.focus()}>
               <TextInput
                 ref={contentInputRef}
-                style={styles.contentInput}
+                style={[styles.contentInput, { minHeight: Math.max(contentSectionHeight, 200) }]}
                 placeholder="반려동물과 함께한 특별한 순간을 기록해보세요"
                 placeholderTextColor={palette.gray400}
                 value={content}
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create({
   // 내용 입력 컨테이너
   contentInputContainer: {
     width: '100%',
-    flex: 1,
+    height: 320,
   },
   // 내용 입력
   contentInput: {
@@ -1121,7 +1121,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Pretendard-Medium',
     padding: 0,
     margin: 0,
-    flex: 1,
     ...Platform.select({
       ios: {
         paddingTop: 0,
