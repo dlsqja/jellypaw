@@ -110,6 +110,17 @@ export default function MyReservation() {
     return { pastReservations: past, upcomingReservations: upcoming };
   }, [reservations]);
 
+  // 예약이 하나도 없을 때
+  if (reservations.length === 0) {
+    return (
+      <div className="flex flex-col gap-4 mb-4">
+        <div className="flex flex-col items-center justify-center py-12">
+          <p className="text-gray-300 p2-b text-center">예약 내역이 없습니다</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 mb-4">
       {/* 다가올 예약 */}
