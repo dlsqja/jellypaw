@@ -10,7 +10,8 @@ type Props = {
 const WEB_BASE = (WEB_BASE_URL || 'http://k13a201.p.ssafy.io:3000').replace(/\/+$/, '');
 
 export default function FeedScreen({ boardId }: Props) {
-  const path = boardId ? `/feed/${boardId}` : '/feed';
+  // boardId가 있으면 fromWrite=true 쿼리 파라미터 추가 (작성 완료 후 이동한 경우)
+  const path = boardId ? `/feed/${boardId}?fromWrite=true` : '/feed';
   const uri = `${WEB_BASE}${path}`;
 
   console.log('[FeedScreen] boardId =', boardId, 'uri =', uri);

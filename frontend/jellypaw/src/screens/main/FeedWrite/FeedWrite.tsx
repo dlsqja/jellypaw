@@ -465,13 +465,26 @@ export default function FeedWrite({ route, navigation }: Props) {
               const parentNav = navigation.getParent();
 
               if (createdBoardId) {
-                parentNav?.navigate('FeedStack', {
-                  screen: 'Feed',
-                  params: { boardId: createdBoardId },
+                // FeedWriteStack을 제거하고 FeedStack으로 이동
+                // reset을 사용하여 스택에서 FeedWriteStack을 완전히 제거
+                parentNav?.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'FeedStack',
+                      params: {
+                        screen: 'Feed',
+                        params: { boardId: createdBoardId },
+                      },
+                    },
+                  ],
                 });
               } else {
                 // boardId 못 찾으면 그냥 피드 메인으로
-                parentNav?.navigate('FeedStack');
+                parentNav?.reset({
+                  index: 0,
+                  routes: [{ name: 'FeedStack' }],
+                });
               }
             },
           },

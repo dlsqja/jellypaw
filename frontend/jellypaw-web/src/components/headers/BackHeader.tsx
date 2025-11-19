@@ -10,10 +10,16 @@ export default function BackHeader({ title, to }: BackHeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
+    console.log('[BackHeader] handleBack called, to:', to);
     // 특정 경로로 이동할 때 사용
-    if (to) navigate(to);
+    if (to) {
+      console.log('[BackHeader] Navigating to:', to);
+      navigate(to);
+    } else {
     // 아니면 무조건 뒤로가기
-    else navigate(-1);
+      console.log('[BackHeader] Navigating back');
+      navigate(-1);
+    }
   };
 
   return (

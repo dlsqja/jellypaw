@@ -6,7 +6,7 @@ import Comment from './Components/Comments';
 import CommentInput from './Components/CommentInput';
 import { getFeedDetail, getComments, deleteFeed, addLike, cancelLike, getLikedFeeds } from '@/services/api/feed';
 import { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { GetFeedDetailResponse, GetCommentsResponse } from '@/types/feed';
 import { FaPaw } from 'react-icons/fa';
 import { FaStar } from 'react-icons/fa6';
@@ -28,9 +28,18 @@ export default function FeedDetail() {
   const { boardId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: profileData } = useProfile();
   const feedFromState = (location.state as { feed?: GetFeedDetailResponse } | undefined)?.feed ?? null;
   const likeInfoFromState = (location.state as { isLiked?: boolean; currentLikeCount?: number } | undefined) ?? null;
+
+  // 게시글 작성 완료 후 이동한 경우인지 확인 (URL 쿼리 파라미터 또는 state에서 확인)
+  const fromWrite = searchParams.get('fromWrite') === 'true' || (location.state as { fromWrite?: boolean } | undefined)?.fromWrite === true;
+  
+  // 디버깅
+  useEffect(() => {
+    console.log('[FeedDetail] fromWrite:', fromWrite, 'boardId:', boardId, 'searchParams:', searchParams.toString(), 'location.pathname:', location.pathname);
+  }, [fromWrite, boardId, searchParams, location.pathname]);
 
   // 게시글에서 가져온 데이터
   const [detailData, setDetailData] = useState<GetFeedDetailResponse | null>(feedFromState);
@@ -88,6 +97,28 @@ export default function FeedDetail() {
     if (!container) return;
     container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, []);
+
+  // 게시글 작성 완료 후 이동한 경우, WebView 히스토리에 /feed를 추가하여 뒤로가기 시 /feed로 이동하도록 함
+  useEffect(() => {
+    if (fromWrite && boardId) {
+      // WebView가 완전히 로드된 후 히스토리를 조작하기 위해 약간의 지연 추가
+      // reset을 사용하면 WebView가 새로 로드되므로 더 긴 지연이 필요할 수 있음
+      const timer = setTimeout(() => {
+        if ((window as any).ReactNativeWebView) {
+          const message = JSON.stringify({
+            type: 'ADD_FEED_TO_HISTORY',
+          });
+          (window as any).ReactNativeWebView.postMessage(message);
+          console.log('[FeedDetail] ADD_FEED_TO_HISTORY message sent, fromWrite:', fromWrite);
+        } else {
+          console.warn('[FeedDetail] ReactNativeWebView not found, cannot add /feed to history');
+        }
+      }, 300); // WebView 로드 후 히스토리 조작 (reset 사용 시 더 긴 지연 필요)
+
+      return () => clearTimeout(timer);
+    }
+  }, [fromWrite, boardId]);
+
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
@@ -280,7 +311,7 @@ export default function FeedDetail() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="min-h-screen bg-gray-100 pb-[72px]" // ✅ 댓글창 높이만큼 padding 추가
       >
-      <BackHeader title="게시글" />
+      <BackHeader title="게시글" to={fromWrite ? '/feed' : undefined} />
       {/* 프로필 헤더 */}
       <Card className="rounded-none shadow-none border-none bg-gray-100 ">
         <CardHeader className="pb-2">
