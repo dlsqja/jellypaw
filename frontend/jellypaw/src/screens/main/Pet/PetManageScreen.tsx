@@ -1,7 +1,7 @@
 // src/screens/main/Pet/PetManageScreen.tsx
 
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme, palette } from '../../../ui/system/variants';
 import { Text } from '../../../ui/components/Text';
@@ -55,6 +55,7 @@ export default function PetManageScreen({ navigation, route }: any) {
   const [showStepSheet, setShowStepSheet] = useState(false);
   const [analysisList, setAnalysisList] = useState<getUrineAnalysisListResponse[]>([]);
   const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const nav = useNavigation<any>();
 
@@ -86,32 +87,56 @@ export default function PetManageScreen({ navigation, route }: any) {
     { id: 'health', label: '건강 체크' },
   ];
 
+  // 소변 검사 결과 목록 가져오기 함수
+  const loadAnalysisList = async (showLoading = true) => {
+    if (!selectedPetId || activeTab !== 'health') {
+      setAnalysisList([]);
+      return;
+    }
+
+    if (showLoading) {
+      setIsLoadingAnalysis(true);
+    }
+
+    try {
+      const data = await getUrineAnalysisList(Number(selectedPetId));
+      // 최신순으로 정렬 (createdAt 기준 내림차순)
+      const sorted = [...data].sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
+      setAnalysisList(sorted);
+    } catch (err) {
+      // 서버에서 500 에러가 발생하더라도 앱이 크래시되지 않도록 처리
+      console.warn('[PET] urineAnalysisList 조회 실패:', err?.message || err);
+      setAnalysisList([]);
+    } finally {
+      if (showLoading) {
+        setIsLoadingAnalysis(false);
+      }
+    }
+  };
+
   // 소변 검사 결과 목록 가져오기
   useEffect(() => {
-    if (selectedPetId && activeTab === 'health') {
-      setIsLoadingAnalysis(true);
-      getUrineAnalysisList(Number(selectedPetId))
-        .then((data) => {
-          // 최신순으로 정렬 (createdAt 기준 내림차순)
-          const sorted = [...data].sort((a, b) => {
-            const dateA = new Date(a.createdAt).getTime();
-            const dateB = new Date(b.createdAt).getTime();
-            return dateB - dateA;
-          });
-          setAnalysisList(sorted);
-        })
-        .catch((err) => {
-          // 서버에서 500 에러가 발생하더라도 앱이 크래시되지 않도록 처리
-          console.warn('[PET] urineAnalysisList 조회 실패:', err?.message || err);
-          setAnalysisList([]);
-        })
-        .finally(() => {
-          setIsLoadingAnalysis(false);
-        });
-    } else {
-      setAnalysisList([]);
-    }
+    loadAnalysisList();
   }, [selectedPetId, activeTab]);
+
+  // Pull-to-refresh 핸들러
+  const onRefresh = async () => {
+    if (activeTab !== 'health' || !selectedPetId) {
+      return;
+    }
+    setRefreshing(true);
+    try {
+      await loadAnalysisList(false);
+      // 펫 목록도 새로고침
+      qc.invalidateQueries({ queryKey: petKeys.list(userKey) });
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const isEmpty = !isListLoading && pets.length === 0;
 
@@ -184,7 +209,19 @@ export default function PetManageScreen({ navigation, route }: any) {
     <View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
       <Header title="동물관리" />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: 100 }} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            enabled={activeTab === 'health'}
+            tintColor={palette.aqua300}
+            colors={[palette.aqua300]}
+          />
+        }
+      >
         {/* 상단 펫 카드들 */}
         <View style={{ paddingTop: 16 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={S.petRow}>
