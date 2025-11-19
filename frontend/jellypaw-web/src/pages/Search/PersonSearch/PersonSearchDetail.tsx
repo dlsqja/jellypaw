@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import BackHeader from '@/components/headers/BackHeader';
 import SearchProfile from './SearchProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import ArticleBox from '@/pages/Mypage/components/ArticleBox';
-import { useParams } from 'react-router-dom';
 import { searchUsersDetail } from '@/services/api/search';
-import type { SearchUsersDetailResponse } from '@/types/search';
+import type { SearchUsersDetailResponse, SearchUsersResponse } from '@/types/search';
 import { getUserFeeds } from '@/services/api/feed';
 import type { GetUserFeedsResponse } from '@/types/feed';
 
@@ -38,29 +38,61 @@ const categoriesData = [
 
 export default function PersonSearchDetail() {
   const { personId } = useParams();
-  const [targetProfileData, setTargetProfileData] = useState<SearchUsersDetailResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  const searchResult = (location.state as { searchResult?: SearchUsersResponse } | undefined)?.searchResult;
+
+  // state로 전달된 검색 결과를 초기 데이터로 변환 (useMemo로 메모이제이션)
+  const SearchResultData = useMemo<SearchUsersDetailResponse | null>(() => {
+    if (!searchResult) return null;
+    return {
+      userId: searchResult.userId,
+      nickname: searchResult.nickname,
+      description: searchResult.description,
+      profileImg: searchResult.profileImg,
+      backgroundImg: searchResult.backgroundImg,
+      followerNum: searchResult.follower,
+      followingNum: searchResult.following,
+    };
+  }, [searchResult]);
+
+  // 프로필 데이터
+  const [targetProfileData, setTargetProfileData] = useState<SearchUsersDetailResponse | null>(SearchResultData);
+  const [isLoading, setIsLoading] = useState(!SearchResultData); // 초기 데이터가 있으면 로딩 상태 false
   const [userFeeds, setUserFeeds] = useState<GetUserFeedsResponse | null>(null);
+
   // 프로필 조회 함수 (초기 로드용 - 로딩 상태 표시)
   const fetchProfile = useCallback(() => {
     if (!personId) return;
 
-    const targetUserId = Number(personId);
-    setIsLoading(true);
+    // 초기 데이터가 없을 때만 로딩 상태 표시
+    if (!SearchResultData) {
+      setIsLoading(true);
+    }
 
-    searchUsersDetail(targetUserId)
+    // state로 받은 nickname 사용
+    const nickname = SearchResultData?.nickname ?? '';
+    if (!nickname) {
+      console.error('닉네임이 없어 프로필을 조회할 수 없습니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    searchUsersDetail(nickname)
       .then((response) => {
         setTargetProfileData(response);
         console.log('targetProfileData', response);
       })
       .catch((error) => {
         console.error('프로필 조회 실패:', error);
-        setTargetProfileData(null);
+        // 에러 발생 시 초기 데이터 유지
+        if (SearchResultData) {
+          setTargetProfileData(SearchResultData);
+        }
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [personId]);
+  }, [personId, SearchResultData]);
 
   // 해당 사용자의 게시글 조회
   useEffect(() => {
@@ -70,7 +102,6 @@ export default function PersonSearchDetail() {
 
     getUserFeeds(targetProfileData.nickname)
       .then((response) => {
-        console.log('response', response);
         setUserFeeds(response);
       })
       .catch((error) => {
@@ -81,11 +112,10 @@ export default function PersonSearchDetail() {
 
   // 프로필 갱신 함수 (백그라운드 갱신용 - 로딩 상태 표시 안 함)
   const refreshProfile = useCallback(() => {
-    if (!personId) return;
+    if (!targetProfileData?.nickname) return;
 
-    const targetUserId = Number(personId);
     // 로딩 상태 변경 없이 백그라운드에서 조회
-    searchUsersDetail(targetUserId)
+    searchUsersDetail(targetProfileData?.nickname ?? '')
       .then((response) => {
         setTargetProfileData(response);
       })
@@ -93,7 +123,7 @@ export default function PersonSearchDetail() {
         console.error('프로필 갱신 실패:', error);
         // 에러 발생해도 기존 데이터 유지
       });
-  }, [personId]);
+  }, [targetProfileData?.nickname]);
 
   useEffect(() => {
     fetchProfile();

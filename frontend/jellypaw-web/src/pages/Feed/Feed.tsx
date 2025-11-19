@@ -37,51 +37,46 @@ export default function Feed() {
   const [pullDistance, setPullDistance] = useState(0);
   const isPullingRef = useRef(false); // ref로 변경하여 동기적으로 접근
 
-  const loadFeeds = useCallback(
-    async (options?: { force?: boolean }) => {
-      const force = options?.force ?? false;
+  const loadFeeds = useCallback(async (options?: { force?: boolean }) => {
+    const force = options?.force ?? false;
 
-      // 이미 한 번 불러온 적 있고, 강제 새로고침 아니면 → 캐시에서 복원
-      if (!force && feedsLoadedOnce && feedsCache) {
-        console.log('[Feed] use cached feeds');
-        setFeeds(feedsCache);
-        setIsFeedsLoaded(true);
-        return;
-      }
+    // 이미 한 번 불러온 적 있고, 강제 새로고침 아니면 → 캐시에서 복원
+    if (!force && feedsLoadedOnce && feedsCache) {
+      console.log('[Feed] use cached feeds');
+      setFeeds(feedsCache);
+      setIsFeedsLoaded(true);
+      return;
+    }
 
-      try {
-        const feeds = await getFeeds();
-        console.log('feeds', feeds);
-        const sortedFeeds = [...feeds].sort((a, b) => {
-          if (!a.createdAt || !b.createdAt) return 0;
-          const dateA = new Date(a.createdAt).getTime();
-          const dateB = new Date(b.createdAt).getTime();
-          return dateB - dateA;
-        });
+    try {
+      const feeds = await getFeeds();
+      console.log('feeds', feeds);
+      const sortedFeeds = [...feeds].sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
 
-        // ⭐ 캐시에 보관
-        feedsCache = sortedFeeds;
-        feedsLoadedOnce = true;
+      // ⭐ 캐시에 보관
+      feedsCache = sortedFeeds;
+      feedsLoadedOnce = true;
 
-        setFeeds(sortedFeeds);
-      } catch (error) {
-        console.error('게시글 조회 실패:', error);
-        setFeeds([]);
-      } finally {
-        setIsFeedsLoaded(true);
-      }
-    },
-    [],
-  );
+      setFeeds(sortedFeeds);
+    } catch (error) {
+      console.error('게시글 조회 실패:', error);
+      setFeeds([]);
+    } finally {
+      setIsFeedsLoaded(true);
+    }
+  }, []);
 
   // 최초 마운트 때만: 캐시 있으면 캐시, 없으면 API
   useEffect(() => {
-  const hasScrollMemory =
-    typeof window !== 'undefined' &&
-    !!window.sessionStorage.getItem(FEED_SCROLL_KEY);
+    const hasScrollMemory = typeof window !== 'undefined' && !!window.sessionStorage.getItem(FEED_SCROLL_KEY);
 
-  loadFeeds({ force: !hasScrollMemory });
-}, [loadFeeds]);
+    loadFeeds({ force: !hasScrollMemory });
+  }, [loadFeeds]);
 
   // ✅ 스크롤 복원 + 피드/팔로잉 영역 노출 타이밍 제어
   useLayoutEffect(() => {
@@ -132,56 +127,47 @@ export default function Feed() {
   }, []);
 
   useEffect(() => {
-  if (!profileData?.nickname) return;
+    if (!profileData?.nickname) return;
 
-  const hasScrollMemory =
-    typeof window !== 'undefined' &&
-    !!window.sessionStorage.getItem(FEED_SCROLL_KEY);
+    const hasScrollMemory = typeof window !== 'undefined' && !!window.sessionStorage.getItem(FEED_SCROLL_KEY);
 
-  const isFollowingsDirty =
-    typeof window !== 'undefined' &&
-    window.sessionStorage.getItem(FOLLOWINGS_DIRTY_KEY) === '1';
+    const isFollowingsDirty = typeof window !== 'undefined' && window.sessionStorage.getItem(FOLLOWINGS_DIRTY_KEY) === '1';
 
-  // 디테일 갔다가 바로 돌아온 케이스:
-  // - 스크롤 메모리 있음
-  // - 팔로잉 변경 플래그 없음
-  // - 캐시 있음
-  if (
-    hasScrollMemory &&
-    !isFollowingsDirty &&
-    followingsLoadedOnce &&
-    followingsCache
-  ) {
-    console.log('[Feed] use cached followings');
-    setFollowings(followingsCache);
-    return;
-  }
+    // 디테일 갔다가 바로 돌아온 케이스:
+    // - 스크롤 메모리 있음
+    // - 팔로잉 변경 플래그 없음
+    // - 캐시 있음
+    if (hasScrollMemory && !isFollowingsDirty && followingsLoadedOnce && followingsCache) {
+      console.log('[Feed] use cached followings');
+      setFollowings(followingsCache);
+      return;
+    }
 
-  getFollowers(profileData.nickname)
-    .then((followers) => {
-      const safe = followers || [];
+    getFollowers(profileData.nickname)
+      .then((followers) => {
+        const safe = followers || [];
 
-      followingsCache = safe;
-      followingsLoadedOnce = true;
-      setFollowings(safe);
+        followingsCache = safe;
+        followingsLoadedOnce = true;
+        setFollowings(safe);
 
-      // 🔹 팔로잉 변경 플래그가 있었으면 한 번 쓰고 제거
-      if (isFollowingsDirty && typeof window !== 'undefined') {
-        window.sessionStorage.removeItem(FOLLOWINGS_DIRTY_KEY);
-      }
-    })
-    .catch((error) => {
-      console.error('팔로잉 조회 실패:', error);
-      followingsCache = [];
-      followingsLoadedOnce = true;
-      setFollowings([]);
-    });
-}, [profileData?.nickname]);
+        // 🔹 팔로잉 변경 플래그가 있었으면 한 번 쓰고 제거
+        if (isFollowingsDirty && typeof window !== 'undefined') {
+          window.sessionStorage.removeItem(FOLLOWINGS_DIRTY_KEY);
+        }
+      })
+      .catch((error) => {
+        console.error('팔로잉 조회 실패:', error);
+        followingsCache = [];
+        followingsLoadedOnce = true;
+        setFollowings([]);
+      });
+  }, [profileData?.nickname]);
 
-    const handleProfileClick = (userId: number | null) => {
+  const handleProfileClick = (userId: number | null) => {
     setActiveProfileId(userId);
   };
-  // 🔹 좋아요 상태 업데이트 핸들러
+  // 좋아요 상태 업데이트 핸들러
   const handleLikeToggle = (boardId: number, isLiked: boolean) => {
     setLikedFeeds((prevLikedFeeds) => {
       if (isLiked) {
@@ -198,9 +184,7 @@ export default function Feed() {
   useEffect(() => {
     if (feeds.length > 0 && likedFeeds.length > 0) {
       const likedBoardIds = likedFeeds.map((likedFeed) => likedFeed.boardId);
-      const likedArticles = feeds.filter(
-        (feed) => feed.id !== undefined && likedBoardIds.includes(feed.id),
-      );
+      const likedArticles = feeds.filter((feed) => feed.id !== undefined && likedBoardIds.includes(feed.id));
       console.log('좋아요가 되어 있는 게시글 목록:', likedArticles);
     }
   }, [feeds, likedFeeds]);
@@ -267,7 +251,7 @@ export default function Feed() {
     const handleStart = (clientY: number) => {
       const scrollTop = container.scrollTop;
       console.log('[Feed] Start - scrollTop:', scrollTop, 'isRefreshing:', isRefreshing);
-      
+
       if (scrollTop === 0 && !isRefreshing) {
         startY = clientY;
         isPullingRef.current = true;
@@ -281,11 +265,11 @@ export default function Feed() {
 
     const handleMove = (clientY: number, e?: Event) => {
       if (!isPullingRef.current || isRefreshing) return;
-      
+
       const currentY = clientY;
       pullingDistance = Math.max(0, Math.min(currentY - startY, maxPull));
       setPullDistance(pullingDistance);
-      
+
       console.log('[Feed] Move - pullingDistance:', pullingDistance);
 
       // 당기는 중일 때 스크롤 방지
@@ -297,14 +281,14 @@ export default function Feed() {
 
     const handleEnd = async () => {
       console.log('[Feed] End - isPulling:', isPullingRef.current, 'pullingDistance:', pullingDistance);
-      
+
       if (!isPullingRef.current) return;
 
       if (pullingDistance > threshold && !isRefreshing) {
         console.log('[Feed] End - triggering refresh');
         setIsRefreshing(true);
         setPullDistance(threshold); // 새로고침 중에는 threshold 위치 유지
-        
+
         try {
           await loadFeeds({ force: true });
           // 팔로잉도 새로고침
@@ -328,7 +312,7 @@ export default function Feed() {
         console.log('[Feed] End - not enough distance, resetting');
         setPullDistance(0);
       }
-      
+
       isPullingRef.current = false;
       pullingDistance = 0;
     };
@@ -365,7 +349,7 @@ export default function Feed() {
     container.addEventListener('touchstart', onTouchStart, { passive: false });
     container.addEventListener('touchmove', onTouchMove, { passive: false });
     container.addEventListener('touchend', onTouchEnd);
-    
+
     // 마우스 이벤트는 WebView가 아닐 때만 등록 (데스크톱 브라우저 테스트용)
     // WebView에서는 Touch 이벤트만 사용하므로 불필요한 리스너 등록 방지
     const isWebView = inApp();
@@ -379,7 +363,7 @@ export default function Feed() {
       container.removeEventListener('touchstart', onTouchStart);
       container.removeEventListener('touchmove', onTouchMove);
       container.removeEventListener('touchend', onTouchEnd);
-      
+
       if (!isWebView) {
         container.removeEventListener('mousedown', onMouseDown);
         document.removeEventListener('mousemove', onMouseMove);
@@ -392,7 +376,7 @@ export default function Feed() {
   // pull-to-refresh 시각적 피드백 계산
   const pullProgress = Math.min(pullDistance / 80, 1); // 0~1 사이 값
   const shouldTrigger = pullDistance >= 80;
-  const refreshIndicatorOpacity = (pullDistance > 0 || isRefreshing) ? Math.min(pullDistance / 60, 1) : 0;
+  const refreshIndicatorOpacity = pullDistance > 0 || isRefreshing ? Math.min(pullDistance / 60, 1) : 0;
 
   return (
     <div className="relative w-full">
@@ -423,26 +407,11 @@ export default function Feed() {
                   transition: 'transform 0.2s ease-out',
                 }}
               >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  className={shouldTrigger ? 'text-aqua-500' : 'text-aqua-300'}
-                >
-                  <path
-                    d="M6 2V6L9 3"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className={shouldTrigger ? 'text-aqua-500' : 'text-aqua-300'}>
+                  <path d="M6 2V6L9 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <span
-                className={`p3-b ${shouldTrigger ? 'text-aqua-500' : 'text-gray-400'}`}
-                style={{ transition: 'color 0.2s ease-out' }}
-              >
+              <span className={`p3-b ${shouldTrigger ? 'text-aqua-500' : 'text-gray-400'}`} style={{ transition: 'color 0.2s ease-out' }}>
                 {shouldTrigger ? '놓으면 새로고침' : '당겨서 새로고침'}
               </span>
             </>
@@ -456,18 +425,14 @@ export default function Feed() {
         style={{
           opacity: isScrollReady ? 1 : 0,
           transform: `translateY(${Math.max(pullDistance, 0)}px)`,
-          transition: (pullDistance > 0 || isRefreshing)
-            ? 'transform 0.2s ease-out, opacity 120ms ease-out' 
-            : 'opacity 120ms ease-out, transform 0.3s ease-out',
+          transition:
+            pullDistance > 0 || isRefreshing ? 'transform 0.2s ease-out, opacity 120ms ease-out' : 'opacity 120ms ease-out, transform 0.3s ease-out',
         }}
       >
         {/* 팔로워 목록 */}
         <div className="flex overflow-x-auto gap-4 w-full h-[100px] items-center scrollbar-hide">
           {/* 전체 */}
-          <div
-            className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer"
-            onClick={() => handleProfileClick(null)}
-          >
+          <div className="w-16 h-20 flex flex-col gap-2 items-center cursor-pointer" onClick={() => handleProfileClick(null)}>
             <div
               className={`w-16 h-16 p-1.5 rounded-full outline outline-2 outline-offset-[-2px] ${
                 activeProfileId === null ? 'outline-aqua-300' : 'outline-gray-200'
@@ -481,13 +446,7 @@ export default function Feed() {
                 <FiUsers size={24} color="#ffffff" />
               </div>
             </div>
-            <div
-              className={`text-center p3-b ${
-                activeProfileId === null ? 'text-aqua-300' : 'text-gray-300'
-              }`}
-            >
-              전체
-            </div>
+            <div className={`text-center p3-b ${activeProfileId === null ? 'text-aqua-300' : 'text-gray-300'}`}>전체</div>
           </div>
           {followings.length > 0 &&
             followings.map((following, index) => (
@@ -507,17 +466,9 @@ export default function Feed() {
         <div className="flex flex-col items-center w-full mt-4 scrollbar-hide">
           {filteredFeeds.length > 0 ? (
             filteredFeeds.map((feed, index) => {
-              const isLiked =
-                feed.id !== undefined &&
-                likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
+              const isLiked = feed.id !== undefined && likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
               return (
-                <Article
-                  key={index}
-                  {...feed}
-                  initialIsLiked={isLiked}
-                  onLikeToggle={handleLikeToggle}
-                  currentLikeCount={feed.likeCount ?? 0}
-                />
+                <Article key={index} {...feed} initialIsLiked={isLiked} onLikeToggle={handleLikeToggle} currentLikeCount={feed.likeCount ?? 0} />
               );
             })
           ) : activeProfileId !== null ? (

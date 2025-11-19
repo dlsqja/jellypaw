@@ -70,9 +70,7 @@ export default function Article({
     const previousLikeCount = currentLikeCount;
 
     setIsLiked(!previousIsLiked);
-    setCurrentLikeCount(
-      previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1,
-    );
+    setCurrentLikeCount(previousIsLiked ? Math.max(0, previousLikeCount - 1) : previousLikeCount + 1);
 
     setIsLikeLoading(true);
 
@@ -101,7 +99,7 @@ export default function Article({
   return (
     <motion.div
       className="w-80 inline-flex flex-col justify-start items-start flex-shrink-0 mb-4"
-      whileTap={{ scale: 0.97 }}          
+      whileTap={{ scale: 0.97 }}
       transition={{ duration: 0.08, ease: 'easeOut' }}
     >
       <Card
@@ -195,11 +193,7 @@ export default function Article({
               {images && images.length > 0 && (
                 <div className="w-full">
                   <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
-                    <img
-                      className="w-full h-full rounded-[12px] object-cover"
-                      src={`${IMAGE_BASE_URL}${images[0]}`}
-                      alt={`${title} - 대표 이미지`}
-                    />
+                    <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
                   </div>
                 </div>
               )}
@@ -214,16 +208,10 @@ export default function Article({
                   onClick={handleLikeToggle}
                   disabled={isLikeLoading}
                 >
-                  <Heart
-                    className={`h-5 w-5 ${isLiked ? 'text-pink-400' : 'text-pink-300'}`}
-                    fill={isLiked ? 'currentColor' : 'none'}
-                  />
+                  <Heart className={`h-5 w-5 ${isLiked ? 'text-pink-300' : 'text-pink-300'}`} fill={isLiked ? 'currentColor' : 'none'} />
                   <span className="text-aqua-500 p2-b">{currentLikeCount}</span>
                 </button>
-                <button
-                  type="button"
-                  className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70"
-                >
+                <button type="button" className="h-7 flex items-center gap-1 ml-4 cursor-pointer hover:opacity-70">
                   <MessageCircle className="h-5 w-5 text-gray-600" />
                   <span className="text-aqua-500 p2-b">{commentCount}</span>
                 </button>

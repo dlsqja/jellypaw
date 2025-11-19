@@ -10,6 +10,7 @@ import { deleteComment } from '@/services/api/feed';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import { useNavigate } from 'react-router-dom';
 import { formatRelativeTime } from '@/utils/timePassing';
+import type { SearchUsersResponse } from '@/types/search';
 
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL;
 
@@ -30,8 +31,16 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
 
   // 프로필 클릭 핸들러
   const handleProfileClick = () => {
-    if (userId?.id) {
-      navigate(`/search/person/${userId.id}`);
+    if (userId?.id && userId?.nickname) {
+      // userId 정보를 SearchUsersResponse 형태로 변환
+      const searchResult: SearchUsersResponse = {
+        userId: userId.id,
+        nickname: userId.nickname,
+        profileImg: userId.profileImg ?? undefined,
+      };
+      navigate(`/search/person/${userId.id}`, {
+        state: { searchResult },
+      });
     }
   };
 
@@ -152,8 +161,16 @@ export default function Comment({ id, userId, content, createdAt, childs, onRepl
                     <button
                       type="button"
                       onClick={() => {
-                        if (child.userId?.id) {
-                          navigate(`/search/person/${child.userId.id}`);
+                        if (child.userId?.id && child.userId?.nickname) {
+                          // child.userId 정보를 SearchUsersResponse 형태로 변환
+                          const searchResult: SearchUsersResponse = {
+                            userId: child.userId.id,
+                            nickname: child.userId.nickname,
+                            profileImg: child.userId.profileImg ?? undefined,
+                          };
+                          navigate(`/search/person/${child.userId.id}`, {
+                            state: { searchResult },
+                          });
                         }
                       }}
                       className="w-8 h-8 flex-shrink-0 cursor-pointer"
