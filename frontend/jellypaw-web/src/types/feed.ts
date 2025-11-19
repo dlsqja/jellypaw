@@ -91,3 +91,14 @@ export interface BoardWithPlaceResponse extends GetFeedDetailResponse {
 export interface GetLikedFeedsResponse {
   boardId: number;
 }
+
+// 게시글 최적화 목록 조회 요청 파라미터
+export interface GetBoardDevelopParams {
+  cursorId?: number | null;
+  cursorCreatedAt?: string | null;
+}
+
+// 게시글 최적화 목록 조회 응답
+export interface GetBoardDevelopResponse {
+  boards: GetFeedsResponse[];
+}

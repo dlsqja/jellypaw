@@ -7,7 +7,7 @@ import Article from '@/pages/Feed/Components/Article';
 import { getFollowers } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
-import { getFeeds, getLikedFeeds } from '@/services/api/feed';
+import { getBoardDevelop, getLikedFeeds } from '@/services/api/feed';
 import type { GetFeedsResponse, GetLikedFeedsResponse } from '@/types/feed';
 import { inApp } from '@/lib/appBridge';
 
@@ -36,7 +36,11 @@ export default function Feed() {
   const [isFeedsLoaded, setIsFeedsLoaded] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const isPullingRef = useRef(false); // ref로 변경하여 동기적으로 접근
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const isLoadingMoreRef = useRef(false);
 
+  // 초기 피드 로드 (첫 페이지)
   const loadFeeds = useCallback(async (options?: { force?: boolean }) => {
     const force = options?.force ?? false;
 
@@ -49,27 +53,84 @@ export default function Feed() {
     }
 
     try {
-      const feeds = await getFeeds();
-      console.log('feeds', feeds);
-      const sortedFeeds = [...feeds].sort((a, b) => {
-        if (!a.createdAt || !b.createdAt) return 0;
-        const dateA = new Date(a.createdAt).getTime();
-        const dateB = new Date(b.createdAt).getTime();
-        return dateB - dateA;
+      console.log('[Feed] Loading initial feeds (cursorId: null, cursorCreatedAt: null)');
+      const response = await getBoardDevelop({
+        cursorId: null,
+        cursorCreatedAt: null,
       });
+      
+      const newFeeds = response.boards || [];
+      console.log('[DevelopFeed] Initial feeds loaded:', newFeeds.length);
 
       // ⭐ 캐시에 보관
-      feedsCache = sortedFeeds;
+      feedsCache = newFeeds;
       feedsLoadedOnce = true;
 
-      setFeeds(sortedFeeds);
+      setFeeds(newFeeds);
+      // 20개 이상이면 더 있을 가능성이 높음, 20개 미만이면 마지막 페이지일 수 있음
+      setHasMore(newFeeds.length >= 20);
     } catch (error) {
       console.error('게시글 조회 실패:', error);
       setFeeds([]);
+      setHasMore(false);
     } finally {
       setIsFeedsLoaded(true);
     }
   }, []);
+
+  // 다음 페이지 로드 (무한 스크롤)
+  const loadMoreFeeds = useCallback(async () => {
+    // 이미 로딩 중이거나 더 이상 불러올 데이터가 없으면 리턴
+    if (isLoadingMoreRef.current || !hasMore || feeds.length === 0) {
+      return;
+    }
+
+    // 마지막 게시글 정보 가져오기
+    const lastFeed = feeds[feeds.length - 1];
+    if (!lastFeed?.id || !lastFeed?.createdAt) {
+      console.log('[Feed] Cannot load more: missing last feed data');
+      setHasMore(false);
+      return;
+    }
+
+    isLoadingMoreRef.current = true;
+    setIsLoadingMore(true);
+
+    try {
+      console.log('[Feed] Loading more feeds (cursorId:', lastFeed.id, 'cursorCreatedAt:', lastFeed.createdAt, ')');
+      const response = await getBoardDevelop({
+        cursorId: lastFeed.id,
+        cursorCreatedAt: lastFeed.createdAt,
+      });
+
+      const newFeeds = response.boards || [];
+      console.log('[Feed] More feeds loaded:', newFeeds.length);
+
+      if (newFeeds.length === 0) {
+        // 더 이상 불러올 데이터가 없음
+        setHasMore(false);
+      } else {
+        // 기존 피드에 추가
+        setFeeds((prevFeeds) => {
+          const updatedFeeds = [...prevFeeds, ...newFeeds];
+          // 캐시도 업데이트
+          feedsCache = updatedFeeds;
+          return updatedFeeds;
+        });
+        
+        // 20개 미만이면 더 이상 없을 가능성 높음
+        if (newFeeds.length < 20) {
+          setHasMore(false);
+        }
+      }
+    } catch (error) {
+      console.error('추가 게시글 조회 실패:', error);
+      setHasMore(false);
+    } finally {
+      setIsLoadingMore(false);
+      isLoadingMoreRef.current = false;
+    }
+  }, [feeds, hasMore]);
 
   // 최초 마운트 때만: 캐시 있으면 캐시, 없으면 API
   useEffect(() => {
@@ -231,6 +292,34 @@ export default function Feed() {
       window.removeEventListener('NAVIGATE_TO_FEED', handler as EventListener);
     };
   }, [navigate]);
+
+  // 🔹 무한 스크롤: 스크롤이 하단 근처에 도달하면 다음 페이지 로드
+  useEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+    if (!container || !isFeedsLoaded) {
+      return;
+    }
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      
+      // 하단에서 200px 이내에 도달하면 다음 페이지 로드
+      const threshold = 200;
+      const isNearBottom = scrollTop + clientHeight >= scrollHeight - threshold;
+
+      if (isNearBottom && hasMore && !isLoadingMore && !isLoadingMoreRef.current) {
+        console.log('[Feed] Near bottom, loading more feeds...');
+        loadMoreFeeds();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [isFeedsLoaded, hasMore, isLoadingMore, loadMoreFeeds]);
 
   // 🔹 맨 위에서 아래로 당기면 새로고침 (SNS 스타일)
   // Touch 이벤트 (모바일/WebView) + Mouse 이벤트 (데스크톱 브라우저 테스트용)
@@ -465,12 +554,26 @@ export default function Feed() {
         {/* 게시글 목록 */}
         <div className="flex flex-col items-center w-full mt-4 scrollbar-hide">
           {filteredFeeds.length > 0 ? (
-            filteredFeeds.map((feed, index) => {
-              const isLiked = feed.id !== undefined && likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
-              return (
-                <Article key={index} {...feed} initialIsLiked={isLiked} onLikeToggle={handleLikeToggle} currentLikeCount={feed.likeCount ?? 0} />
-              );
-            })
+            <>
+              {filteredFeeds.map((feed, index) => {
+                const isLiked = feed.id !== undefined && likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
+                return (
+                  <Article key={feed.id ?? index} {...feed} initialIsLiked={isLiked} onLikeToggle={handleLikeToggle} currentLikeCount={feed.likeCount ?? 0} />
+                );
+              })}
+              {/* 무한 스크롤 로딩 인디케이터 */}
+              {isLoadingMore && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="text-gray-400 p3">게시글을 불러오는 중...</div>
+                </div>
+              )}
+              {/* 더 이상 불러올 데이터가 없을 때 */}
+              {!hasMore && feeds.length > 0 && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="text-gray-400 p3">모든 게시글을 불러왔습니다.</div>
+                </div>
+              )}
+            </>
           ) : activeProfileId !== null ? (
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <p className="text-gray-400 p2-b text-center">게시글이 아직 없습니다</p>

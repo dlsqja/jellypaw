@@ -10,6 +10,8 @@ import type {
   GetUserFeedsResponse,
   CreateCommentResponse,
   GetLikedFeedsResponse,
+  GetBoardDevelopParams,
+  GetBoardDevelopResponse,
 } from '@/types/feed';
 
 interface ApiResponse<T> {
@@ -75,5 +77,24 @@ export const getLikedFeeds = async (): Promise<GetLikedFeedsResponse[]> => {
 // 특정 사용자의 게시글 조회
 export const getUserFeeds = async (nickname: string): Promise<GetUserFeedsResponse> => {
   const response = await apiClient.get<ApiResponse<GetUserFeedsResponse>>(`/board-view/${nickname}`);
+  return response.data.data;
+};
+
+// 게시글 최적화 목록 조회 (페이지네이션)
+export const getBoardDevelop = async (params?: GetBoardDevelopParams): Promise<GetBoardDevelopResponse> => {
+  const queryParams = new URLSearchParams();
+  
+  if (params?.cursorId !== null && params?.cursorId !== undefined) {
+    queryParams.append('cursorId', params.cursorId.toString());
+  }
+  
+  if (params?.cursorCreatedAt !== null && params?.cursorCreatedAt !== undefined) {
+    queryParams.append('cursorCreatedAt', params.cursorCreatedAt);
+  }
+  
+  const queryString = queryParams.toString();
+  const url = `/board-view/develop${queryString ? `?${queryString}` : ''}`;
+  
+  const response = await apiClient.get<ApiResponse<GetBoardDevelopResponse>>(url);
   return response.data.data;
 };
