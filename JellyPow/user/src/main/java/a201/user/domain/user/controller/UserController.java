@@ -56,12 +56,12 @@ public class UserController {
 	}
 
 	@Operation(summary = "유저 상세 조회", description = "특정 사용자의 프로필 정보를 조회합니다.")
-	@GetMapping("/{targetUserId}")
-	public ApiResponse<UserDetailResponse> getUser(@RequestHeader("X-User-Id") Long userId, @PathVariable Long targetUserId) {
+	@GetMapping("/{nickname}")
+	public ApiResponse<UserDetailResponse> getUser(@RequestHeader("X-User-Id") Long userId, @PathVariable String nickname) {
 		try {
-			User user = userService.getUserById(targetUserId);
+			User user = userService.getUserByNickname(nickname);
 			UserDetailResponse response = UserDetailResponse.from(user);
-			response.setIsFollowing(followService.isFollowed(userId, targetUserId));
+			response.setIsFollowing(followService.isFollowed(userId, user.getId()));
 			response.setIsVisible(true);
 			return ApiResponse.success(response);
 		} catch (CustomException e) {
