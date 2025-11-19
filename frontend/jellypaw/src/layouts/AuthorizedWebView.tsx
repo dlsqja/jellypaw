@@ -262,6 +262,19 @@ export default function AuthorizedWebView({
           // FEED_SCROLL_TO_TOP은 emit하지 않음 (스크롤 복원해야 하므로)
         } else {
           // 이미 피드 목록이면 → 스크롤 초기화
+          // canGoBack 체크 없이 무조건 스크롤 맨 위로 (피드 목록에 있을 때는 항상 작동해야 함)
+          webRef.current?.injectJavaScript(`
+            (function() {
+              try {
+                const event = new CustomEvent('FEED_SCROLL_TO_TOP');
+                window.dispatchEvent(event);
+              } catch(e) {
+                console.error('[WEB] FEED_SCROLL_TO_TOP dispatch error', e);
+              }
+            })();
+            true;
+          `);
+          // 기존 이벤트도 emit (다른 리스너가 있을 수 있음)
           DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
         }
         return;
