@@ -5,6 +5,8 @@ import type {
   SearchUsersDetailResponse,
   SearchPlacesDetailResponse,
   GetPlaceFeedsResponse,
+  SearchUsersWithCursorParams,
+  SearchUsersWithCursorResponse,
 } from '@/types/search';
 
 interface ApiResponse<T> {
@@ -16,6 +18,30 @@ interface ApiResponse<T> {
 // 유저 검색
 export const searchUsers = async (keyword: string): Promise<SearchUsersResponse[]> => {
   const response = await apiClient.get(`/users/es?nickname=${keyword}`);
+  return response.data.data;
+};
+
+// 유저 검색 (무한 스크롤)
+export const searchUsersWithCursor = async (params: SearchUsersWithCursorParams): Promise<SearchUsersWithCursorResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('nickname', params.nickname);
+  
+  if (params.cursor !== null && params.cursor !== undefined) {
+    queryParams.append('cursor', params.cursor.toString());
+  }
+  
+  const response = await apiClient.get<ApiResponse<SearchUsersWithCursorResponse>>(`/users/es/cursor?${queryParams.toString()}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 빈 배열 반환
+  if (response.data.code !== 200 || !response.data.data) {
+    console.error('[searchUsersWithCursor] API 응답 오류:', {
+      code: response.data.code,
+      message: response.data.message,
+      data: response.data.data,
+    });
+    return { users: [], nextCursor: null };
+  }
+  
   return response.data.data;
 };
 
