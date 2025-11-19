@@ -20,9 +20,16 @@ export const searchUsers = async (keyword: string): Promise<SearchUsersResponse[
 };
 
 // 유저 검색 상세 조회
-export const searchUsersDetail = async (nickname: string): Promise<SearchUsersDetailResponse> => {
-  const response = await apiClient.get(`/users/${nickname}`);
-  console.log('response', response);
+export const searchUsersDetail = async (nickname: string): Promise<SearchUsersDetailResponse | null> => {
+  const response = await apiClient.get<ApiResponse<SearchUsersDetailResponse>>(`/users/${nickname}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 null 반환 (에러 throw하지 않음)
+  // 404는 정상적인 케이스일 수 있음 (사용자 삭제, nickname 변경 등)
+  if (response.data.code !== 200 || response.data.data === null) {
+    // 로그 제거 - 404는 정상적인 케이스이므로 조용히 처리
+    return null;
+  }
+  
   return response.data.data;
 };
 

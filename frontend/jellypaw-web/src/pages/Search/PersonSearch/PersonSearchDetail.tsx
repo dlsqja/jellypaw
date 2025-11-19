@@ -79,11 +79,19 @@ export default function PersonSearchDetail() {
 
     searchUsersDetail(nickname)
       .then((response) => {
-        setTargetProfileData(response);
-        console.log('targetProfileData', response);
+        if (response) {
+          // API에서 데이터를 성공적으로 가져온 경우
+          setTargetProfileData(response);
+        } else {
+          // API에서 사용자를 찾을 수 없는 경우 (404 등) - 초기 데이터 유지
+          if (SearchResultData) {
+            setTargetProfileData(SearchResultData);
+          }
+        }
       })
       .catch((error) => {
-        console.error('프로필 조회 실패:', error);
+        // 네트워크 에러 등 예상치 못한 에러만 로그 출력
+        console.error('[PersonSearchDetail] 프로필 조회 실패:', error);
         // 에러 발생 시 초기 데이터 유지
         if (SearchResultData) {
           setTargetProfileData(SearchResultData);
