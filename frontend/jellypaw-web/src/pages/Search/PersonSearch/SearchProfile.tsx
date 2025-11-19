@@ -115,7 +115,7 @@ export default function SearchProfile({ profileData, isLoading, targetUserId, on
           <BsPersonCircle className="w-24 h-24 text-aqua-300" />
         )}
         <div className="text-aqua-500 h4-b">{profileData.nickname || '닉네임 없음'}</div>
-        {profileData.description && <div className="text-aqua-500 p2 text-center break-words max-w-xs">{profileData.description}</div>}
+        {profileData.description && <div className="text-aqua-500 p2 text-center break-words max-w-xs whitespace-pre-line">{profileData.description}</div>}
       </div>
 
       <div className="flex flex-col gap-4 pt-4 justify-center items-center">

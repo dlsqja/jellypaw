@@ -34,7 +34,7 @@ export default function MyProfile() {
           )}
           <div className="flex flex-col justify-center items-start gap-1">
             <div className="text-aqua-500 h6-b">{profileData?.nickname}</div>
-            <div className="h-max max-h-10 w-full text-gray-700 p2 line-clamp-2">{profileData?.description}</div>
+            <div className="h-max max-h-10 w-full text-gray-700 p2 line-clamp-2 whitespace-pre-line">{profileData?.description}</div>
           </div>
         </div>
       </CardHeader>

@@ -103,7 +103,7 @@ export default function ArticleBox({ feed, imageUrl, title, date, content, likeC
         {/* 날짜 */}
         <div className="text-gray-300 caption1">{formatDate(date)}</div>
         {/* 본문 */}
-        <div className="text-aqua-500 caption1 line-clamp-2">{content}</div>
+        <div className="text-aqua-500 caption1 line-clamp-2 whitespace-pre-line">{content}</div>
         {/* 좋아요, 댓글 수 */}
         <div className="flex justify-end items-center">
           <div className="flex items-center">

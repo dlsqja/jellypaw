@@ -23,7 +23,7 @@ export default function CertifiedStaffProfile({ name, profileImageUrl, descripti
       {/* 이름, 직급, 경력 */}
       <div className="flex flex-col gap-1">
         <div className="text-aqua-500 p2-b">{name}</div>
-        <div className="text-gray-400 caption1 line-clamp-2">{description || '소개글 정보가 없습니다'}</div>
+        <div className="text-gray-400 caption1 line-clamp-2 whitespace-pre-line">{description || '소개글 정보가 없습니다'}</div>
       </div>
     </div>
   );

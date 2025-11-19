@@ -188,7 +188,7 @@ export default function Article({
                 </div>
 
                 <div className="h-15">
-                  <div className="text-aqua-500 p2 line-clamp-3">{content}</div>
+                  <div className="text-aqua-500 p2 line-clamp-3 whitespace-pre-line">{content}</div>
                 </div>
               </div>
 

@@ -208,10 +208,23 @@ export default function Search() {
                     key={result.userId}
                     className="w-full h-23 bg-white rounded-[12px] shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
                     onClick={() => {
+                      console.log('[Search] User clicked, result:', result);
+                      console.log('[Search] result.userId:', result.userId);
+                      
+                      if (!result.userId) {
+                        console.error('[Search] result.userId is missing!', result);
+                        return;
+                      }
+                      
                       skipNextSearchRef.current = 2;
                       handleSubmit(result.nickname || '', 'user');
                       setSearchValue(result.nickname ? `@${result.nickname}` : '');
-                      navigate(`/search/person/${result.userId}`);
+                      // 검색 결과를 state로 전달하여 초기 데이터로 사용
+                      navigate(`/search/person/${result.userId}`, {
+                        state: {
+                          searchResult: result, // 검색 결과를 state로 전달
+                        },
+                      });
                     }}
                   >
                     <div className="p-4 w-full h-full flex justify-between items-center cursor-pointer">

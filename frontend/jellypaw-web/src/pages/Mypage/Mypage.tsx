@@ -119,7 +119,7 @@ export default function Mypage() {
                 )}
                 <div className="flex flex-col gap-1">
                   <span className="text-aqua-500 h6-b">{profileData?.nickname ?? '닉네임 없음'}</span>
-                  {profileData?.description && <span className="text-gray-600 p2 line-clamp-2">{profileData.description}</span>}
+                  {profileData?.description && <span className="text-gray-600 p2 line-clamp-2 whitespace-pre-line">{profileData.description}</span>}
                 </div>
               </div>
             </div>
