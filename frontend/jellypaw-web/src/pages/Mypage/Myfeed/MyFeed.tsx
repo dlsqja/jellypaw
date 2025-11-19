@@ -119,9 +119,9 @@ export default function MyFeed() {
       {/* 카테고리별 게시글 */}
       <p className="text-aqua-500 h4-b">{categoriesData[activeCategory].label} 게시글</p>
       {filteredArticles && filteredArticles.length > 0 ? (
-        <div className="mb-4">
-          <Card>
-            <CardContent className="pt-4">
+        <div className="mb-4 w-full overflow-hidden">
+          <Card className="w-full overflow-hidden">
+            <CardContent className="pt-4 w-full overflow-hidden">
               {filteredArticles.map((article, index) => (
                 <ArticleBox
                   key={index}
