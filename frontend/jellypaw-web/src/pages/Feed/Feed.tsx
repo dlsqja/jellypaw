@@ -9,6 +9,7 @@ import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
 import { getFeeds, getLikedFeeds } from '@/services/api/feed';
 import type { GetFeedsResponse, GetLikedFeedsResponse } from '@/types/feed';
+import { inApp } from '@/lib/appBridge';
 
 let feedsCache: GetFeedsResponse[] | null = null;
 let feedsLoadedOnce = false;
@@ -33,6 +34,8 @@ export default function Feed() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isScrollReady, setIsScrollReady] = useState(false);
   const [isFeedsLoaded, setIsFeedsLoaded] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const isPullingRef = useRef(false); // ref로 변경하여 동기적으로 접근
 
   const loadFeeds = useCallback(
     async (options?: { force?: boolean }) => {
@@ -245,72 +248,217 @@ export default function Feed() {
     };
   }, [navigate]);
 
-  // 🔹 맨 위에서 아래로 당기면 새로고침
+  // 🔹 맨 위에서 아래로 당기면 새로고침 (SNS 스타일)
+  // Touch 이벤트 (모바일/WebView) + Mouse 이벤트 (데스크톱 브라우저 테스트용)
   useEffect(() => {
     const container = document.getElementById('app-scroll-container');
-    if (!container) return;
+    if (!container) {
+      console.log('[Feed] Pull-to-refresh: container not found');
+      return;
+    }
+
+    console.log('[Feed] Pull-to-refresh: event listeners registered');
 
     let startY = 0;
-    let isPulling = false;
     let pullingDistance = 0;
-    const threshold = 60; // px
+    const threshold = 80; // px - 새로고침 트리거 거리
+    const maxPull = 120; // px - 최대 당길 수 있는 거리
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (container.scrollTop === 0) {
-        startY = e.touches[0].clientY;
-        isPulling = true;
+    const handleStart = (clientY: number) => {
+      const scrollTop = container.scrollTop;
+      console.log('[Feed] Start - scrollTop:', scrollTop, 'isRefreshing:', isRefreshing);
+      
+      if (scrollTop === 0 && !isRefreshing) {
+        startY = clientY;
+        isPullingRef.current = true;
         pullingDistance = 0;
+        setPullDistance(0);
+        console.log('[Feed] Start - pull started, startY:', startY);
       } else {
-        isPulling = false;
+        isPullingRef.current = false;
       }
     };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isPulling) return;
-      const currentY = e.touches[0].clientY;
-      pullingDistance = currentY - startY;
+    const handleMove = (clientY: number, e?: Event) => {
+      if (!isPullingRef.current || isRefreshing) return;
+      
+      const currentY = clientY;
+      pullingDistance = Math.max(0, Math.min(currentY - startY, maxPull));
+      setPullDistance(pullingDistance);
+      
+      console.log('[Feed] Move - pullingDistance:', pullingDistance);
 
-      if (pullingDistance < 0) {
-        isPulling = false;
+      // 당기는 중일 때 스크롤 방지
+      if (pullingDistance > 0 && e) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
 
-    const onTouchEnd = async () => {
-      if (isPulling && pullingDistance > threshold && !isRefreshing) {
+    const handleEnd = async () => {
+      console.log('[Feed] End - isPulling:', isPullingRef.current, 'pullingDistance:', pullingDistance);
+      
+      if (!isPullingRef.current) return;
+
+      if (pullingDistance > threshold && !isRefreshing) {
+        console.log('[Feed] End - triggering refresh');
         setIsRefreshing(true);
+        setPullDistance(threshold); // 새로고침 중에는 threshold 위치 유지
+        
         try {
           await loadFeeds({ force: true });
+          // 팔로잉도 새로고침
+          if (profileData?.nickname) {
+            try {
+              const followers = await getFollowers(profileData.nickname);
+              setFollowings(followers || []);
+              followingsCache = followers || [];
+            } catch (error) {
+              console.error('팔로잉 새로고침 실패:', error);
+            }
+          }
           window.sessionStorage.setItem(FEED_SCROLL_KEY, '0');
           container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
         } finally {
           setIsRefreshing(false);
+          setPullDistance(0);
         }
+      } else {
+        // threshold 미만이면 원래 위치로 부드럽게 복귀
+        console.log('[Feed] End - not enough distance, resetting');
+        setPullDistance(0);
       }
-      isPulling = false;
+      
+      isPullingRef.current = false;
       pullingDistance = 0;
     };
 
-    container.addEventListener('touchstart', onTouchStart);
-    container.addEventListener('touchmove', onTouchMove);
+    // Touch 이벤트 (모바일/WebView)
+    const onTouchStart = (e: TouchEvent) => {
+      handleStart(e.touches[0].clientY);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      handleMove(e.touches[0].clientY, e);
+    };
+
+    const onTouchEnd = () => {
+      handleEnd();
+    };
+
+    // Mouse 이벤트 (데스크톱 브라우저 테스트용)
+    const onMouseDown = (e: MouseEvent) => {
+      handleStart(e.clientY);
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (isPullingRef.current) {
+        handleMove(e.clientY, e);
+      }
+    };
+
+    const onMouseUp = () => {
+      handleEnd();
+    };
+
+    // 이벤트 리스너 등록
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
     container.addEventListener('touchend', onTouchEnd);
+    
+    // 마우스 이벤트는 WebView가 아닐 때만 등록 (데스크톱 브라우저 테스트용)
+    // WebView에서는 Touch 이벤트만 사용하므로 불필요한 리스너 등록 방지
+    const isWebView = inApp();
+    if (!isWebView) {
+      container.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    }
 
     return () => {
       container.removeEventListener('touchstart', onTouchStart);
       container.removeEventListener('touchmove', onTouchMove);
       container.removeEventListener('touchend', onTouchEnd);
+      
+      if (!isWebView) {
+        container.removeEventListener('mousedown', onMouseDown);
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+      console.log('[Feed] Pull-to-refresh: event listeners removed');
     };
-  }, [loadFeeds, isRefreshing]);
+  }, [loadFeeds, isRefreshing, profileData?.nickname]);
+
+  // pull-to-refresh 시각적 피드백 계산
+  const pullProgress = Math.min(pullDistance / 80, 1); // 0~1 사이 값
+  const shouldTrigger = pullDistance >= 80;
+  const refreshIndicatorOpacity = (pullDistance > 0 || isRefreshing) ? Math.min(pullDistance / 60, 1) : 0;
 
   return (
-    <>
+    <div className="relative w-full">
       <Header title="피드" />
+
+      {/* Pull-to-Refresh 인디케이터 */}
+      <div
+        className="absolute top-16 left-0 right-0 flex items-center justify-center pointer-events-none z-10"
+        style={{
+          height: `${Math.max(pullDistance, isRefreshing ? 80 : 0)}px`,
+          transform: `translateY(${Math.max(pullDistance - 80, 0)}px)`,
+          transition: isRefreshing ? 'none' : 'transform 0.2s ease-out, height 0.2s ease-out',
+          opacity: refreshIndicatorOpacity,
+        }}
+      >
+        <div className="flex flex-col items-center gap-2">
+          {isRefreshing ? (
+            <>
+              <div className="w-6 h-6 border-2 border-aqua-300 border-t-transparent rounded-full animate-spin" />
+              <span className="text-aqua-500 p3-b">새로고침 중...</span>
+            </>
+          ) : (
+            <>
+              <div
+                className="w-6 h-6 border-2 border-aqua-300 rounded-full flex items-center justify-center"
+                style={{
+                  transform: `rotate(${pullProgress * 180}deg)`,
+                  transition: 'transform 0.2s ease-out',
+                }}
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  className={shouldTrigger ? 'text-aqua-500' : 'text-aqua-300'}
+                >
+                  <path
+                    d="M6 2V6L9 3"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <span
+                className={`p3-b ${shouldTrigger ? 'text-aqua-500' : 'text-gray-400'}`}
+                style={{ transition: 'color 0.2s ease-out' }}
+              >
+                {shouldTrigger ? '놓으면 새로고침' : '당겨서 새로고침'}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
 
       {/* ✅ 팔로워 + 게시글 영역을 한 번에 페이드 인 */}
       <div
-        className="flex flex-col w-full"
+        className="flex flex-col w-full relative"
         style={{
           opacity: isScrollReady ? 1 : 0,
-          transition: 'opacity 120ms ease-out',
+          transform: `translateY(${Math.max(pullDistance, 0)}px)`,
+          transition: (pullDistance > 0 || isRefreshing)
+            ? 'transform 0.2s ease-out, opacity 120ms ease-out' 
+            : 'opacity 120ms ease-out, transform 0.3s ease-out',
         }}
       >
         {/* 팔로워 목록 */}
@@ -379,6 +527,6 @@ export default function Feed() {
           ) : null}
         </div>
       </div>
-    </>
+    </div>
   );
 }
