@@ -206,10 +206,11 @@ public class BoardService {
     public void deletePost(Long userId, Long postId) {
 
         Board board = boardRepository.getBoardById(postId);
-		Long oldPlaceId = board.getPlaceId();
-		if (oldPlaceId != null) {
-			placeService.deletePlace(oldPlaceId);
-		}
+		// 장소는 지우면 안.됨.
+		// Long oldPlaceId = board.getPlaceId();
+		// if (oldPlaceId != null) {
+		// 	placeService.deletePlace(oldPlaceId);
+		// }
 
         List<Image> images = board.getImages();
         if(images!=null){
