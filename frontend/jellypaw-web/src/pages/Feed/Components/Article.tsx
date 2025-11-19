@@ -5,6 +5,7 @@ import { FaPaw } from 'react-icons/fa';
 import type { GetFeedsResponse } from '@/types/feed';
 import { useNavigate } from 'react-router-dom';
 import { addLike, cancelLike } from '@/services/api/feed';
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from '@/components/ui/carousel';
 import {
   IoCalendarClear,
   IoHeart,
@@ -50,6 +51,10 @@ export default function Article({
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [currentLikeCount, setCurrentLikeCount] = useState(propLikeCount ?? likeCount ?? 0);
   const [isLikeLoading, setIsLikeLoading] = useState(false);
+  // 캐러셀 API
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  // 현재 슬라이드
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   // 좋아요 개수 초기화
   useEffect(() => {
@@ -60,6 +65,19 @@ export default function Article({
   useEffect(() => {
     setIsLiked(initialIsLiked);
   }, [initialIsLiked]);
+
+  // 캐러셀 슬라이드 변경 감지
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    setCurrentSlide(carouselApi.selectedScrollSnap());
+    const handler = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+    carouselApi.on('select', handler);
+
+    return () => {
+      carouselApi.off('select', handler);
+    };
+  }, [carouselApi]);
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -190,13 +208,42 @@ export default function Article({
                 </div>
               </div>
 
-              {images && images.length > 0 && (
-                <div className="w-full">
-                  <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
-                    <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
+              {images && images.length > 0 ? (
+                // 이미지가 1개면 이미지 표시
+                images.length === 1 ? (
+                  <div className="w-full">
+                    <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
+                      <img className="w-full h-full rounded-[12px] object-cover" src={`${IMAGE_BASE_URL}${images[0]}`} alt={`${title} - 대표 이미지`} />
+                    </div>
                   </div>
-                </div>
-              )}
+                ) : (
+                  // 이미지가 여러개면 캐러셀 표시
+                  <div className="w-full">
+                    <Carousel className="w-full" setApi={setCarouselApi}>
+                      <CarouselContent>
+                        {images.map((image, index) => (
+                          <CarouselItem key={image ?? index}>
+                            <div className="w-full aspect-square relative rounded-[12px] overflow-hidden">
+                              <img
+                                className="w-full h-full rounded-[12px] object-cover"
+                                src={`${IMAGE_BASE_URL}${image}`}
+                                alt={`${title} - 이미지 ${index + 1}`}
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      {images.length > 1 && (
+                        <div className="flex justify-center gap-1 mt-3">
+                          {images.map((_, index) => (
+                            <div key={index} className={`w-2 h-2 rounded-full ${index === currentSlide ? 'bg-aqua-300' : 'bg-gray-300'}`} />
+                          ))}
+                        </div>
+                      )}
+                    </Carousel>
+                  </div>
+                )
+              ) : null}
             </div>
 
             {/* 액션 바 */}
