@@ -273,7 +273,7 @@ export default function PetManageScreen({ navigation, route }: any) {
                   <Text weight="semiBold" style={S.emptyAnalysisTitle}>
                     검사 결과가 없습니다
                   </Text>
-                  <Text style={S.emptyAnalysisSubtitle}>건강 검진을 통해 소변 검사를 진행해보세요</Text>
+                  <Text style={S.emptyAnalysisSubtitle}>키트를 이용해 소변 검사를 진행해보세요</Text>
                 </View>
               )}
             </View>
