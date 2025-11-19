@@ -368,12 +368,21 @@ export default function AuthorizedWebView({
             // WebView의 네비게이션 상태를 확인하기 위해 JavaScript 주입
             webRef.current.injectJavaScript(`
               (function() {
-                // 히스토리 길이 확인 (보안상 정확하지 않을 수 있지만, 히스토리가 있는지 확인하는 용도)
-                // 실제로는 WebView의 네비게이션 상태가 업데이트되어야 함
-                if (window.ReactNativeWebView) {
-                  window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'CHECK_NAVIGATION_STATE'
-                  }));
+                try {
+                  // 현재 URL에 fromWrite가 있는지 확인
+                  const hasFromWrite = window.location.href.includes('fromWrite=true');
+                  const currentUrl = window.location.href;
+                  
+                  // WebView에 네비게이션 상태 확인 메시지 전송
+                  if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'CHECK_NAVIGATION_STATE',
+                      hasFromWrite: hasFromWrite,
+                      currentUrl: currentUrl
+                    }));
+                  }
+                } catch(e) {
+                  console.error('[WEB] Failed to check navigation state:', e);
                 }
               })();
               true;
@@ -388,6 +397,14 @@ export default function AuthorizedWebView({
         // 히스토리를 추가했으므로 canGoBack을 true로 설정
         setCanGoBack(true);
         console.log('[AuthorizedWebView] canGoBack set to true after history manipulation');
+        
+        // fromWrite가 있으면 shouldNavigateToFeedRef 유지
+        const hasFromWrite = (msg as any).hasFromWrite;
+        const currentUrl = (msg as any).currentUrl || '';
+        if (hasFromWrite || currentUrl.includes('fromWrite=true')) {
+          shouldNavigateToFeedRef.current = true;
+          console.log('[AuthorizedWebView] CHECK_NAVIGATION_STATE: fromWrite detected, shouldNavigateToFeedRef maintained as true, url:', currentUrl);
+        }
         return;
       }
 
@@ -442,20 +459,26 @@ export default function AuthorizedWebView({
     setCanGoBack(navState.canGoBack);
     
     // fromWrite 쿼리 파라미터가 있는 경우 히스토리 추가 필요 여부 확인
-    if (navState.url && navState.url.includes('fromWrite=true') && !shouldAddFeedHistory) {
-      setShouldAddFeedHistory(true);
-      shouldNavigateToFeedRef.current = true; // fromWrite일 때 기기 뒤로가기로 /feed로 이동
-      console.log('[AuthorizedWebView] fromWrite detected, shouldNavigateToFeedRef set to true');
+    if (navState.url && navState.url.includes('fromWrite=true')) {
+      if (!shouldAddFeedHistory) {
+        setShouldAddFeedHistory(true);
+      }
+      // fromWrite가 있으면 항상 shouldNavigateToFeedRef를 true로 설정 (게시글 상세 페이지에서도 유지)
+      shouldNavigateToFeedRef.current = true;
+      console.log('[AuthorizedWebView] fromWrite detected, shouldNavigateToFeedRef set to true, url:', navState.url);
     }
     
     // 히스토리 조작 중이 아닐 때만 /feed로 이동한 경우 shouldNavigateToFeedRef 리셋
     // 히스토리 조작으로 인한 네비게이션 상태 변경은 무시
     // isManipulatingHistoryRef는 FEED_HISTORY_ADDED 메시지를 받았을 때만 리셋
+    // fromWrite가 있거나 게시글 상세 페이지에서는 리셋하지 않음
     if (!isManipulatingHistoryRef.current) {
       const urlPath = navState.url?.split('?')[0] || '';
-      if ((urlPath === '/feed' || urlPath.endsWith('/feed')) && !navState.url.includes('fromWrite=true')) {
+      // 정확히 /feed 페이지로 이동했고, fromWrite가 없을 때만 리셋
+      // 게시글 상세 페이지(/feed/detail/...)나 다른 하위 경로는 리셋하지 않음
+      if (urlPath === '/feed' && !navState.url.includes('fromWrite=true')) {
         if (shouldNavigateToFeedRef.current) {
-          console.log('[AuthorizedWebView] Reset shouldNavigateToFeedRef after navigating to /feed');
+          console.log('[AuthorizedWebView] Reset shouldNavigateToFeedRef after navigating to /feed (no fromWrite)');
           shouldNavigateToFeedRef.current = false;
         }
       }

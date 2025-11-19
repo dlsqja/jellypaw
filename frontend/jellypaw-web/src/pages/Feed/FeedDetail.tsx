@@ -119,6 +119,24 @@ export default function FeedDetail() {
     }
   }, [fromWrite, boardId]);
 
+  // 브라우저/기기 뒤로가기 버튼 처리 (fromWrite일 때만)
+  useEffect(() => {
+    if (!fromWrite) return;
+
+    const handlePopState = (event: PopStateEvent) => {
+      // fromWrite일 때 뒤로가기 시 /feed로 이동
+      console.log('[FeedDetail] PopState event detected, fromWrite:', fromWrite, 'navigating to /feed');
+      // popstate는 이미 발생한 후이므로, 즉시 /feed로 이동
+      navigate('/feed', { replace: true });
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [fromWrite, navigate]);
+
 
   // 좋아요 토글 핸들러
   const handleLikeToggle = async () => {
@@ -311,7 +329,7 @@ export default function FeedDetail() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="min-h-screen bg-gray-100 pb-[72px]" // ✅ 댓글창 높이만큼 padding 추가
       >
-        <BackHeader title="게시글" />
+        <BackHeader title="게시글" to={fromWrite ? '/feed' : undefined} />
         {/* 프로필 헤더 */}
         <Card className="rounded-none shadow-none border-none bg-gray-100 ">
           <CardHeader className="pb-2">
