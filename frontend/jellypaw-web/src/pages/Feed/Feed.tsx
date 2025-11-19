@@ -7,7 +7,7 @@ import Article from '@/pages/Feed/Components/Article';
 import { getFollowers } from '@/services/api/followers';
 import { useProfile } from '@/hooks/queries/ProfileQuery';
 import type { GetFollowersResponse } from '@/types/followers';
-import { getBoardDevelop, getLikedFeeds } from '@/services/api/feed';
+import { getBoardDevelop, getLikedFeeds, getUserFeeds } from '@/services/api/feed';
 import type { GetFeedsResponse, GetLikedFeedsResponse } from '@/types/feed';
 import { inApp } from '@/lib/appBridge';
 
@@ -27,8 +27,10 @@ export default function Feed() {
   const { data: profileData } = useProfile();
   const [followings, setFollowings] = useState<GetFollowersResponse[]>([]);
   const [feeds, setFeeds] = useState<GetFeedsResponse[]>([]);
+  const [userFeeds, setUserFeeds] = useState<GetFeedsResponse[]>([]);
   const [activeProfileId, setActiveProfileId] = useState<number | null>(null);
   const [likedFeeds, setLikedFeeds] = useState<GetLikedFeedsResponse[]>([]);
+  const [isLoadingUserFeeds, setIsLoadingUserFeeds] = useState(false);
 
   const restoredRef = useRef(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -228,6 +230,38 @@ export default function Feed() {
   const handleProfileClick = (userId: number | null) => {
     setActiveProfileId(userId);
   };
+
+  // 🔹 유저별 게시글 로드
+  useEffect(() => {
+    if (activeProfileId === null) {
+      // 전체 게시글 모드일 때는 userFeeds 초기화
+      setUserFeeds([]);
+      return;
+    }
+
+    // activeProfileId에 해당하는 유저의 닉네임 찾기
+    const selectedUser = followings.find((following) => following.userId === activeProfileId);
+    if (!selectedUser?.nickname) {
+      console.log('[Feed] User not found in followings, cannot load user feeds');
+      setUserFeeds([]);
+      return;
+    }
+
+    setIsLoadingUserFeeds(true);
+    getUserFeeds(selectedUser.nickname)
+      .then((response) => {
+        const userFeedsData = response.boards || [];
+        console.log('[Feed] User feeds loaded:', userFeedsData.length, 'for user:', selectedUser.nickname);
+        setUserFeeds(userFeedsData);
+      })
+      .catch((error) => {
+        console.error('유저별 게시글 조회 실패:', error);
+        setUserFeeds([]);
+      })
+      .finally(() => {
+        setIsLoadingUserFeeds(false);
+      });
+  }, [activeProfileId, followings]);
   // 좋아요 상태 업데이트 핸들러
   const handleLikeToggle = (boardId: number, isLiked: boolean) => {
     setLikedFeeds((prevLikedFeeds) => {
@@ -250,16 +284,16 @@ export default function Feed() {
     }
   }, [feeds, likedFeeds]);
 
-  // 🔹 팔로워 필터링
-  const filteredFeeds = useMemo(() => {
-    if (!Array.isArray(feeds)) {
-      return [];
-    }
+  // 🔹 표시할 게시글 결정 (전체 또는 유저별)
+  const displayedFeeds = useMemo(() => {
     if (activeProfileId === null) {
+      // 전체 게시글
       return feeds;
+    } else {
+      // 유저별 게시글
+      return userFeeds;
     }
-    return feeds.filter((feed) => feed.boardUser?.id === activeProfileId);
-  }, [feeds, activeProfileId]);
+  }, [feeds, userFeeds, activeProfileId]);
 
   // 🔹 네이티브: FEED_SCROLL_TO_TOP → 스크롤 맨 위로
   useEffect(() => {
@@ -293,10 +327,11 @@ export default function Feed() {
     };
   }, [navigate]);
 
-  // 🔹 무한 스크롤: 스크롤이 하단 근처에 도달하면 다음 페이지 로드
+  // 🔹 무한 스크롤: 스크롤이 하단 근처에 도달하면 다음 페이지 로드 (전체 게시글 모드일 때만)
   useEffect(() => {
     const container = document.getElementById('app-scroll-container');
-    if (!container || !isFeedsLoaded) {
+    if (!container || !isFeedsLoaded || activeProfileId !== null) {
+      // 유저별 게시글 모드일 때는 무한스크롤 비활성화
       return;
     }
 
@@ -319,7 +354,7 @@ export default function Feed() {
     return () => {
       container.removeEventListener('scroll', handleScroll);
     };
-  }, [isFeedsLoaded, hasMore, isLoadingMore, loadMoreFeeds]);
+  }, [isFeedsLoaded, hasMore, isLoadingMore, loadMoreFeeds, activeProfileId]);
 
   // 🔹 맨 위에서 아래로 당기면 새로고침 (SNS 스타일)
   // Touch 이벤트 (모바일/WebView) + Mouse 이벤트 (데스크톱 브라우저 테스트용)
@@ -553,22 +588,26 @@ export default function Feed() {
 
         {/* 게시글 목록 */}
         <div className="flex flex-col items-center w-full mt-4 scrollbar-hide">
-          {filteredFeeds.length > 0 ? (
+          {isLoadingUserFeeds ? (
+            <div className="flex justify-center items-center py-12 px-4">
+              <div className="text-gray-400 p3">게시글을 불러오는 중...</div>
+            </div>
+          ) : displayedFeeds.length > 0 ? (
             <>
-              {filteredFeeds.map((feed, index) => {
+              {displayedFeeds.map((feed, index) => {
                 const isLiked = feed.id !== undefined && likedFeeds.some((likedFeed) => likedFeed.boardId === feed.id);
                 return (
                   <Article key={feed.id ?? index} {...feed} initialIsLiked={isLiked} onLikeToggle={handleLikeToggle} currentLikeCount={feed.likeCount ?? 0} />
                 );
               })}
-              {/* 무한 스크롤 로딩 인디케이터 */}
-              {isLoadingMore && (
+              {/* 무한 스크롤 로딩 인디케이터 (전체 게시글 모드일 때만) */}
+              {activeProfileId === null && isLoadingMore && (
                 <div className="flex justify-center items-center py-8">
                   <div className="text-gray-400 p3">게시글을 불러오는 중...</div>
                 </div>
               )}
-              {/* 더 이상 불러올 데이터가 없을 때 */}
-              {!hasMore && feeds.length > 0 && (
+              {/* 더 이상 불러올 데이터가 없을 때 (전체 게시글 모드일 때만) */}
+              {activeProfileId === null && !hasMore && feeds.length > 0 && (
                 <div className="flex justify-center items-center py-8">
                   <div className="text-gray-400 p3">모든 게시글을 불러왔습니다.</div>
                 </div>
