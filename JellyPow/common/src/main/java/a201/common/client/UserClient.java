@@ -24,7 +24,7 @@ public class UserClient {
 
     public UserResponseDto getUser(Long userId) {
         try {
-            log.info("User 서버 API 호출: userId={}", userId);
+            // log.info("User 서버 API 호출: userId={}", userId);
             
             ApiResponse<UserResponseDto> apiResponse = this.restClient.get()
                     .uri("/api/users/backend/{userId}", userId)
@@ -44,7 +44,7 @@ public class UserClient {
                 throw new RuntimeException("User 서버 응답 오류: " + apiResponse.getMessage());
             }
             
-            log.info("User 서버에서 사용자 정보 조회 성공: userId={}", userId);
+            // log.info("User 서버에서 사용자 정보 조회 성공: userId={}", userId);
             return apiResponse.getData();
         } catch (Exception e) {
             log.error("User 서버 통신 실패: userId={}, error={}", userId, e.getMessage(), e);
