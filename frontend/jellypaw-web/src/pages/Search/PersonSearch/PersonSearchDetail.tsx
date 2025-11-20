@@ -141,6 +141,13 @@ export default function PersonSearchDetail() {
     fetchProfile();
   }, [fetchProfile]);
 
+  // 페이지 로드 시 스크롤을 맨 위로 이동 (피드 상세와 동일한 로직)
+  useEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+    if (!container) return;
+    container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
   const [activeCategory, setActiveCategory] = useState<number>(0);
 
   const selectedCategoryLabel = categoriesData[activeCategory].label;

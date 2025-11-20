@@ -50,6 +50,13 @@ export default function LocationSearchDetail() {
     });
   }, [locationData?.id]);
 
+  // 페이지 로드 시 스크롤을 맨 위로 이동 (피드 상세와 동일한 로직)
+  useEffect(() => {
+    const container = document.getElementById('app-scroll-container');
+    if (!container) return;
+    container.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
   console.log('placeFeeds', placeFeeds);
   // 로딩 중일 때 표시
   if (isLoading) {
