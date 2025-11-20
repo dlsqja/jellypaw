@@ -63,21 +63,21 @@
 
 ### Frontend
 - Language: TypeScript
-- Framework: React native, React
+- Framework: React Native, React
 - UI/스타일링: TailwindCSS
 - 상태 관리: Zustand
 
 ### Backend
-
 - Language: Java 17
-- Framework: Spring Boot 3.5.5
-- Database: MySQL, Redis, MongoDB
+- Framework: Spring, Spring Boot 3.3.2, Spring Batch, Spring Scheduler 
+- Database: MySQL 8.0, MongoDB 8, Redis 7 
 - ORM: JPA
 - 인증/보안: Spring Security
-- AI : Google Colab(모델 서빙 환경), Wan 2.2(모델)
+- Messaging & Search: Kafka 3.8.1, Elasticsearch 8.11.0
+- AI : OpenCV, YOLOv8, DeltaE
 
 ### Infra 
-- Containerization: Ubuntu, Docker, EC2
+- Containerization: EC2, AWS S3, Docker, Docker Compose
 - CI/CD: Jenkins
 
 # 📐아키텍처 구성 
