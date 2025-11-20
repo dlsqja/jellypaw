@@ -14,14 +14,9 @@ export default function ScanCompleteScreen({ navigation, route }: Props) {
   const { analysisId, petId } = route.params;
 
   const handleViewResult = () => {
-    // 동물관리 화면의 건강체크 탭으로 이동
-    // 먼저 현재 모달들을 모두 닫고 Pets 화면으로 이동
-    navigation.getParent()?.navigate('PetStack', {
-      screen: 'Pets',
-      params: {
-        activeTab: 'health',
-        petId: petId,
-      },
+    // 피드 목록 페이지로 이동
+    navigation.getParent()?.navigate('FeedStack', {
+      screen: 'Feed',
     });
   };
 
@@ -35,13 +30,13 @@ export default function ScanCompleteScreen({ navigation, route }: Props) {
           분석 요청 완료
         </Text>
         <Text style={S.subTitle}>소변 검사 분석 요청이 완료되었습니다.</Text>
-        <Text style={S.subTitle}>검사 결과는 분석 완료 후 알림으로 알려드릴게요!</Text>
+        <Text style={S.subTitle}>분석 완료 후 알림으로 알려드릴게요!</Text>
         <View style={S.buttonContainer}>
           <Button
             tone="aqua"
             shape="pillSolid"
             size="default"
-            title="검사 보러가기"
+            title="피드로 돌아가기"
             onPress={handleViewResult}
           />
         </View>
