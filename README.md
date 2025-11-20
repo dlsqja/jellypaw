@@ -53,8 +53,10 @@
 ### 4. 사용자 검색과 장소 검색 분리
   - @유저명, 장소명으로 사용자 검색과 장소 검색 분리
   - 인증된 장소는 예약 가능
-  <img height="500" alt="사용자 검색" src="images/사용자 검색.gif" />
-  <img height="500" alt="장소 검색" src="images/장소 검색.gif" />
+   <div class = flex>
+   <img height="500" alt="사용자 검색" src="images/사용자 검색.gif" />
+   <img height="500" alt="장소 검색" src="images/장소 검색.gif" />
+   </div>
 
 # 🛠기술 스택
 
