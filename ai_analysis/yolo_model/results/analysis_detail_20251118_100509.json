@@ -1,0 +1,74 @@
+{
+  "status": "SUCCESS",
+  "image_info": {
+    "warped_size": "600x1000"
+  },
+  "color_correction": {
+    "gray_measured": [
+      95.72,
+      127.55,
+      128.0
+    ],
+    "correction_applied": [
+      1.337179772575494,
+      0.4499347684279229,
+      -0.0003805175037996378
+    ]
+  },
+  "reference_extracted": {
+    "Urobilinogen": 5
+  },
+  "analysis_count": 1,
+  "detections": [
+    {
+      "class": "pad_Urobilinogen",
+      "confidence": 0.5681,
+      "box_pixel": [
+        357,
+        703,
+        410,
+        763
+      ],
+      "lab_measured": [
+        215.54,
+        125.57,
+        140.74
+      ],
+      "lab_corrected": [
+        288.21,
+        126.02,
+        140.74
+      ],
+      "diagnosis": {
+        "matched_value": "16",
+        "delta_e": 22.06,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "very_severe",
+        "is_approximate": true,
+        "confidence": "medium"
+      }
+    }
+  ],
+  "frontend_summary": [
+    {
+      "test_code": "Urobilinogen",
+      "test_name_ko": "유로빌리노겐",
+      "test_name_en": "Urobilinogen",
+      "unit": "mg/dL (μmol/L)",
+      "matched_value": "16",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "very_severe",
+      "delta_e": 22.06,
+      "is_approximate": true,
+      "confidence": "medium",
+      "suspected_conditions": [
+        "간 기능 저하",
+        "울혈성 심부전",
+        "용혈성 빈혈",
+        "악성 빈혈"
+      ]
+    }
+  ]
+}

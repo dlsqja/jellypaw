@@ -1,0 +1,494 @@
+{
+  "status": "SUCCESS",
+  "image_info": {
+    "warped_size": "2252x4000"
+  },
+  "color_correction": {
+    "gray_measured": [
+      207.66,
+      127.98,
+      127.02
+    ],
+    "correction_applied": [
+      0.6163936898053037,
+      0.022831050228305116,
+      0.9771689497716949
+    ]
+  },
+  "reference_extracted": {
+    "Urobilinogen": 5,
+    "Glucose": 5,
+    "Bilirubin": 4,
+    "Ketones": 5,
+    "Specific_Gravity": 7,
+    "Blood": 6,
+    "pH": 6,
+    "Protein": 6,
+    "Nitrite": 3,
+    "Leukocytes": 4
+  },
+  "analysis_count": 10,
+  "detections": [
+    {
+      "class": "pad_Urobilinogen",
+      "confidence": 0.8056,
+      "box_pixel": [
+        778,
+        642,
+        909,
+        773
+      ],
+      "lab_measured": [
+        216.44,
+        126.11,
+        134.0
+      ],
+      "lab_corrected": [
+        133.41,
+        126.14,
+        134.98
+      ],
+      "diagnosis": {
+        "matched_value": "8",
+        "delta_e": 6.18,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "severe",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Glucose",
+      "confidence": 0.9484,
+      "box_pixel": [
+        772,
+        823,
+        912,
+        970
+      ],
+      "lab_measured": [
+        183.04,
+        114.69,
+        119.4
+      ],
+      "lab_corrected": [
+        112.83,
+        114.72,
+        120.38
+      ],
+      "diagnosis": {
+        "matched_value": "neg",
+        "delta_e": 23.3,
+        "result": "negative",
+        "is_normal": true,
+        "severity": "N/A",
+        "is_approximate": true,
+        "confidence": "medium"
+      }
+    },
+    {
+      "class": "pad_Bilirubin",
+      "confidence": 0.8629,
+      "box_pixel": [
+        779,
+        1015,
+        910,
+        1157
+      ],
+      "lab_measured": [
+        215.54,
+        125.58,
+        142.23
+      ],
+      "lab_corrected": [
+        132.86,
+        125.6,
+        143.2
+      ],
+      "diagnosis": {
+        "matched_value": "neg",
+        "delta_e": 14.34,
+        "result": "negative",
+        "is_normal": true,
+        "severity": "N/A",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Ketones",
+      "confidence": 0.7736,
+      "box_pixel": [
+        779,
+        1209,
+        909,
+        1345
+      ],
+      "lab_measured": [
+        212.47,
+        126.4,
+        137.0
+      ],
+      "lab_corrected": [
+        130.96,
+        126.42,
+        137.98
+      ],
+      "diagnosis": {
+        "matched_value": "neg",
+        "delta_e": 9.33,
+        "result": "negative",
+        "is_normal": true,
+        "severity": "N/A",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_SG",
+      "confidence": 0.6033,
+      "box_pixel": [
+        779,
+        1398,
+        913,
+        1539
+      ],
+      "lab_measured": [
+        104.62,
+        112.56,
+        119.13
+      ],
+      "lab_corrected": [
+        64.49,
+        112.59,
+        120.1
+      ],
+      "diagnosis": {
+        "matched_value": "1.030",
+        "delta_e": 7.87,
+        "result": "abnormal",
+        "is_normal": false,
+        "severity": "mild",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Blood",
+      "confidence": 0.92,
+      "box_pixel": [
+        784,
+        1589,
+        911,
+        1717
+      ],
+      "lab_measured": [
+        209.06,
+        118.12,
+        182.48
+      ],
+      "lab_corrected": [
+        128.86,
+        118.14,
+        183.45
+      ],
+      "diagnosis": {
+        "matched_value": "+++250",
+        "delta_e": 21.43,
+        "result": "positive_hemolysis",
+        "is_normal": false,
+        "severity": "moderate",
+        "is_approximate": true,
+        "confidence": "medium"
+      }
+    },
+    {
+      "class": "pad_pH",
+      "confidence": 0.8928,
+      "box_pixel": [
+        792,
+        1772,
+        910,
+        1895
+      ],
+      "lab_measured": [
+        180.49,
+        140.41,
+        180.46
+      ],
+      "lab_corrected": [
+        111.25,
+        140.43,
+        181.44
+      ],
+      "diagnosis": {
+        "matched_value": "7",
+        "delta_e": 18.8,
+        "result": "alkaline",
+        "is_normal": false,
+        "severity": "mild_alkaline",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Protein",
+      "confidence": 0.8328,
+      "box_pixel": [
+        795,
+        1952,
+        911,
+        2077
+      ],
+      "lab_measured": [
+        206.4,
+        116.95,
+        184.96
+      ],
+      "lab_corrected": [
+        127.23,
+        116.98,
+        185.93
+      ],
+      "diagnosis": {
+        "matched_value": "100",
+        "delta_e": 7.23,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "moderate",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Nitrite",
+      "confidence": 0.8099,
+      "box_pixel": [
+        793,
+        2128,
+        912,
+        2263
+      ],
+      "lab_measured": [
+        217.86,
+        126.99,
+        133.99
+      ],
+      "lab_corrected": [
+        134.29,
+        127.01,
+        134.97
+      ],
+      "diagnosis": {
+        "matched_value": "pos",
+        "delta_e": 6.3,
+        "result": "positive",
+        "is_normal": false,
+        "severity": "positive",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    },
+    {
+      "class": "pad_Leukocytes",
+      "confidence": 0.8496,
+      "box_pixel": [
+        797,
+        2312,
+        915,
+        2445
+      ],
+      "lab_measured": [
+        210.22,
+        127.88,
+        134.8
+      ],
+      "lab_corrected": [
+        129.58,
+        127.91,
+        135.78
+      ],
+      "diagnosis": {
+        "matched_value": "neg",
+        "delta_e": 6.7,
+        "result": "negative",
+        "is_normal": true,
+        "severity": "N/A",
+        "is_approximate": true,
+        "confidence": "high"
+      }
+    }
+  ],
+  "frontend_summary": [
+    {
+      "test_code": "Urobilinogen",
+      "test_name_ko": "유로빌리노겐",
+      "test_name_en": "Urobilinogen",
+      "unit": "mg/dL (μmol/L)",
+      "matched_value": "8",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "severe",
+      "delta_e": 6.18,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "간 기능 저하",
+        "울혈성 심부전",
+        "용혈성 빈혈",
+        "악성 빈혈"
+      ]
+    },
+    {
+      "test_code": "Glucose",
+      "test_name_ko": "포도당",
+      "test_name_en": "Glucose",
+      "unit": "mg/dL (mmol/L)",
+      "matched_value": "neg",
+      "result": "negative",
+      "is_normal": true,
+      "severity": "N/A",
+      "delta_e": 23.3,
+      "is_approximate": true,
+      "confidence": "medium",
+      "suspected_conditions": []
+    },
+    {
+      "test_code": "Bilirubin",
+      "test_name_ko": "빌리루빈",
+      "test_name_en": "Bilirubin",
+      "unit": "mg/dL",
+      "matched_value": "neg",
+      "result": "negative",
+      "is_normal": true,
+      "severity": "N/A",
+      "delta_e": 14.34,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": []
+    },
+    {
+      "test_code": "Ketones",
+      "test_name_ko": "케톤체",
+      "test_name_en": "Ketones",
+      "unit": "mg/dL (mmol/L)",
+      "matched_value": "neg",
+      "result": "negative",
+      "is_normal": true,
+      "severity": "N/A",
+      "delta_e": 9.33,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": []
+    },
+    {
+      "test_code": "Specific_Gravity",
+      "test_name_ko": "비중",
+      "test_name_en": "Specific Gravity",
+      "unit": "specific gravity",
+      "matched_value": "1.030",
+      "result": "abnormal",
+      "is_normal": false,
+      "severity": "mild",
+      "delta_e": 7.87,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "수분 과잉섭취",
+        "신부전",
+        "신우신염"
+      ]
+    },
+    {
+      "test_code": "Blood",
+      "test_name_ko": "잠혈",
+      "test_name_en": "Blood",
+      "unit": "RBC/μL",
+      "matched_value": "+++250",
+      "result": "positive_hemolysis",
+      "is_normal": false,
+      "severity": "moderate",
+      "delta_e": 21.43,
+      "is_approximate": true,
+      "confidence": "medium",
+      "suspected_conditions": [
+        "신장 질환",
+        "전립선 질환",
+        "방광 질환",
+        "요로 질환",
+        "생리혈 오염"
+      ]
+    },
+    {
+      "test_code": "pH",
+      "test_name_ko": "pH",
+      "test_name_en": "pH",
+      "unit": "pH",
+      "matched_value": "7",
+      "result": "alkaline",
+      "is_normal": false,
+      "severity": "mild_alkaline",
+      "delta_e": 18.8,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "요로 감염증",
+        "결석증",
+        "구토"
+      ]
+    },
+    {
+      "test_code": "Protein",
+      "test_name_ko": "단백질",
+      "test_name_en": "Protein",
+      "unit": "mg/dL (g/L)",
+      "matched_value": "100",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "moderate",
+      "delta_e": 7.23,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "신장 질환",
+        "신부전",
+        "요로 감염증",
+        "임신 중독증",
+        "생리적 단백뇨"
+      ]
+    },
+    {
+      "test_code": "Nitrite",
+      "test_name_ko": "아질산염",
+      "test_name_en": "Nitrite",
+      "unit": "qualitative",
+      "matched_value": "pos",
+      "result": "positive",
+      "is_normal": false,
+      "severity": "positive",
+      "delta_e": 6.3,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": [
+        "방광염",
+        "신우신염",
+        "요로 감염"
+      ]
+    },
+    {
+      "test_code": "Leukocytes",
+      "test_name_ko": "백혈구",
+      "test_name_en": "Leukocytes",
+      "unit": "WBC/μL",
+      "matched_value": "neg",
+      "result": "negative",
+      "is_normal": true,
+      "severity": "N/A",
+      "delta_e": 6.7,
+      "is_approximate": true,
+      "confidence": "high",
+      "suspected_conditions": []
+    }
+  ]
+}

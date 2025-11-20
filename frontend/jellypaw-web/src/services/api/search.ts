@@ -1,0 +1,105 @@
+import apiClient from '@/lib/axios';
+import type {
+  SearchUsersResponse,
+  SearchPlacesResponse,
+  SearchUsersDetailResponse,
+  SearchPlacesDetailResponse,
+  GetPlaceFeedsResponse,
+  SearchUsersWithCursorParams,
+  SearchUsersWithCursorResponse,
+  SearchPlacesWithCursorParams,
+  SearchPlacesWithCursorResponse,
+} from '@/types/search';
+
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+// 유저 검색
+export const searchUsers = async (keyword: string): Promise<SearchUsersResponse[]> => {
+  const response = await apiClient.get(`/users/es?nickname=${keyword}`);
+  return response.data.data;
+};
+
+// 유저 검색 (무한 스크롤)
+export const searchUsersWithCursor = async (params: SearchUsersWithCursorParams): Promise<SearchUsersWithCursorResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('nickname', params.nickname);
+  
+  if (params.cursor !== null && params.cursor !== undefined) {
+    queryParams.append('cursor', params.cursor.toString());
+  }
+  
+  const response = await apiClient.get<ApiResponse<SearchUsersWithCursorResponse>>(`/users/es/cursor?${queryParams.toString()}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 빈 배열 반환
+  if (response.data.code !== 200 || !response.data.data) {
+    console.error('[searchUsersWithCursor] API 응답 오류:', {
+      code: response.data.code,
+      message: response.data.message,
+      data: response.data.data,
+    });
+    return { users: [], nextCursor: null };
+  }
+  
+  return response.data.data;
+};
+
+// 유저 검색 상세 조회
+export const searchUsersDetail = async (nickname: string): Promise<SearchUsersDetailResponse | null> => {
+  const response = await apiClient.get<ApiResponse<SearchUsersDetailResponse>>(`/users/${nickname}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 null 반환 (에러 throw하지 않음)
+  // 404는 정상적인 케이스일 수 있음 (사용자 삭제, nickname 변경 등)
+  if (response.data.code !== 200 || response.data.data === null) {
+    // 로그 제거 - 404는 정상적인 케이스이므로 조용히 처리
+    return null;
+  }
+  
+  return response.data.data;
+};
+
+// 장소 검색 (기존 - 호환성 유지)
+export const searchPlaces = async (keyword: string, cursor?: number | 0): Promise<SearchPlacesResponse> => {
+  const response = await apiClient.get(`/places/search/cursor?title=${keyword}&cursor=${cursor}`);
+  console.log(response.data.data);
+  return response.data.data;
+};
+
+// 장소 검색 (무한 스크롤)
+export const searchPlacesWithCursor = async (params: SearchPlacesWithCursorParams): Promise<SearchPlacesWithCursorResponse> => {
+  const queryParams = new URLSearchParams();
+  queryParams.append('title', params.title);
+  
+  if (params.cursor !== null && params.cursor !== undefined) {
+    queryParams.append('cursor', params.cursor.toString());
+  }
+  
+  const response = await apiClient.get<ApiResponse<SearchPlacesWithCursorResponse>>(`/places/search/cursor?${queryParams.toString()}`);
+  
+  // API 응답에서 code가 200이 아니거나 data가 null이면 빈 배열 반환
+  if (response.data.code !== 200 || !response.data.data) {
+    console.error('[searchPlacesWithCursor] API 응답 오류:', {
+      code: response.data.code,
+      message: response.data.message,
+      data: response.data.data,
+    });
+    return { places: [], nextCursor: null };
+  }
+  
+  return response.data.data;
+};
+
+// 장소 검색 상세 조회
+export const searchPlacesDetail = async (placeId: number): Promise<SearchPlacesDetailResponse> => {
+  const response = await apiClient.get(`/places/${placeId}`);
+  return response.data.data;
+};
+
+// 특정 장소의 게시글 조회
+export const getPlaceFeeds = async (placeId: number): Promise<GetPlaceFeedsResponse> => {
+  const response = await apiClient.get<ApiResponse<GetPlaceFeedsResponse>>(`/board-view/places/${placeId}`);
+  return response.data.data;
+};
