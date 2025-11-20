@@ -38,7 +38,7 @@ COPY yolo_model/urine_test_with_diseases.json /app/
 COPY api_server.py /app/
 
 # 8. 포트 노출
-EXPOSE 8000
+EXPOSE 9999
 
 # 9. 컨테이너 시작 시 실행될 명령어
-CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "9999"]

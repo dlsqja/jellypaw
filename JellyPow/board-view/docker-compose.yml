@@ -1,0 +1,12 @@
+networks:
+  msa-net:
+    external: true
+
+services:
+  board-view:
+    image: dlsqja3436/board-view
+    container_name: board-view
+    env_file:
+      - ./.env
+    networks:
+      - msa-net

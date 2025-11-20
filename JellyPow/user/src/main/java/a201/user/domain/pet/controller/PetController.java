@@ -1,0 +1,206 @@
+package a201.user.domain.pet.controller;
+
+import a201.common.client.AiClient;
+import a201.common.response.ApiResponse;
+import a201.user.domain.pet.dto.AnalysisResponse;
+import a201.user.domain.pet.dto.PetCodeRequest;
+import a201.user.domain.pet.dto.PetRequest;
+import a201.user.domain.pet.dto.PetResponse;
+import a201.user.domain.pet.dto.PetSimpleListResponse;
+import a201.user.domain.pet.document.AnalysisDocument;
+import a201.user.domain.pet.entity.Pet;
+import a201.user.domain.pet.service.AnalysisService;
+import a201.user.domain.pet.service.PetService;
+import a201.user.domain.user.entity.User;
+import a201.user.domain.user.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@Slf4j
+@Tag(name = "Pet", description = "반려동물 관리 API")
+@RestController
+@RequestMapping("/pets")
+@RequiredArgsConstructor
+public class PetController {
+
+    private final PetService petService;
+    private final AiClient aiClient;
+    private final AnalysisService analysisService;
+	private final UserService userService;
+    @Operation(summary = "반려동물 목록 조회", description = "사용자의 반려동물 목록을 조회합니다.")
+    @GetMapping
+    public ApiResponse<PetSimpleListResponse> getPetList(@RequestHeader("X-User-Id") Long userId) {
+
+        List<Pet> petList = petService.getPetList(userId);
+
+        return ApiResponse.success(PetSimpleListResponse.from(petList));
+    }
+
+    @Operation(summary = "반려동물 조회", description = "특정 반려동물 정보를 조회합니다.")
+    @GetMapping("/{petId}")
+    public ApiResponse<PetResponse> getPet(@PathVariable Long petId) {
+
+        Pet pet = petService.getPet(petId);
+
+        return ApiResponse.success(PetResponse.from(pet));
+    }
+
+    @Operation(summary = "반려동물 등록", description = "새로운 반려동물을 등록합니다.")
+    @PostMapping
+    public ApiResponse<PetResponse> registerPet(@RequestHeader("X-User-Id") Long userId,
+                                                @RequestPart("petRequest") PetRequest petRequest,
+                                                @RequestPart(value = "petprofileImg", required = false) MultipartFile petProfileImg) {
+
+        Pet pet = petService.registerPet(userId, petRequest, petProfileImg);
+
+        return ApiResponse.success(PetResponse.from(pet));
+    }
+
+    @Operation(summary = "코드로 반려동물 등록", description = "코드를 사용하여 반려동물을 등록합니다.")
+    @PostMapping("/code")
+    public ApiResponse<PetResponse> registerPetByCode(@RequestHeader("X-User-id") Long userId,
+                                                      @RequestBody PetCodeRequest petCodeRequest) {
+
+        Pet pet = petService.registerPetByCode(userId, petCodeRequest);
+
+        return ApiResponse.success(PetResponse.from(pet));
+    }
+
+    @Operation(summary = "반려동물 정보 수정", description = "반려동물의 정보를 수정합니다.")
+    @PatchMapping("/{petId}")
+    public ApiResponse<PetResponse> updatePetInfo(@RequestHeader("X-User-Id") Long userId,
+                                                  @PathVariable Long petId,
+                                                  @RequestBody PetRequest petRequest) {
+
+        Pet pet = petService.updatePetInfo(petId, petRequest);
+
+        return ApiResponse.success(PetResponse.from(pet));
+    }
+
+    @Operation(summary = "반려동물 프로필 이미지 수정", description = "반려동물의 프로필 이미지를 수정합니다.")
+    @PatchMapping("/img/{petId}")
+    public ApiResponse<PetResponse> updatePetImg(@RequestHeader("X-User-Id") Long userId,
+                                                 @PathVariable Long petId,
+                                                 @RequestPart(value = "petProfileImg", required = false) MultipartFile petProfileImg) {
+
+        Pet pet = petService.updatePetImg(petId, petProfileImg);
+
+        return ApiResponse.success(PetResponse.from(pet));
+    }
+
+    @Operation(summary = "반려동물 삭제", description = "반려동물을 삭제합니다.")
+    @DeleteMapping("/{petId}")
+    public ApiResponse<?> deletePet(@RequestHeader("X-User-Id") Long userId,
+                                    @PathVariable Long petId) {
+
+        petService.deletePet(userId, petId);
+
+        return ApiResponse.success(null);
+    }
+
+    @Operation(summary = "이미지 AI 분석", description = "이미지를 AI 서버로 전송하여 분석 요청을 큐에 추가합니다. (비동기 처리)")
+    @PostMapping("/{petId}/analyze")
+    public ApiResponse<Map<String, Object>> analyzeImage(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long petId,
+            @RequestPart("file") MultipartFile file) {
+        
+        // 파일 바이트를 먼저 읽어서 저장 (transferTo는 파일을 이동시키므로 getBytes() 먼저 호출)
+        byte[] fileBytes = null;
+        try {
+            fileBytes = file.getBytes();
+            // 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+            String savedFilePath = saveTemporaryFileFromBytes(fileBytes, file, userId, petId);
+            if (savedFilePath != null) {
+                log.info("임시 파일 저장 완료: {}", savedFilePath);
+            }
+        } catch (IOException e) {
+            log.error("파일 읽기 실패: {}", e.getMessage(), e);
+        }
+        
+        // AI 서버로 이미지 분석 요청 (비동기, 즉시 202 반환)
+        // userId, petId를 함께 전달하여 나중에 Kafka 이벤트에서 구분 가능하도록 함
+        Map<String, Object> response = aiClient.analyzeImage(file, userId, petId);
+        
+        // 202 Accepted 응답 (요청이 큐에 추가되었음을 알림)
+        // 실제 분석 결과는 Kafka 이벤트를 통해 나중에 받게 됨
+        return ApiResponse.success(response);
+    }
+    
+    /**
+     * 임시 파일 저장 (디버깅/확인용) - 바이트 배열로 저장
+     * @param fileBytes 파일 바이트 배열
+     * @param file 원본 MultipartFile (메타데이터용)
+     * @param userId 사용자 ID
+     * @param petId 반려동물 ID
+     * @return 저장된 파일 경로 (실패 시 null)
+     */
+    private String saveTemporaryFileFromBytes(byte[] fileBytes, MultipartFile file, Long userId, Long petId) {
+        try {
+            // 임시 디렉토리 생성
+            String tempDir = System.getProperty("java.io.tmpdir") + File.separator + "jellypaw_uploads";
+            Path tempDirPath = Paths.get(tempDir);
+            if (!Files.exists(tempDirPath)) {
+                Files.createDirectories(tempDirPath);
+            }
+            
+            // 고유한 파일명 생성 (userId_petId_UUID.확장자)
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+			User user = userService.getUserById(userId);
+			Pet pet = petService.getPet(petId);
+            String uniqueFilename = String.format("%s_%s_%s%s", user.getNickname(), pet.getName(), UUID.randomUUID(), extension);
+            Path tempFilePath = tempDirPath.resolve(uniqueFilename);
+            
+            // 바이트 배열로 파일 저장
+            Files.write(tempFilePath, fileBytes);
+            
+            // 로그 출력
+            // log.info("=== 임시 파일 저장 완료 ===");
+            // log.info("원본 파일명: {}", originalFilename);
+            // log.info("저장 파일명: {}", uniqueFilename);
+            // log.info("저장 경로: {}", tempFilePath.toAbsolutePath());
+            // log.info("파일 크기: {} bytes ({} KB)", fileBytes.length, fileBytes.length / 1024.0);
+            // log.info("Content-Type: {}", file.getContentType());
+            // log.info("userId: {}, petId: {}", userId, petId);
+            
+            return tempFilePath.toAbsolutePath().toString();
+            
+        } catch (IOException e) {
+            log.error("임시 파일 저장 실패: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Operation(summary = "반려동물 분석 결과 목록 조회", description = "특정 반려동물의 분석 결과 목록을 최신순으로 조회합니다.")
+    @GetMapping("/{petId}/analysis")
+    public ApiResponse<List<AnalysisResponse>> getAnalysisList(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable Long petId) {
+        
+        // MongoDB에서 userId와 petId로 조회 (최신순)
+        List<AnalysisDocument> documents = analysisService.getAnalysisList(userId, petId);
+        // DTO로 변환하여 반환
+        List<AnalysisResponse> responses = documents.stream()
+                .map(AnalysisResponse::from)
+                .collect(java.util.stream.Collectors.toList());
+        
+        return ApiResponse.success(responses);
+    }
+}

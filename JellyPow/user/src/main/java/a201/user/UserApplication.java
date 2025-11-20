@@ -1,0 +1,16 @@
+package a201.user;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.TimeZone;
+
+@SpringBootApplication(scanBasePackages = "a201")
+public class UserApplication {
+
+	public static void main(String[] args) {
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+		SpringApplication.run(UserApplication.class, args);
+	}
+
+}

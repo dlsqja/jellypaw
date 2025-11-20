@@ -86,6 +86,12 @@ fastapi
 uvicorn[standard]
 python-multipart
 
+# === 4. Redis (큐잉 시스템) ===
+redis
+
+# === 5. Kafka (이벤트 발행) ===
+kafka-python
+
 # === 3. 기타 핵심 라이브러리 (버전 제거) ===
 numpy
 pillow

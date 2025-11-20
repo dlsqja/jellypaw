@@ -1,0 +1,12 @@
+networks:
+  msa-net:
+    external: true
+
+services:
+  reservation:
+    image: dlsqja3436/reservation
+    container_name: reservation
+    env_file:
+      - ./.env
+    networks:
+      - msa-net

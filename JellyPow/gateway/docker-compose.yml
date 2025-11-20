@@ -1,0 +1,15 @@
+networks:
+  msa-net:
+    external: true
+
+services:
+  gateway:
+    image: dlsqja3436/gateway
+    container_name: gateway
+    ports:
+      - "8888:8888"
+    env_file:
+      - ./.env
+    restart: unless-stopped
+    networks:
+      - msa-net
