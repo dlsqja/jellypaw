@@ -82,7 +82,7 @@
 
 # 📐아키텍처 구성 
 ### 시스템 아키텍처
-![시스템 아키텍처](/images/system%20architecture.png)
+![시스템 아키텍처](/images/system_architecture.png)
 
 # 📂 폴더 구조
 
