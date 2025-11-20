@@ -18,7 +18,13 @@ const Menubar: React.FC = () => {
   const navigate = useNavigate();
 
   // 메뉴 클릭 핸들러
-  const handleClick = (path: string) => {
+  const handleClick = (path: string, isSearch: boolean = false) => {
+    // 검색 메뉴는 항상 이동 (검색 페이지에 있어도 다시 클릭하면 검색 페이지로 이동)
+    if (isSearch) {
+      navigate(path);
+      return;
+    }
+    // 다른 메뉴는 현재 경로와 다를 때만 이동
     if (location.pathname !== path) {
       navigate(path);
     }
@@ -28,8 +34,9 @@ const Menubar: React.FC = () => {
     <div className="flex flex-row items-center justify-between h-16 bg-gray-100 border-t border-1 border-gray-200">
       {menuList.map((menu, index) => {
         const Icon = menu.icon;
-        // 현재 경로와 메뉴 path가 일치하면 isActive
-        const isActive = location.pathname === menu.path;
+        // 현재 경로가 메뉴 path로 시작하는지 확인 (하위 경로 포함)
+        // 각 메뉴는 해당 경로로 시작하는 모든 하위 경로에서 활성화됨
+        const isActive = location.pathname === menu.path || location.pathname.startsWith(menu.path + '/');
 
         // PlusButton은 검색과 동물관리 사이(2번째 위치)에 삽입
         if (index === 1) {
@@ -38,7 +45,7 @@ const Menubar: React.FC = () => {
               <div
                 className={`flex-1 flex flex-col items-center justify-center cursor-pointer gap-2
                 ${isActive ? 'text-aqua-300' : 'text-gray-300'}`}
-                onClick={() => handleClick(menu.path)}
+                onClick={() => handleClick(menu.path, true)}
               >
                 <Icon size={20} color={isActive ? '#6abfb8' : '#A3A3A3'} />
                 <span className={`p3-b text-xs text-center whitespace-nowrap ${isActive ? 'text-aqua-300' : 'text-gray-300'}`}>{menu.name}</span>

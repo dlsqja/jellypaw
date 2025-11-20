@@ -32,9 +32,10 @@ export default function ScanCompleteScreen({ navigation, route }: Props) {
           <Ionicons name="checkmark-circle" size={64} color={palette.aqua300} />
         </View>
         <Text weight="bold" style={S.title}>
-          검사 완료
+          분석 요청 완료
         </Text>
-        <Text style={S.subTitle}>소변 검사 분석이 완료되었습니다.</Text>
+        <Text style={S.subTitle}>소변 검사 분석 요청이 완료되었습니다.</Text>
+        <Text style={S.subTitle}>검사 결과는 분석 완료 후 알림으로 알려드릴게요!</Text>
         <View style={S.buttonContainer}>
           <Button
             tone="aqua"

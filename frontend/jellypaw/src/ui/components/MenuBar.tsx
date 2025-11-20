@@ -69,8 +69,15 @@ export default function MenuBar() {
 
   // 검색
   const handleSearchPress = () => {
+    if (route.name === 'SearchStack') {
+      // SearchStack 내부에서 검색 탭 클릭
+      // WebView의 현재 경로를 확인하여 처리
+      DeviceEventEmitter.emit('CHECK_SEARCH_WEBVIEW_PATH');
+    } else {
+      // 다른 탭에서 검색으로 이동
     clearFeedScroll();
     navigation.navigate('SearchStack', { screen: 'Search' });
+    }
   };
 
   // 내 공간

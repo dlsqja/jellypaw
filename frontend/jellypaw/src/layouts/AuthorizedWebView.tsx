@@ -197,12 +197,48 @@ export default function AuthorizedWebView({
     `);
   });
 
+  // 🔹 검색 탭 클릭 시 WebView 경로 확인
+  const checkSearchWebViewPathSub = DeviceEventEmitter.addListener('CHECK_SEARCH_WEBVIEW_PATH', () => {
+    webRef.current?.injectJavaScript(`
+      (function() {
+        try {
+          const path = window.location.pathname;
+          const isSearchPage = path === '/search' || path === '/search/';
+          
+          console.log('[WEB] CHECK_SEARCH_WEBVIEW_PATH: current path =', path, 'isSearchPage =', isSearchPage);
+          
+          if (isSearchPage) {
+            // 이미 검색 페이지면 → 검색 페이지로 이동 (재렌더링)
+            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+              type: 'SEARCH_TAB_CLICKED', 
+              shouldNavigate: true 
+            }));
+          } else {
+            // 다른 페이지면 → 검색 페이지로 이동
+            window.ReactNativeWebView.postMessage(JSON.stringify({ 
+              type: 'SEARCH_TAB_CLICKED', 
+              shouldNavigate: true 
+            }));
+          }
+        } catch(e) {
+          console.error('[WEB] CHECK_SEARCH_WEBVIEW_PATH error', e);
+          window.ReactNativeWebView.postMessage(JSON.stringify({ 
+            type: 'SEARCH_TAB_CLICKED', 
+            shouldNavigate: true 
+          }));
+        }
+      })();
+      true;
+    `);
+  });
+
   return () => {
     feedUpdatedSub.remove();
     clearFeedScrollSub.remove();
     feedScrollToTopSub.remove();
     webviewGoBackSub.remove();
     checkFeedWebViewPathSub.remove();
+    checkSearchWebViewPathSub.remove();
   };
 }, [canGoBack]);
 
@@ -317,6 +353,58 @@ export default function AuthorizedWebView({
           `);
           // 기존 이벤트도 emit (다른 리스너가 있을 수 있음)
           DeviceEventEmitter.emit('FEED_SCROLL_TO_TOP');
+        }
+        return;
+      }
+
+      if (msg.type === 'SEARCH_TAB_CLICKED') {
+        const shouldNavigate = msg.shouldNavigate === true;
+        console.log('[AuthorizedWebView] SEARCH_TAB_CLICKED received, shouldNavigate =', shouldNavigate);
+        
+        if (shouldNavigate) {
+          // 검색 페이지로 이동 (WebView 내부 라우팅)
+          const navigationScript = `
+            (function() {
+              try {
+                const currentPath = window.location.pathname;
+                
+                // 방법 1: 전역 함수 직접 호출 (가장 빠름)
+                if (typeof window.__REACT_ROUTER_NAVIGATE === 'function') {
+                  window.__REACT_ROUTER_NAVIGATE('/search');
+                  return;
+                }
+                
+                // 방법 2: CustomEvent 발생
+                const event = new CustomEvent('NAVIGATE_TO_SEARCH', { 
+                  detail: {},
+                  bubbles: true,
+                  cancelable: true
+                });
+                window.dispatchEvent(event);
+                
+                // 방법 3: 즉시 window.history.pushState + popstate 이벤트 (React Router가 감지)
+                if (window.history && window.history.pushState) {
+                  window.history.pushState(null, '', '/search');
+                  window.dispatchEvent(new PopStateEvent('popstate', { state: null }));
+                  return;
+                }
+                
+                // 최종 폴백: window.location (페이지 리로드 발생하지만 확실함)
+                window.location.href = '/search';
+              } catch(e) {
+                // 에러 발생 시 최종 폴백
+                try {
+                  window.location.href = '/search';
+                } catch(e2) {
+                  console.error('[WEB] Search navigation failed:', e2);
+                }
+              }
+            })();
+            true;
+          `;
+          
+          console.log('[AuthorizedWebView] Injecting search navigation script...');
+          webRef.current?.injectJavaScript(navigationScript);
         }
         return;
       }
