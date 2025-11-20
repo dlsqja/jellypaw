@@ -89,16 +89,16 @@ JellyPaw/
 │
 ├── frontend/                               
 │   │
-│   ├── jellypaw/                           # React Native 기반 모바일 앱 (Android)
-│   │   ├── android/                        # Android 네이티브 설정
+│   ├── jellypaw/             # React Native 기반 모바일 앱 (Android)
+│   │   ├── android/          # Android 네이티브 설정
 │   │   │   └── ...
 │   │   │
 │   │   ├── src/
-│   │   │   ├── layouts/                    # 레이아웃 컴포넌트 (Auth, Main, WebView)
+│   │   │   ├── layouts/       # 레이아웃 컴포넌트 (Auth, Main, WebView)
 │   │   │   ├── navigation/
 │   │   │   ├── screens/
-│   │   │   │   ├── auth/                   # 인증 화면 (회원가입 / 로그인)
-│   │   │   │   └── main/                   # 메인 화면 (Feed, Pet, Write, Mypage, Search)
+│   │   │   │   ├── auth/      # 인증 화면 (회원가입 / 로그인)
+│   │   │   │   └── main/      # 메인 화면 (Feed, Pet, Write, Mypage, Search)
 │   │   │   ├── services/                   
 │   │   │   ├── lib/
 │   │   │   ├── ui/
@@ -108,46 +108,46 @@ JellyPaw/
 │   │   ├── App.tsx
 │   │   └── ...
 │   │
-│   └── jellypaw-web/                       # React + Vite + TypeScript 기반 Webview
+│   └── jellypaw-web/          # React + Vite + TypeScript 기반 Webview
 │       ├── public/
 │       │
 │       ├── src/
 │       │   ├── assets/
 │       │   ├── components/                
 │       │   ├── pages/
-│       │   ├── layouts/                    # 페이지 레이아웃
-│       │   ├── routers/                    # React Router
-│       │   ├── services/                   # API
-│       │   ├── hooks/                      # React Query
-│       │   ├── store/                      # Zustand 전역 상태 관리
+│       │   ├── layouts/       # 페이지 레이아웃
+│       │   ├── routers/       # React Router
+│       │   ├── services/      # API
+│       │   ├── hooks/         # React Query
+│       │   ├── store/         # Zustand 전역 상태 관리
 │       │   ├── types/
 │       │   └── utils/
 │       │
 │       └── ...
 │
 ├── backend/                                
-│   ├── user/                               # User (인증, 사용자, 반려동물, 팔로우, FCM)
-│   ├── board/                              # 피드 CRU (게시글, 댓글, 좋아요, 장소)
-│   ├── board-view/                         # 피드 Read (조회 최적화)
-│   ├── reservation/                        # 예약 서비스 (예약 관리, 예약 가능 시간)
+│   ├── user/                  # User (인증, 사용자, 반려동물, 팔로우, FCM)
+│   ├── board/                 # 피드 CRU (게시글, 댓글, 좋아요, 장소)
+│   ├── board-view/            # 피드 Read (조회 최적화)
+│   ├── reservation/           # 예약 서비스 (예약 관리, 예약 가능 시간)
 │   ├── gateway/                            
 │   ├── common/                             
-│   ├── init/                               # 초기화 스크립트 (DB 생성)
-│   ├── build.gradle                        # 루트 빌드 설정
-│   ├── settings.gradle                     # 멀티 모듈 설정
-│   └── docker-compose.yml                  # 백엔드 서비스 통합
+│   ├── init/             
+│   ├── build.gradle      
+│   ├── settings.gradle   
+│   └── docker-compose.yml
 │
-├── ai/                                     # Python 기반 AI 분석 서버
+├── ai/                      # Python 기반 AI 분석 서버
 │   ├── cv_classic/
-│   │   └── ...                             # OpenCV 기반 분석 스크립트들
+│   │   └── ...              # OpenCV 기반 분석 스크립트들
 │   │
-│   ├── yolo_model/                         # YOLO 모델 기반 분석
-│   │   ├── analyze_*.py                    # 분석 스크립트
+│   ├── yolo_model/          # YOLO 모델 기반 분석
+│   │   ├── analyze_*.py  
 │   │   ├── classes.txt
 │   │   ├── data.yaml
-│   │   └── results/                        # 분석 결과 저장
+│   │   └── results/      
 │   │
-│   ├── api_server.py                       # FastAPI/Flask API 서버
+│   ├── api_server.py        # FastAPI/Flask API 서버
 │   ├── Dockerfile
 │   └── requirements.txt
 │
