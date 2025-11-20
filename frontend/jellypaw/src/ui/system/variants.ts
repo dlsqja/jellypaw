@@ -11,6 +11,7 @@ export const palette = {
 
   pink100: '#ffe0e0',
   pink200: '#FFBDBD',
+  pink300: '#ff8585',
   pink400: '#e85555',
 
   gray100: '#FAFAFA',

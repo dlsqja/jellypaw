@@ -784,7 +784,7 @@ export default function FeedWrite({ route, navigation }: Props) {
                 const isFullStar = tempRating >= star;
                 const isHalfStar = tempRating >= star - 0.5 && tempRating < star;
                 const starIconName = isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-outline';
-                const starColor = isFullStar || isHalfStar ? palette.pink400 : palette.gray200;
+                const starColor = isFullStar || isHalfStar ? palette.pink300 : palette.gray200;
                 return (
                   <TouchableOpacity
                     key={star}
@@ -1313,7 +1313,7 @@ const styles = StyleSheet.create({
   // 별점 모달 점수
   ratingModalScore: {
     fontSize: 48,
-    color: palette.pink400,
+    color: palette.pink300,
   },
   // 별점 모달 별들
   ratingModalStars: {
