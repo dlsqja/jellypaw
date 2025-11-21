@@ -30,6 +30,7 @@
 
 - 사진, 위치, 별점을 함께 업로드하여 자세하게 기록 가능
   
+  <img width="200" alt="피드작성" src="images/피드조회.gif" />
   <img width="200" alt="피드작성" src="images/피드작성.gif" />
   
 ### 2. 장소, 사용자 검색 및 예약
@@ -38,8 +39,9 @@
 - 장소 상세 페이지에서 예약기능 제공 -> SNS와 실제 서비스 이용의 연결
 
   <div classname = "flex">
-  <img width="200" alt="장소 검색" src="images/장소검색.gif" />
   <img width="200" alt="사용자 검색" src="images/사용자검색.gif" />
+  <img width="200" alt="장소 검색" src="images/장소검색.gif" />
+  <img width="200" alt="예약" src="images/예약.gif" />
   </div>
 
 ### 3. AI 기반 동물 건강 관리
@@ -56,14 +58,12 @@
 # 🛠기술 스택
 
 ### Frontend
-
 - Language: TypeScript
 - Framework: React Native, React
 - UI/스타일링: TailwindCSS
 - 상태 관리: Zustand
 
 ### Backend
-
 - Language: Java 17
 - Framework: Spring, Spring Boot 3.3.2, Spring Batch, Spring Scheduler
 - Database: MySQL 8.0, MongoDB 8, Redis 7
@@ -73,7 +73,6 @@
 - AI : OpenCV, YOLOv8, DeltaE
 
 ### Infra
-
 - Containerization: EC2, AWS S3, Docker, Docker Compose
 - CI/CD: Jenkins
 
@@ -87,75 +86,30 @@
 
 ```
 JellyPaw/
-
 │
 ├── frontend/                 # FE : React Native + React(Webview)
 │   │
-│   ├── jellypaw/             # React Native 기반 모바일 앱 (Android)
-│   │   ├── android/          # Android 네이티브 설정
-│   │   │   └── ...
-│   │   │
-│   │   ├── src/
-│   │   │   ├── layouts/       # 레이아웃 컴포넌트 (Auth, Main, WebView)
-│   │   │   ├── navigation/
-│   │   │   ├── screens/
-│   │   │   │   ├── auth/      # 인증 화면 (회원가입 / 로그인)
-│   │   │   │   └── main/      # 메인 화면 (Feed, Pet, Write, Mypage, Search)
-│   │   │   ├── services/
-│   │   │   ├── lib/
-│   │   │   ├── ui/
-│   │   │   └── types/
-│   │   │
-│   │   ├── assets/
-│   │   ├── App.tsx
+│   ├── jellypaw/             # React Native
 │   │   └── ...
 │   │
-│   └── jellypaw-web/          # React + Vite + TypeScript 기반 Webview
-│       ├── public/
-│       │
-│       ├── src/
-│       │   ├── assets/
-│       │   ├── components/
-│       │   ├── pages/
-│       │   ├── layouts/       # 페이지 레이아웃
-│       │   ├── routers/       # React Router
-│       │   ├── services/      # API
-│       │   ├── hooks/         # React Query
-│       │   ├── store/         # Zustand 전역 상태 관리
-│       │   ├── types/
-│       │   └── utils/
-│       │
+│   └── jellypaw-web/         # React + Vite + TypeScript 기반 Webview
 │       └── ...
 │
 ├── backend/                   # BE : MSA 구조
 │   ├── user/                  # User (인증, 사용자, 반려동물, 팔로우, FCM)
 │   ├── board/                 # 피드 CRU (게시글, 댓글, 좋아요, 장소)
 │   ├── board-view/            # 피드 Read (조회 최적화)
-│   ├── reservation/           # 예약 서비스 (예약 관리, 예약 가능 시간)
-│   ├── gateway/
-│   ├── common/
-│   ├── init/
-│   ├── build.gradle
-│   ├── settings.gradle
-│   └── docker-compose.yml
+│   └── reservation/           # 예약 서비스 (예약 관리, 예약 가능 시간)
 │
 ├── ai/                      # AI : Python 기반 AI 분석
 │   ├── cv_classic/
 │   │   └── ...              # OpenCV 기반 분석 스크립트들
 │   │
 │   ├── yolo_model/          # YOLO 모델 기반 분석
-│   │   ├── analyze_*.py
-│   │   ├── classes.txt
-│   │   ├── data.yaml
-│   │   └── results/
 │   │
 │   ├── api_server.py        # FastAPI/Flask API 서버
-│   ├── Dockerfile
-│   └── requirements.txt
 │
-├── package-lock.json
 └── README.md
-
 ```
 
 # 👥팀원 소개
