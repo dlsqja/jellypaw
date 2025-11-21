@@ -18,44 +18,40 @@
 ### 반려동물 종합 관리 플랫폼 서비스
 
 - 반려동물 건강 정보 및 접종 관련 기록 관리
-
 - 소변 검사 키트 활용으로 AI 결과 분석
-
 - 반려동물 동반 가능 시설 조회 및 공유
-
 - 반려동물 동반 가능 시설 예약 및 후기 작성
 
 # ⚡주요 기능
 
 ### 1. 피드 작성 / 조회
 
-- 일기 형식으로 반려동물의 일상을 기록하고, 다른 사용자의 피드를 열람 가능
-- 사진, 위치, 건강 데이터를 함께 업로드하여 반려동물의 성장 과정을 시각적으로 관리
+- 일기 형식으로 반려동물의 일상을 기록하고, 다른 사용자의 피드를 열람
 
+- 사진, 위치, 별점을 함께 업로드하여 자세하게 기록 가능
+  
   <img width="200" alt="피드작성" src="images/피드작성.gif" />
+  
+### 2. 장소, 사용자 검색 및 예약
 
-### 장소, 사용자 통합 검색 및 예약
-
-- 사용자, 장소(병원,카페 등) 검색을 통해 반려동물 관련 정보를 손쉽게 탐색
+- @사용자, 장소 검색의 방법을 분리하여 반려동물 관련 정보를 손쉽게 탐색
 - 장소 상세 페이지에서 예약기능 제공 -> SNS와 실제 서비스 이용의 연결
 
-   <div classname = "flex">
-    <img width="200" alt="장소 검색" src="images/장소검색.gif" />
-    <img width="200" alt="사용자 검색" src="images/사용자검색.gif" />
+  <div classname = "flex">
+  <img width="200" alt="장소 검색" src="images/장소검색.gif" />
+  <img width="200" alt="사용자 검색" src="images/사용자검색.gif" />
   </div>
 
 ### 3. AI 기반 동물 건강 관리
 
-- 요검사 키트를 촬영하면 CNN 모델이 색상 패턴을 분석하여 건강 지표(단백질, 포도당, 혈노 등)를 자동 판별
-
-- 검사 결과를 저장하고, 날짜별 변화 추적을 통해 건강 이력 관리 및 이상 징후 조기 발견
-
+- 요검사 키트를 촬영하면 CNN 모델이 색상 패턴을 분석하여 건강 지표를 자동 판별
 - OpenCV 기반 색상 교정 및 영역 인식 기술을 적용하여 다양한 조명 환경에서도 정확한 판별 가능
-
+- 색상 유사도 분석을 통해 10개 항목에 관한 검사 결과 제공
+  
   <div classname = "flex">
-  <img width="200" alt="건강체크" src="images/건강체크.gif" />
-  <img width="200" alt="검사내역" src="images/검사내역.gif" />
-</div>
+    <img width="200" alt="건강체크" src="images/건강체크.gif" />
+    <img width="200" alt="검사내역" src="images/검사내역.gif" />
+  </div>
 
 # 🛠기술 스택
 
@@ -93,7 +89,7 @@
 JellyPaw/
 
 │
-├── frontend/
+├── frontend/                 # FE : React Native + React(Webview)
 │   │
 │   ├── jellypaw/             # React Native 기반 모바일 앱 (Android)
 │   │   ├── android/          # Android 네이티브 설정
@@ -131,7 +127,7 @@ JellyPaw/
 │       │
 │       └── ...
 │
-├── backend/
+├── backend/                   # BE : MSA 구조
 │   ├── user/                  # User (인증, 사용자, 반려동물, 팔로우, FCM)
 │   ├── board/                 # 피드 CRU (게시글, 댓글, 좋아요, 장소)
 │   ├── board-view/            # 피드 Read (조회 최적화)
@@ -143,7 +139,7 @@ JellyPaw/
 │   ├── settings.gradle
 │   └── docker-compose.yml
 │
-├── ai/                      # Python 기반 AI 분석 서버
+├── ai/                      # AI : Python 기반 AI 분석
 │   ├── cv_classic/
 │   │   └── ...              # OpenCV 기반 분석 스크립트들
 │   │
