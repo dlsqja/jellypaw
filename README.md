@@ -61,9 +61,9 @@
 
 - Android/Web 환경에서 FCM SDK를 연동하고 알림 메시지 전송 로직 구현
 
-  <div classname = "flex justify-start">
-    <img width="200" height="200" alt="알림1" src="images/알림1.gif" style="object-fit: contain;" />
-    <img width="200" height="200" alt="알림2" src="images/알림2.gif" style="object-fit: contain;" />
+  <div classname = "flex">
+    <img width="200" height = full alt="알림1" src="images/알림1.gif" " />
+    <img width="220" height = "420" alt="알림2" src="images/알림2.gif" " />
   </div>
 
 # 🛠기술 스택
