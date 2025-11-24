@@ -28,10 +28,10 @@
 - 일기 형식으로 반려동물의 일상을 기록
 - 팔로워별 피드 목록 필터링
 - 사진, 장소, 별점을 함께 업로드하여 자세하게 기록
-  
+
   <img width="200" alt="피드작성" src="images/피드조회.gif" />
   <img width="200" alt="피드작성" src="images/피드작성.gif" />
-  
+
 ### 2. 장소, 사용자 검색 및 예약
 
 - @사용자, 장소 검색의 방법을 분리하여 반려동물 관련 정보를 손쉽게 탐색
@@ -49,27 +49,34 @@
 - 요검사 키트를 촬영하면 CNN 모델이 색상 패턴을 분석하여 건강 지표를 자동 판별
 - OpenCV 기반 색상 교정 및 영역 인식 기술을 적용하여 다양한 조명 환경에서도 정확한 판별 가능
 - 색상 유사도 분석을 통해 10개 항목에 관한 검사 결과 제공
-  
+
   <div classname = "flex">
     <img width="200" alt="건강체크" src="images/건강체크.gif" />
     <img width="200" alt="검사내역" src="images/검사내역.gif" />
   </div>
 
-### 하이브리드 앱
-- 카메라, GPS, 푸시 알림 등 네이티브 기기 기능을 활용하기 위해 네이티브 브릿지를 활용해 연동
+### 4. 하이브리드 앱
+
+- 카메라/ 갤러리, 푸시 알림 등 네이티브 기기 기능을 활용하기 위해 네이티브 브릿지를 활용해 연동
+
 - Android/Web 환경에서 FCM SDK를 연동하고 알림 메시지 전송 로직 구현
 
-
+  <div classname = "flex">
+    <img width="200" alt="알림1" src="images/알림1.gif" />
+    <img width="200" alt="알림2" src="images/알림2.gif" />
+  </div>
 
 # 🛠기술 스택
 
 ### Frontend
+
 - Language: TypeScript
 - Framework: React Native, React
 - UI/스타일링: TailwindCSS
 - 상태 관리: Zustand
 
 ### Backend
+
 - Language: Java 17
 - Framework: Spring, Spring Boot 3.3.2, Spring Batch, Spring Scheduler
 - Database: MySQL 8.0, MongoDB 8, Redis 7
@@ -79,6 +86,7 @@
 - AI : OpenCV, YOLOv8, DeltaE
 
 ### Infra
+
 - Containerization: EC2, AWS S3, Docker, Docker Compose
 - CI/CD: Jenkins
 
@@ -122,4 +130,4 @@ JellyPaw/
 
 | 전윤지   | 김유성 | 송인범 | 안성수 | 이대연 | 한진경 |
 | -------- | ------ | ------ | ------ | ------ | ------ |
-| AI, 팀장 | BE | BE     | BE     | FE     | FE     |
+| AI, 팀장 | BE     | BE     | BE     | FE     | FE     |
